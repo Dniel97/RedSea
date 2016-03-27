@@ -1,0 +1,8 @@
+{
+	"tidal_session": "<session goes here>",
+	"country_code": "<cc goes here>",
+	"quality": "HIGH",
+	"download_path": "./",
+	"album_format": "{artist} - {album}",
+	"track_format": "{tracknumber} {title}"
+}

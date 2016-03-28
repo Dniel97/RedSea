@@ -87,7 +87,7 @@ class MediaDownloader(object):
         return self._dl_url(TidalApi.get_album_artwork_url(album_id), where)
 
     def _sanitise_name(self, name):
-        return name.replace('/', '-').replace('\\', '-').replace(':', '-')
+        return name.replace('/', '-').replace('\\', '-').replace(':', '-').replace('|', '-').replace('*', '-')
 
     def _normalise_info(self, track_info):
         return {
@@ -106,6 +106,8 @@ class MediaDownloader(object):
         mkdir_p(album_location)
         print('\tGrabbing stream URL...')
         stream_data = self.api.get_stream_url(track_id, quality)
+        if not stream_data['soundQuality'] == quality:
+        	print('\tWARNING: {} quality requested, but only {} quality available.'.format(quality, stream_data['soundQuality']))
         if not stream_data['encryptionKey'] == '':
             print('\tUh-oh! Stream is encrypted. Perhaps you are using a desktop session ID?')
             return

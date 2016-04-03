@@ -2,8 +2,13 @@ import json
 
 import requests
 
+class TidalError(Exception):
+    def __init__(self, payload):
+        sf = '{subStatus}: {userMessage} (HTTP {status})'.format(**payload)
+        self.payload = payload
+        super(TidalError, self).__init__(sf)
+
 class TidalApi(object):
-    TIDAL_TOKEN = 'wdgaB1CilGA-S_s2'
     TIDAL_API_BASE = 'https://api.tidalhifi.com/v1/'
 
     def __init__(self, session_id, country_code):
@@ -12,10 +17,16 @@ class TidalApi(object):
 
     def _get(self, url, params={}):
         params['countryCode'] = self.country_code
-        return json.loads(requests.get(self.TIDAL_API_BASE + url, headers={'X-Tidal-SessionId': self.session_id}, params=params).text)
+        resp = json.loads(requests.get(self.TIDAL_API_BASE + url, headers={'X-Tidal-SessionId': self.session_id}, params=params).text)
+        if 'status' in resp and not resp['status'] == 200:
+            raise TidalError(resp)
+        return resp
+
+    def login(self, username, password, token, clientUniqueId):
+        pass
 
     def get_stream_url(self, track_id, quality):
-        return self._get('tracks/' + str(track_id) +'/streamUrl', {'soundQuality': quality})
+        return self._get('tracks/' + str(track_id) +'/offlineUrl', {'soundQuality': quality})
 
     def get_playlist_items(self, playlist_id):
         return self._get('playlists/' + playlist_id + '/items', {'offset': 0, 'limit': 100})

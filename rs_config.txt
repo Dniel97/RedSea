@@ -6,15 +6,17 @@
 		"quality": "LOSSLESS"
 	},
 	"download": {
-		"download_path": "./",
+		"path": "./",
 		"album_format": "{artist} - {album}",
 		"track_format": "{tracknumber} {title}",
-		"keep_cover_jpg": true
+		"keep_cover_jpg": true,
+		"save_album_json": true,
+		"tries": 10
 	},
 	"tagging": {
 		"embed_album_art": true,
 		"featuring_format": "(feat. {0})",
 		"featuring_field": "title",
-		"version_format": "({0} version)"
+		"version_format": "({0})"
 	}
 }

@@ -1,22 +1,19 @@
 {
-	"tidal": {
-		"session": "",
-		"country_code": "",
-		"auth_token": "",
-		"quality": "LOSSLESS"
-	},
 	"download": {
-		"path": "./",
-		"album_format": "{artist} - {album}",
-		"track_format": "{tracknumber} {title}",
 		"keep_cover_jpg": true,
-		"save_album_json": true,
-		"tries": 10
+		"save_album_json": false,
+		"tries": 10,
+		"path": "./",
+		"track_format": "{tracknumber} {title}",
+		"album_format": "{artist} - {album}"
+	},
+	"tidal": {
+		"quality": "LOSSLESS",
+		"session": "",
+		"auth_token": "kgsOOmYk3zShYrNP",
+		"country_code": ""
 	},
 	"tagging": {
-		"embed_album_art": true,
-		"featuring_format": "(feat. {0})",
-		"featuring_field": "title",
-		"version_format": "({0})"
+		"embed_album_art": true
 	}
 }

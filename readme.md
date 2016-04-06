@@ -29,7 +29,7 @@
 RedSea
 ======
 
-Music downloader for Tidal. For educational use only.
+Music downloader for Tidal. For educational use only, and may break in the future.
 
 Requirements
 ------------
@@ -39,21 +39,44 @@ Requirements
 
 Setting up
 ----------
-* Get a mobile session ID
-* Rename rs_config.txt to rs_config.json
-* Put your session ID into the `tidal_session` field in the config file
-* Run redsea -h for how to use
+1. Run `pip install -r requirements.txt` to install dependencies
+2. Rename  `rs_config.txt` to `rs_config.json`
+2. Run `redsea auth -` (or `python redsea.py auth -`) to authenticate
+
+How to use
+----------
+You need to pass media collection identifiers to RedSea so it knows what to download. These can be obtained from Tidal URLs - for instance, in `http://listen.tidal.com/album/52331911` it is a URL for an album, with the ID `52331911`, so you would download it by executing `redsea album 52331911`.
+
+    usage: redsea.py [-h] [-o filename] {album,playlist,track,auth} id
+
+    A music downloader for Tidal.
+
+    positional arguments:
+      {album,playlist,track,auth}
+                            the media type to download. Pass 'auth' to
+                            authenticate.
+      id                    The media or collection ID to download. If
+                            authenticating, pass -
+
+    optional arguments:
+      -h, --help            show this help message and exit
+      -o filename           The path to a config file. If not supplied, uses
+                            `rs_config.json' in the current directory.
+
+Notes on downloading
+-----------------------------
+Lossless downloads on a "standard" subscription may only work sometimes: this is due to a weird bug where Tidal will sometimes return a URL, but sometimes it will return a 403. This is where the `tries` config parameter comes in, as it continually repeats the stream URL request until it gets a successful response.
 
 Config file
 -----------
 
 ### `tidal`
 
-`session`: The Tidal session ID to use. Must be a mobile session.
+`session`: Automatically generated from authentication
 
-`country_code`: Should be automatically generated. Look at sample Tidal requests to obtain.
+`country_code`: Automatically generated from authentication
 
-`auth_token`: For future use.
+`auth_token`: Special Tidal authentication token
 
 `quality`: either LOW (96kbps M4A), HIGH (320kbps M4A), LOSSLESS (FLAC) - both lossy formats are VBR
 
@@ -67,22 +90,12 @@ Format variables are `{title}`, `{artist}`, `{album}`, `{tracknumber}`.
 
 `track_format`: How tracks are formatted. The relevant extension is appended to the end.
 
-`keep_cover_jpg`: For future use.
+`keep_cover_jpg`: Whether to keep the cover.jpg file in the album directory
 
-`save_album_json`: For future use.
+`save_album_json`: Saves the Tidal JSON representation as an album.json file.
 
 `tries`: How many times to attempt to get a valid stream URL.
 
 ### `tagging`
 
-`embed_album_art`: For future use.
-
-`featuring_format`: For future use.
-
-`featuring_field`: For future use.
-
-`version_format`: If a track has a Tidal `version` field, it will be appended to the title like so (with a space in between). `{0}` is the version name.
-
-TODO
-----
-* Authenticating with a username and password
+`embed_album_art`: Whether to embed album art or not into the file.

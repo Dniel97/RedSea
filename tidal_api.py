@@ -1,4 +1,5 @@
 import json
+import uuid
 
 import requests
 
@@ -10,6 +11,7 @@ class TidalError(Exception):
 
 class TidalApi(object):
     TIDAL_API_BASE = 'https://api.tidalhifi.com/v1/'
+    TIDAL_CLIENT_VERSION = '1.9.1'
 
     def __init__(self, session_id, country_code):
         self.session_id = session_id
@@ -17,16 +19,29 @@ class TidalApi(object):
 
     def _get(self, url, params={}):
         params['countryCode'] = self.country_code
-        resp = json.loads(requests.get(self.TIDAL_API_BASE + url, headers={'X-Tidal-SessionId': self.session_id}, params=params).text)
+        resp = requests.get(self.TIDAL_API_BASE + url, headers={'X-Tidal-SessionId': self.session_id}, params=params).json()
         if 'status' in resp and not resp['status'] == 200:
             raise TidalError(resp)
         return resp
 
-    def login(self, username, password, token, clientUniqueId):
-        pass
+    @classmethod
+    def login(cls, username, password, token):
+        url = 'login/username'
+        uniqueId = str(uuid.uuid4()).replace('-', '')[16:]
+        postParams = {
+            'username': username, 
+            'password': password, 
+            'token': token, 
+            'clientUniqueKey': uniqueId, 
+            'clientVersion': cls.TIDAL_CLIENT_VERSION
+        }
+        resp = requests.post(cls.TIDAL_API_BASE + url, data=postParams).json()
+        if 'status' in resp and not resp['status'] == 200:
+            raise TidalError(resp)
+        return resp
 
     def get_stream_url(self, track_id, quality):
-        return self._get('tracks/' + str(track_id) +'/offlineUrl', {'soundQuality': quality})
+        return self._get('tracks/' + str(track_id) +'/streamUrl', {'soundQuality': quality})
 
     def get_playlist_items(self, playlist_id):
         return self._get('playlists/' + playlist_id + '/items', {'offset': 0, 'limit': 100})

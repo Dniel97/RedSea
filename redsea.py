@@ -10,16 +10,16 @@ from tagger import Tagger
 from tidal_api import TidalApi, TidalError
 from mediadownloader import MediaDownloader
 
-logo =\
-" /$$$$$$$                  /$$  /$$$$$$                      \n" +\
-"| $$__  $$                | $$ /$$__  $$                     \n" +\
-"| $$  \ $$  /$$$$$$   /$$$$$$$| $$  \__/  /$$$$$$   /$$$$$$  \n" +\
-"| $$$$$$$/ /$$__  $$ /$$__  $$|  $$$$$$  /$$__  $$ |____  $$ \n" +\
-"| $$__  $$| $$$$$$$$| $$  | $$ \____  $$| $$$$$$$$  /$$$$$$$ \n" +\
-"| $$  \ $$| $$_____/| $$  | $$ /$$  \ $$| $$_____/ /$$__  $$ \n" +\
-"| $$  | $$|  $$$$$$$|  $$$$$$$|  $$$$$$/|  $$$$$$$|  $$$$$$$ \n" +\
-"|__/  |__/ \_______/ \_______/ \______/  \_______/ \_______/ \n"\
-.replace('$', '\x1B[[97m$\x1B[0m')
+logo = """
+ /$$$$$$$                  /$$  /$$$$$$                     
+| $$__  $$                | $$ /$$__  $$                    
+| $$  \ $$  /$$$$$$   /$$$$$$$| $$  \__/  /$$$$$$   /$$$$$$ 
+| $$$$$$$/ /$$__  $$ /$$__  $$|  $$$$$$  /$$__  $$ |____  $$
+| $$__  $$| $$$$$$$$| $$  | $$ \____  $$| $$$$$$$$  /$$$$$$$
+| $$  \ $$| $$_____/| $$  | $$ /$$  \ $$| $$_____/ /$$__  $$
+| $$  | $$|  $$$$$$$|  $$$$$$$|  $$$$$$/|  $$$$$$$|  $$$$$$$
+|__/  |__/ \_______/ \_______/ \______/  \_______/ \_______/
+""".replace('$', '\x1B[[97m$\x1B[0m')
 
 def open_handler(handler, files):
     args = [handler] + files
@@ -136,7 +136,10 @@ def main():
         print('<<< Downloading {0}: {1} track(s) in total >>>\n'.format(args.media, total))
         cur = 0
         for track in tracks:
-            md.download_media(track, config['tidal']['quality'], media_info)
+            ntrack = track
+            if args.media == 'playlist':
+                ntrack = track['item']
+            md.download_media(ntrack, config['tidal']['quality'], media_info)
             cur += 1
             print('=== {0}/{1} complete ({2:.0f}% done) ===\n'.format(cur, total, (cur / total) * 100))
 

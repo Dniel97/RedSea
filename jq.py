@@ -13,11 +13,11 @@ class JsonQuery(object):
 		return self.p.dumps(self.o)
 
 	def from_file(self, path):
-		with(open(path) as f):
+		with open(path) as f:
 			self.o = self.p.load(f)
 
 	def to_file(self, path):
-		with(open(path, 'r+') as f):
+		with open(path, 'r+') as f:
 			self.p.dump(f)
 
 	def sub(self, query):
@@ -31,7 +31,7 @@ class JsonQuery(object):
 			key = keyPath.pop()
 			try:
 				co = co[key]
-			except KeyError, IndexError:
+			except (KeyError, IndexError):
 				return default
 
 		return co

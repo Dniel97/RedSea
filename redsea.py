@@ -4,40 +4,13 @@ import argparse
 import json
 import getpass
 from os import path
+import subprocess
 
 from tagger import Tagger
 from tidal_api import TidalApi, TidalError
 from mediadownloader import MediaDownloader
 
-logo = "" +\
-"                           `.:;::`            \n" +\
-"                       `;;;;;;;;;;;;;,        \n" +\
-"                     ,;;:           .;;;      \n" +\
-"                   ,;;;                ;;.    \n" +\
-"                  ;;++:                 `;:   \n" +\
-"                ,;;++++++                 ;`  \n" +\
-"               :;++++++.                  ,;  \n" +\
-"              :;+++++++                    ;  \n" +\
-"             :;++++++++++              ,;` ;  \n" +\
-"            .;++++++++++`               ;;;,  \n" +\
-"            ;++++++++++             ;,  ;     \n" +\
-"           ;;++;++++++++'           ;;:;;     \n" +\
-"          ;;++;;+++++++++:      ,   ;.;:      \n" +\
-"          ;++;;++';+++++;       ;;  ;`        \n" +\
-"         ;;++;+++;++++++        ;;;,;         \n" +\
-"         ;;+;;++;;++;'++';;;;.  ;:;;          \n" +\
-"       :;;;;'+;;++;;+++;;  .;  ;              \n" +\
-"        ;;;;;;;;;+';;++;;`   :;;;             \n" +\
-"       `;;;;;;;;;;;;;+;;;                     \n" +\
-"       ;;;;;;;;;;;;;;;;;;                     \n" +\
-"       ;;;;;;;;;;;;;;;;;;;                    \n" +\
-"      .;;;;;;;;;;;;;;;;;;;:                   \n" +\
-"      ;;;;;;;;;;;;;;;;;;;;;;`     .           \n" +\
-"     .;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;,         \n" +\
-"  ; .;;;;;;;;;;;;;;,;;;;;;;;;;;;;;;;;;;:..;`  \n" +\
-"  ;;;;;;;;;;;;;;;;    ;;;;;;;;;;;;;;;;;;;;`   \n" +\
-"   .;;;;;;;;;;;;.       ;;;;;;;;;;;;;;;;;     \n" +\
-"\n" +\
+logo =\
 " /$$$$$$$                  /$$  /$$$$$$                      \n" +\
 "| $$__  $$                | $$ /$$__  $$                     \n" +\
 "| $$  \ $$  /$$$$$$   /$$$$$$$| $$  \__/  /$$$$$$   /$$$$$$  \n" +\
@@ -46,8 +19,11 @@ logo = "" +\
 "| $$  \ $$| $$_____/| $$  | $$ /$$  \ $$| $$_____/ /$$__  $$ \n" +\
 "| $$  | $$|  $$$$$$$|  $$$$$$$|  $$$$$$/|  $$$$$$$|  $$$$$$$ \n" +\
 "|__/  |__/ \_______/ \_______/ \______/  \_______/ \_______/ \n"\
-.replace(';', '\x1B[91m;\x1B[0m')\
 .replace('$', '\x1B[[97m$\x1B[0m')
+
+def open_handler(handler, files):
+    args = [handler] + files
+    subprocess.Popen(args, close_fds=True)
 
 def main():
     print(logo)
@@ -61,6 +37,20 @@ def main():
         default='rs_config.json',
         metavar='filename', 
         help='The path to a config file. If not supplied, uses `rs_config.json\' in the current directory.')
+    
+    parser.add_argument('-s', 
+        default=False, 
+        action='store_true', 
+        help='Don\'t download, just get the stream URL and pass it to a program (specified in config file). NOTE: -s will override -l.')
+        
+    parser.add_argument('-l', 
+        default=False, 
+        action='store_true',
+        help='Download then open in a program.')
+        
+    parser.add_argument('-q',
+        metavar='quality',
+        help='Override the quality specified in the config file. See readme for valid values.')
 
     parser.add_argument('media', choices=['album', 'playlist', 'track', 'auth'], help='the media type to download. Pass \'auth\' to authenticate.')
     parser.add_argument('id', help='The media or collection ID to download. If authenticating, pass -')
@@ -71,7 +61,10 @@ def main():
     config = {}
     with open(args.o) as f:
         config = json.load(f)
-
+    
+    if args.q is not None:
+        config['tidal']['quality'] = args.q
+    
     # Create a new API object
     api = TidalApi(config['tidal']['session'], config['tidal']['country_code'])
 
@@ -100,7 +93,21 @@ def main():
     if args.media == 'track':
         print('<<< Downloading single track >>>\n')
         track = api.get_track(args.id)
-        md.download_media(track, config['tidal']['quality'])
+        if args.s:
+            stream = md.get_stream_url(track['id'], config['tidal']['quality'])
+            if stream is None:
+                print('Can\'t stream!')
+            else:
+                print('\tOpening streaming program...')
+                open_handler(config['programs']['stream'], [stream['url']])
+            exit()
+            
+        _, filepath = md.download_media(track, config['tidal']['quality'])
+        
+        if args.l:
+            print('\tOpening streaming program...')
+            open_handler(config['programs']['local_stream'], [filepath])
+            exit()
 
     # Multiple track
     elif args.media == 'playlist' or args.media == 'album':
@@ -112,6 +119,18 @@ def main():
         else:
             media_info = api.get_album(args.id)
             tracks = api.get_album_tracks(args.id)['items']
+        
+        if args.s:
+            streams = []
+            for t in tracks:
+                stream = md.get_stream_url(t['id'], config['tidal']['quality'])
+                if stream is None:
+                    print('Can\'t stream!')
+                streams.append(stream['url'])
+            
+            print('\tOpening streaming program...')
+            open_handler(config['programs']['stream'], streams)
+            exit()
 
         total = len(tracks)
         print('<<< Downloading {0}: {1} track(s) in total >>>\n'.format(args.media, total))

@@ -50,19 +50,8 @@ class MediaDownloader(object):
             'album': self._sanitise_name(track_info['album']['title']),
             'tracknumber': track_info['trackNumber']
         }
-
-    def download_media(self, track_info, quality, album_info=None):
-        track_id = track_info['id']
-        print('=== Downloading track ID {0} ==='.format(track_id))
-        print('\tTrack: {tracknumber}\n\tTitle: {title}\n\tArtist: {artist}\n\tAlbum: {album}'.format(**self._normalise_info(track_info)))
-        print('\t----')
-
-        # Make locations
-        album_location = path.join(self.opts['path'], self.opts['album_format'].format(**self._normalise_info(track_info)))
-        track_file = self.opts['track_format'].format(**self._normalise_info(track_info))
-        _mkdir_p(album_location)
-
-        # Attempt to get stream URL
+    
+    def get_stream_url(self, track_id, quality):
         tries = self.opts['tries']
         def try_get_url(ntries):
             if ntries > tries:
@@ -87,12 +76,31 @@ class MediaDownloader(object):
         stream_data = try_get_url(0)
         if stream_data is None:
             return
-
+            
         if not stream_data['soundQuality'] == quality:
         	print('\tWARNING: {} quality requested, but only {} quality available.'.format(quality, stream_data['soundQuality']))
 
         if not stream_data['encryptionKey'] == '':
             print('\tUh-oh! Stream is encrypted. Perhaps you are using a desktop session ID?')
+            return
+        
+        return stream_data
+        
+
+    def download_media(self, track_info, quality, album_info=None):
+        track_id = track_info['id']
+        print('=== Downloading track ID {0} ==='.format(track_id))
+        print('\tTrack: {tracknumber}\n\tTitle: {title}\n\tArtist: {artist}\n\tAlbum: {album}'.format(**self._normalise_info(track_info)))
+        print('\t----')
+
+        # Make locations
+        album_location = path.join(self.opts['path'], self.opts['album_format'].format(**self._normalise_info(track_info)))
+        track_file = self.opts['track_format'].format(**self._normalise_info(track_info))
+        _mkdir_p(album_location)
+
+        # Attempt to get stream URL
+        stream_data = self.get_stream_url(track_id, quality)
+        if stream_data is None:
             return
 
         # Hacky way to get extension of file from URL

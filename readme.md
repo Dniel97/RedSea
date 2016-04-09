@@ -29,7 +29,7 @@
 RedSea
 ======
 
-Music downloader for Tidal. For educational use only, and may break in the future.
+Music streaming agent and downloader for Tidal. For educational use only, and may break in the future.
 
 Requirements
 ------------
@@ -99,3 +99,9 @@ Format variables are `{title}`, `{artist}`, `{album}`, `{tracknumber}`.
 ### `tagging`
 
 `embed_album_art`: Whether to embed album art or not into the file.
+
+### `programs`
+
+`stream`: Program launched when RedSea is passed the `-s` option. RedSea passes one or more URLs as arguments.
+
+`local_stream`: Program launched when RedSea is passed the `-l` option. RedSea passes one or more file paths as arguments.

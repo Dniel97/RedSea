@@ -58,8 +58,6 @@ Format variables are `{title}`, `{artist}`, `{album}`, `{tracknumber}`.
 
 `keep_cover_jpg`: Whether to keep the cover.jpg file in the album directory
 
-`save_album_json`: Saves the Tidal JSON representation as an album.json file.
-
 `tries`: How many times to attempt to get a valid stream URL.
 
 ### `tagging`

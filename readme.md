@@ -1,34 +1,5 @@
-                             `.:;::`
-                         `;;;;;;;;;;;;;,
-                       ,;;:           .;;;
-                     ,;;;                ;;.
-                    ;;++:                 `;:
-                  ,;;++++++                 ;`
-                 :;++++++.                  ,;
-                :;+++++++                    ;
-               :;++++++++++              ,;` ;
-              .;++++++++++`               ;;;,
-              ;++++++++++             ;,  ;
-             ;;++;++++++++'           ;;:;;
-            ;;++;;+++++++++:      ,   ;.;:
-            ;++;;++';+++++;       ;;  ;`
-           ;;++;+++;++++++        ;;;,;
-           ;;+;;++;;++;'++';;;;.  ;:;;
-         :;;;;'+;;++;;+++;;  .;  ;
-          ;;;;;;;;;+';;++;;`   :;;;
-         `;;;;;;;;;;;;;+;;;
-         ;;;;;;;;;;;;;;;;;;
-         ;;;;;;;;;;;;;;;;;;;
-        .;;;;;;;;;;;;;;;;;;;:
-        ;;;;;;;;;;;;;;;;;;;;;;`     .
-       .;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;,
-    ; .;;;;;;;;;;;;;;,;;;;;;;;;;;;;;;;;;;:..;`
-    ;;;;;;;;;;;;;;;;    ;;;;;;;;;;;;;;;;;;;;`
-     .;;;;;;;;;;;;.       ;;;;;;;;;;;;;;;;;
-
 RedSea
 ======
-
 Music streaming agent and downloader for Tidal. For educational use only, and may break in the future.
 
 Requirements
@@ -41,35 +12,34 @@ Setting up
 ----------
 1. Run `pip install -r requirements.txt` to install dependencies
 2. Rename  `rs_config.txt` to `rs_config.json`
-2. Run `redsea auth -` (or `python redsea.py auth -`) to authenticate
+3. Run `redsea auth` (or `python redsea.py auth`) to authenticate
 
 How to use
 ----------
-You need to pass media collection identifiers to RedSea so it knows what to download. These can be obtained from Tidal URLs - for instance, in `http://listen.tidal.com/album/52331911` it is a URL for an album, with the ID `52331911`, so you would download it by executing `redsea album 52331911`.
+### The Media argument syntax
+RedSea will take one or more *media arguments* when called - strings in the format <type>:<id>#[index]. Media IDs are a more concise way to represent a collection or track on Tidal.
 
-    usage: redsea.py [-h] [-o filename] {album,playlist,track,auth} id
+`type` is a single-character media type: it can be **a**lbum, **p**laylist, or **t**rack.
+`id` is a Tidal media identifier, which can be obtained from the URL of the media type.
+`index` is an optional index to download from in a collection (album or playlist).
 
-    A music downloader for Tidal.
+#### Examples
+* `a:34919559` - Download the album with ID `34919559`.
+* `t:26230189 a:44632346#2` - Download track `26230189`, then download track #2 off album `44632346`.
+* `p:272acf40-a98f-4c7d-a3ff-c55e0e4aa921#3`- Download track #3 off playlist `272acf40-a98f-4c7d-a3ff-c55e0e4aa921`.
 
-    positional arguments:
-      {album,playlist,track,auth}
-                            the media type to download. Pass 'auth' to
-                            authenticate.
-      id                    The media or collection ID to download. If
-                            authenticating, pass -
+### Streaming
+Passing the `-s` option will collect the stream URLs of each media type, put them into a temporary playlist, then launch the media player as defined in config with the playlist as a first argument.
+This appears to work quite well in VLC.
 
-    optional arguments:
-      -h, --help            show this help message and exit
-      -o filename           The path to a config file. If not supplied, uses
-                            `rs_config.json' in the current directory.
+Tidal issues
+------------
+* Sometimes, tracks will be tagged with a useless version (for instance, "(album version)"), or have the same version twice "(album version)(album version)". This is because tracks in
+    Tidal are not consistent in terms of metadata - sometimes a version may be included in the track title, included in the version field, or both.
+* Tracks may be tagged with an inaccurate release year; this may be because of Tidal only having the "rerelease" or "remastered" version but showing it as the original.
 
-Notes on downloading
------------------------------
-Lossless downloads on a "standard" subscription may only work sometimes: this is due to a weird bug where Tidal will sometimes return a URL, but sometimes it will return a 403. This is where the `tries` config parameter comes in, as it continually repeats the stream URL request until it gets a successful response.
-
-Config file
------------
-
+Config
+------
 ### `tidal`
 
 `session`: Automatically generated from authentication
@@ -102,6 +72,4 @@ Format variables are `{title}`, `{artist}`, `{album}`, `{tracknumber}`.
 
 ### `programs`
 
-`stream`: Program launched when RedSea is passed the `-s` option. RedSea passes one or more URLs as arguments.
-
-`local_stream`: Program launched when RedSea is passed the `-l` option. RedSea passes one or more file paths as arguments.
+`stream`: Program launched when RedSea is passed the `-s` option.

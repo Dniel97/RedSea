@@ -49,7 +49,7 @@ class MediaDownloader(object):
             'artist': self._sanitise_name(track_info['artist']['name']),
             'album': self._sanitise_name(track_info['album']['title']),
             'tracknumber': track_info['trackNumber']
-        }
+        }        
     
     def get_stream_url(self, track_id, quality):
         tries = self.opts['tries']
@@ -63,6 +63,8 @@ class MediaDownloader(object):
             except TidalError as te:
                 if te.payload['status'] == 404:
                     print('\tTrack does not exist.')
+                elif te.payload['subStatus'] == 4005:
+                    print('\t' + str(te))
                 else:
                     print('\t' + str(te))
                     if ntries == 0 and quality == 'LOSSLESS':
@@ -85,13 +87,15 @@ class MediaDownloader(object):
             return
         
         return stream_data
-        
+    
+    def print_track_info(self, track_info):
+        print('\tTrack: {tracknumber}\n\tTitle: {title}\n\tArtist: {artist}\n\tAlbum: {album}'.format(**self._normalise_info(track_info)))
+        print('\t----')
 
     def download_media(self, track_info, quality, album_info=None):
         track_id = track_info['id']
         print('=== Downloading track ID {0} ==='.format(track_id))
-        print('\tTrack: {tracknumber}\n\tTitle: {title}\n\tArtist: {artist}\n\tAlbum: {album}'.format(**self._normalise_info(track_info)))
-        print('\t----')
+        self.print_track_info(track_info)
 
         # Make locations
         album_location = path.join(self.opts['path'], self.opts['album_format'].format(**self._normalise_info(track_info)))
@@ -139,11 +143,5 @@ class MediaDownloader(object):
         # Cleanup
         if not self.opts['keep_cover_jpg']:
             os.remove(aa_location)
-
-        if self.opts['save_album_json']:
-            aj = path.join(album_location, 'album.json')
-            if not path.isfile(aj):
-                with open(aj, 'w') as f:
-                    json.dump(album_info, f, indent='\t')
 
         return (album_location, temp_file)

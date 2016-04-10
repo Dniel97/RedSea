@@ -28,10 +28,6 @@ RedSea will take one or more *media arguments* when called - strings in the form
 * `t:26230189 a:44632346#2` - Download track `26230189`, then download track #2 off album `44632346`.
 * `p:272acf40-a98f-4c7d-a3ff-c55e0e4aa921#3`- Download track #3 off playlist `272acf40-a98f-4c7d-a3ff-c55e0e4aa921`.
 
-### Streaming
-Passing the `-s` option will collect the stream URLs of each media type, put them into a temporary playlist, then launch the media player as defined in config with the playlist as a first argument.
-This appears to work quite well in VLC.
-
 Tidal issues
 ------------
 * Sometimes, tracks will be tagged with a useless version (for instance, "(album version)"), or have the same version twice "(album version)(album version)". This is because tracks in
@@ -69,7 +65,3 @@ Format variables are `{title}`, `{artist}`, `{album}`, `{tracknumber}`.
 ### `tagging`
 
 `embed_album_art`: Whether to embed album art or not into the file.
-
-### `programs`
-
-`stream`: Program launched when RedSea is passed the `-s` option.

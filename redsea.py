@@ -7,7 +7,6 @@ from os import path
 from tagger import Tagger
 from tidal_api import TidalApi, TidalError
 from mediadownloader import MediaDownloader
-import m3u_writer
 import cli
 
 logo = """
@@ -81,7 +80,7 @@ def main():
             _, filepath = md.download_media(track, config['tidal']['quality'])
             print('=== 1/1 complete (100% done) ===\n')
         # Collection
-        elif mt['type'] == 'p' or mt['type'] == 'a':
+        elif mt['type'] == 'p' or mt['type'] == 'a' or mt['type'] == 'f':
             typename = 'playlist' if mt['type'] == 'p' else 'album'
             print('<<< Getting {0} info... >>>'.format(typename), end='\r')
             media_info = None

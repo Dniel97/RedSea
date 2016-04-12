@@ -32,4 +32,3 @@ def parse_media_option(mo):
         }
         opts.append(o)
     return opts
-     

@@ -7,6 +7,7 @@ import json
 import requests
 
 from tidal_api import TidalApi, TidalError
+import FeaturingFormat
 
 def _mkdir_p(path):
     try:
@@ -43,13 +44,11 @@ class MediaDownloader(object):
     def _sanitise_name(self, name):
         return re.sub('[^\w\-_\. ]', '-', name)
 
-    def _normalise_info(self, track_info):
-        return {
-            'title': self._sanitise_name(track_info['title']),
-            'artist': self._sanitise_name(track_info['artist']['name']),
-            'album': self._sanitise_name(track_info['album']['title']),
-            'tracknumber': track_info['trackNumber']
-        }        
+    def _normalise_info(self, track_info, album_info, use_album_artists=False):
+        info = {k: self._sanitise_name(v) for k, v in self.tm.tags(track_info, album_info).items()}
+        if len(album_info['artists']) > 1 and use_album_artists:
+            info['artist'] = self._sanitise_name(FeaturingFormat.get_artist_format([a['name'] for a in album_info['artists'] if a['type'] == 'MAIN']))
+        return info
     
     def get_stream_url(self, track_id, quality):
         tries = self.opts['tries']
@@ -88,18 +87,27 @@ class MediaDownloader(object):
         
         return stream_data
     
-    def print_track_info(self, track_info):
-        print('\tTrack: {tracknumber}\n\tTitle: {title}\n\tArtist: {artist}\n\tAlbum: {album}'.format(**self._normalise_info(track_info)))
+    def print_track_info(self, track_info, album_info):
+        line = '\tTrack: {tracknumber}\n\tTitle: {title}\n\tArtist: {artist}\n\tAlbum: {album}'.format(**self.tm.tags(track_info, album_info))
+        try:
+            print(line)
+        except UnicodeEncodeError:
+            line = line.encode('ascii', 'replace').decode('ascii')
+            print(line)
         print('\t----')
 
     def download_media(self, track_info, quality, album_info=None):
         track_id = track_info['id']
         print('=== Downloading track ID {0} ==='.format(track_id))
-        self.print_track_info(track_info)
+        self.print_track_info(track_info, album_info)
+
+        if album_info is None:
+            print('\tGrabbing album info...')
+            album_info = self.api.get_album(track_info['album']['id'])
 
         # Make locations
-        album_location = path.join(self.opts['path'], self.opts['album_format'].format(**self._normalise_info(track_info)))
-        track_file = self.opts['track_format'].format(**self._normalise_info(track_info))
+        album_location = path.join(self.opts['path'], self.opts['album_format'].format(**self._normalise_info(track_info, album_info, True)))
+        track_file = self.opts['track_format'].format(**self._normalise_info(track_info, album_info))
         _mkdir_p(album_location)
 
         # Attempt to get stream URL
@@ -125,10 +133,6 @@ class MediaDownloader(object):
         if not path.isfile(aa_location):
             print('\tDownloading album art...')
             self._dl_picture(track_info['album']['cover'], aa_location)
-
-        if album_info is None:
-            print('\tGrabbing album info...')
-            album_info = self.api.get_album(track_info['album']['id'])
 
         #Tagging
         print('\tTagging media file...')

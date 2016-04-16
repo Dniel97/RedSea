@@ -67,18 +67,8 @@ class TidalApi(object):
     def get_track_contributors(self, track_id):
         return self._get('tracks/' + str(track_id) + '/contributors')
         
-    # def get_video_streams(self, video_id, quality):
-    #     url = self._get('videos/' + str(video_id) + '/streamurl')['url']
-    #     base_url = url[:url.rfind('/')] + '/'
-    #     quality_playlist = requests.get('url').text
-    #     streams_playlist = ''
-    #     next_line_is_streams_url = False
-    #     for line in quality:
-    #         if next_line_is_streams_url:
-    #             streams_playlist = base_url + line.rstrip()
-    #             break
-    #         if line.rstrip().endswith(quality):
-    #             next_line_is_streams_url = True
+    def get_video_stream_url(self, video_id):
+        return self._get('videos/' + str(video_id) + '/streamurl')
 
     @classmethod
     def get_album_artwork_url(cls, album_id, size=1280):

@@ -101,6 +101,8 @@ def main():
                 md.download_media(track, config['tidal']['quality'], media_info)
                 cur += 1
                 print('=== {0}/{1} complete ({2:.0f}% done) ===\n'.format(cur, total, (cur / total) * 100))
+        elif mt['type'] == 'v':
+            md.download_video(id, '1920x1080')
         else:
             print('Unknown media type - ' + mt['type'])
         print('> Download queue: {0}/{1} items complete ({2:.0f}% done) <\n'.format(cm, len(media_to_download), (cm / len(media_to_download)) * 100))

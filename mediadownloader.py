@@ -96,42 +96,6 @@ class MediaDownloader(object):
             line = line.encode('ascii', 'replace').decode('ascii')
             print(line)
         print('\t----')
-    
-    def download_video(self, video_id, resolution):
-        print('Downloading video ID {} ==='.format(video_id))
-        print('\tGrabbing video info...')
-        info = self.api.get_video(video_id)
-        where = path.join(self.opts['path'], info['title'] + '.ts')
-        plu = self.api.get_video_stream_url(video_id)['url']
-        print('\tTitle: {}'.format(info['title']))
-        print('\t----')
-        print('\tGetting DASH playlist...')
-        d = dash.DASH(plu)
-        items = d.parse_available_streams()
-        url = ''
-        for item in items:
-            if item['RESOLUTION'] == resolution:
-                url = item['__URL']
-                break
-            elif url == '':
-                url = item['__URL']
-        print('\tGetting video components...')
-        stream_urls = d.get_media(url)
-        suc = 0
-        sut = len(stream_urls)
-        with open(where, 'wb') as f:
-            for surl in stream_urls:
-                r = requests.get(d.base_url + surl, stream=True)
-                total = int(r.headers['content-length'])
-                cc = 0
-                for chunk in r.iter_content(chunk_size=total):
-                    cc += total
-                    print("\tDownload progress: {0:.0f}% [{1}/{2}] ".format(((cc / total) + suc) / sut * 100, suc, sut), end='\r')
-                    if chunk: # filter out keep-alive new chunks
-                        f.write(chunk)
-                suc += 1
-        print()
-        print('Done!')
 
     def download_media(self, track_info, quality, album_info=None):
         track_id = track_info['id']

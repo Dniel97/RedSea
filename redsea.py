@@ -34,8 +34,9 @@ def main():
     with open(args.o) as f:
         config = json.load(f)
     
-    if args.q is not None:
-        config['tidal']['quality'] = args.q
+    # Override loaded config with CLI options if possible
+    if args.p is not None:
+        cli.rec_update(config, cli.parse_config_overrides(args.p))
     
     # Create a new API object
     api = TidalApi(config['tidal']['session'], config['tidal']['country_code'])
@@ -102,7 +103,7 @@ def main():
                 cur += 1
                 print('=== {0}/{1} complete ({2:.0f}% done) ===\n'.format(cur, total, (cur / total) * 100))
         elif mt['type'] == 'v':
-            md.download_video(id, '1920x1080')
+            md.download_video(id, '1920x1080', config['video']['ffmpeg_command'])
         else:
             print('Unknown media type - ' + mt['type'])
         print('> Download queue: {0}/{1} items complete ({2:.0f}% done) <\n'.format(cm, len(media_to_download), (cm / len(media_to_download)) * 100))

@@ -10,7 +10,7 @@ class Tagger(object):
     def __init__(self, format_options):
         self.fmtopts = format_options
 
-    def tags(self, track_info, album_info, tagger={}):
+    def tags(self, track_info, album_info=None, tagger={}):
         title = track_info['title']
         if len(track_info['artists']) == 1:
             tagger['artist'] = track_info['artist']['name']
@@ -27,12 +27,14 @@ class Tagger(object):
             tagger['artist'] = FeaturingFormat.get_artist_format(mainArtists)
 
         tagger['album'] = track_info['album']['title']
-        # TODO: find a way to get numberOfTracks relative to the volume
-        tagger['tracknumber'] = str(track_info['trackNumber'])# + '/' + str(track_info['album_info']['numberOfTracks'])
-        tagger['discnumber'] = str(track_info['volumeNumber']) + '/' + str(album_info['numberOfVolumes'])
+        tagger['tracknumber'] = str(track_info['trackNumber'])
+        if album_info is not None:
+	        # TODO: find a way to get numberOfTracks relative to the volume
+	        # + '/' + str(track_info['album_info']['numberOfTracks'])
+	        tagger['discnumber'] = str(track_info['volumeNumber']) + '/' + str(album_info['numberOfVolumes'])
 
-        # TODO: less hacky way of getting the year?
-        tagger['date'] = str(album_info['releaseDate'][:4])
+	        # TODO: less hacky way of getting the year?
+	        tagger['date'] = str(album_info['releaseDate'][:4])
 
         if track_info['version'] is not None:
             fmt = ' ({})'.format(track_info['version'])

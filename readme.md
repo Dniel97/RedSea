@@ -2,10 +2,16 @@ RedSea
 ======
 Music downloader and tagger for Tidal. For educational use only, and may break in the future.
 
+Current state
+-------------
+RedSea is currently not being worked on any more, in favour of a better, more graphical and more Windows-only client. You are more than welcome to contribute, especially
+if you would like to fix the numerous Unicode issues. By the way, [https://listen.tidal.com/album/27937022](this) is an excellent test album to use to test Unicode compat with.
+
 Introduction
 ------------
-RedSea is a music downloader and tagger for the Tidal music streaming service. It is designed partially as a Tidal API example and partially as a proof-of-concept of the Tidal
-lossless download hack. This repository also hosts a wildly incomplete Python Tidal API implementation - it is contained in `tidal_api.py` and only requires `requests` to be
+RedSea is a music downloader and tagger for the Tidal music streaming service. It is designed partially as a Tidal API example ~~and partially as a proof-of-concept of the Tidal
+lossless download hack~~. Tidal seems to have fixed this hack, so you can't download FLACs on a normal subscription. :(. This repository also hosts a wildly incomplete Python Tidal
+API implementation - it is contained in `tidal_api.py` and only requires `requests` to be
 installed. Note that you will you have to implement the Tidal lossless download hack yourself -- you can find this in `mediadownloader.py`.
 
 Requirements
@@ -25,9 +31,9 @@ How to use
 Run `redsea -h` for an explanation of CLI args.
 
 ### The Media argument syntax
-RedSea will take one or more *media arguments* when called - strings in the format <type>:<id>#[index]. Media IDs are a more concise way to represent a collection or track on Tidal.
+RedSea will take one or more *media arguments* when called - strings in the format <type>:<id>. Media IDs are a more concise way to represent a collection or track on Tidal.
 
-`type` is a single-character media type: it can be **a**lbum, **p**laylist, or **t**rack.
+`type` is a single-character media type: it can be **a**lbum, **p**laylist, **v**ideo or **t**rack.
 `id` is a Tidal media identifier, which can be obtained from the URL of the media type.
 
 #### Examples

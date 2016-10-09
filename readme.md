@@ -5,7 +5,7 @@ Music downloader and tagger for Tidal. For educational use only, and may break i
 Current state
 -------------
 RedSea is currently not being worked on any more, in favour of a better, more graphical and more Windows-only client. You are more than welcome to contribute, especially
-if you would like to fix the numerous Unicode issues. By the way, [https://listen.tidal.com/album/27937022](this) is an excellent test album to use to test Unicode compat with.
+if you would like to fix the numerous Unicode issues. By the way, [this](https://listen.tidal.com/album/27937022) is an excellent test album to use to test Unicode compat with.
 
 Introduction
 ------------

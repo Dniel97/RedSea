@@ -8,7 +8,7 @@
 		"album_format": "{artist} - {album}"
 	},
 	"tidal": {
-		"quality": "LOSSLESS",
+		"quality": "HIGH",
 		"session": "",
 		"auth_token": "kgsOOmYk3zShYrNP",
 		"country_code": ""

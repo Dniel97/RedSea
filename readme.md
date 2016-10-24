@@ -4,7 +4,9 @@ Music downloader and tagger for Tidal. For educational use only, and may break i
 
 Current state
 -------------
-RedSea is currently not being worked on any more, in favour of a better, more graphical and more Windows-only client. You are more than welcome to contribute, especially
+If you are a Windows user, you might want to check out [Athame](svbnet/Athame), a graphical music download client. It also seems to work well on Mono, if you use Linux or OS X.
+
+RedSea is currently not being worked on any more. You are more than welcome to contribute, especially
 if you would like to fix the numerous Unicode issues. By the way, [this](https://listen.tidal.com/album/27937022) is an excellent test album to use to test Unicode compat with.
 
 Introduction
@@ -28,18 +30,22 @@ Setting up
 
 How to use
 ----------
-Run `redsea -h` for an explanation of CLI args.
+	usage: redsea.py [-h] [-o filename] [-p option] url [url ...]
 
-### The Media argument syntax
-RedSea will take one or more *media arguments* when called - strings in the format <type>:<id>. Media IDs are a more concise way to represent a collection or track on Tidal.
+	A music downloader for Tidal.
 
-`type` is a single-character media type: it can be **a**lbum, **p**laylist, **v**ideo or **t**rack.
-`id` is a Tidal media identifier, which can be obtained from the URL of the media type.
+	positional arguments:
+	  url          The URL to download.
 
-#### Examples
-* `a:34919559` - Download the album with ID `34919559`.
-* `t:26230189 a:44632346` - Download track `26230189`, then download album `44632346`.
-* `p:272acf40-a98f-4c7d-a3ff-c55e0e4aa921`- Download playlist `272acf40-a98f-4c7d-a3ff-c55e0e4aa921`.
+	optional arguments:
+	  -h, --help   show this help message and exit
+	  -o filename  The path to a config file. If not supplied, uses
+	               `rs_config.json' in the current directory.
+	  -p option    Any options specified here in `key=value' form will override
+	               the config file -- e.g. `tidal.quality=LOW' to force the
+	               quality to low. This can be used multiple times.
+
+Note that the old x:id syntax still works, but it will be removed in future commits.
 
 Tidal issues
 ------------

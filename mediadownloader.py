@@ -8,7 +8,6 @@ import requests
 
 from tidal_api import TidalApi, TidalError
 import FeaturingFormat
-import dash
 
 def _mkdir_p(path):
     try:
@@ -80,7 +79,7 @@ class MediaDownloader(object):
             return
             
         if not stream_data['soundQuality'] == quality:
-        	print('\tWARNING: {} quality requested, but only {} quality available.'.format(quality, stream_data['soundQuality']))
+            print('\tWARNING: {} quality requested, but only {} quality available.'.format(quality, stream_data['soundQuality']))
 
         if not stream_data['encryptionKey'] == '':
             print('\tUh-oh! Stream is encrypted. Perhaps you are using a desktop session ID?')
@@ -99,6 +98,9 @@ class MediaDownloader(object):
 
     def download_media(self, track_info, quality, album_info=None):
         track_id = track_info['id']
+        if not track_info['allowStreaming']:
+            print('Unable to download track {0}: not allowed to stream/download. Continuing...'.format(track_id))
+            return
         print('=== Downloading track ID {0} ==='.format(track_id))
         self.print_track_info(track_info, album_info)
 

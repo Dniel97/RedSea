@@ -1,5 +1,6 @@
 import argparse
 import collections
+from urllib.parse import urlparse
 
 # https://stackoverflow.com/a/18394648/975018
 def rec_update(orig_dict, new_dict):
@@ -29,13 +30,33 @@ def get_args():
         action='append',
         help='Any options specified here in `key=value\' form will override the config file -- e.g. `tidal.quality=LOW\' to force the quality to low. This can be used multiple times.')
 
-    parser.add_argument('media', nargs='+', help='The media to download. See readme for media download format.')
+    parser.add_argument('urls', nargs='+', help='The URLs to download.')
 
     return parser.parse_args()
 
 def parse_media_option(mo):
     opts = []
     for m in mo:
+        if m.startswith('http'):
+            url = urlparse(m)
+            components = url.path.split('/')
+            if not components or len(components) <= 2:
+                print('Invalid URL: ' + m)
+                exit()
+            type_ = components[1]
+            id_ = components[2]
+            if type_ == 'album':
+                type_ = 'a'
+            elif type_ == 'track':
+                type_ = 't'
+            elif type_ == 'playlist':
+                type_ = 'p'
+            opts.append({
+                'type': type_,
+                'id': id_
+            })
+            continue
+
         ci = m.index(':')
         hi = m.find('#')
         hi = len(m) if hi == -1 else hi

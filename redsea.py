@@ -30,7 +30,7 @@ def main():
     args = cli.get_args()
     
     # Load config
-    config = {}
+    config = { }
     with open(args.o) as f:
         config = json.load(f)
     
@@ -42,7 +42,7 @@ def main():
     api = TidalApi(config['tidal']['session'], config['tidal']['country_code'])
 
     # Authentication
-    if args.media[0] == 'auth':
+    if args.urls[0] == 'auth':
         print('AUTHENTICATION: Enter your Tidal username and password:\n')
         uname = input('Username: ')
         pswd = getpass.getpass('Password: ')
@@ -61,7 +61,7 @@ def main():
         exit()
 
     # Parse options
-    media_to_download = cli.parse_media_option(args.media)
+    media_to_download = cli.parse_media_option(args.urls)
 
     # Create a media downloader
     md = MediaDownloader(api, config['download'], Tagger(config['tagging']))
@@ -102,8 +102,6 @@ def main():
                 md.download_media(track, config['tidal']['quality'], media_info)
                 cur += 1
                 print('=== {0}/{1} complete ({2:.0f}% done) ===\n'.format(cur, total, (cur / total) * 100))
-        elif mt['type'] == 'v':
-            md.download_video(id, '1920x1080', config['video']['ffmpeg_command'])
         else:
             print('Unknown media type - ' + mt['type'])
         print('> Download queue: {0}/{1} items complete ({2:.0f}% done) <\n'.format(cm, len(media_to_download), (cm / len(media_to_download)) * 100))

@@ -30,7 +30,7 @@ def get_args():
         action='append',
         help='Any options specified here in `key=value\' form will override the config file -- e.g. `tidal.quality=LOW\' to force the quality to low. This can be used multiple times.')
 
-    parser.add_argument('urls', nargs='+', help='The URLs to download.')
+    parser.add_argument('urls', nargs='+', help='The URLs to download. You may need to wrap the URLs in double quotes if you have issues downloading.')
 
     return parser.parse_args()
 

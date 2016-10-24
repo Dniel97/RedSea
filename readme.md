@@ -30,20 +30,21 @@ Setting up
 
 How to use
 ----------
-	usage: redsea.py [-h] [-o filename] [-p option] url [url ...]
+    usage: redsea.py [-h] [-o filename] [-p option] urls [urls ...]
 
-	A music downloader for Tidal.
+    A music downloader for Tidal.
 
-	positional arguments:
-	  url          The URL to download.
+    positional arguments:
+      urls         The URLs to download. You may need to wrap the URLs in double
+                   quotes if you have issues downloading.
 
-	optional arguments:
-	  -h, --help   show this help message and exit
-	  -o filename  The path to a config file. If not supplied, uses
-	               `rs_config.json' in the current directory.
-	  -p option    Any options specified here in `key=value' form will override
-	               the config file -- e.g. `tidal.quality=LOW' to force the
-	               quality to low. This can be used multiple times.
+    optional arguments:
+      -h, --help   show this help message and exit
+      -o filename  The path to a config file. If not supplied, uses
+                   `rs_config.json' in the current directory.
+      -p option    Any options specified here in `key=value' form will override
+                   the config file -- e.g. `tidal.quality=LOW' to force the
+                   quality to low. This can be used multiple times.
 
 Note that the old x:id syntax still works, but it will be removed in future commits.
 

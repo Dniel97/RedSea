@@ -1,13 +1,13 @@
+If you are a Windows user, you might want to check out [Athame](https://github.com/svbnet/Athame), a graphical music download client. It also seems to work well on Mono, if you use Linux or OS X.
+
 RedSea
 ======
 Music downloader and tagger for Tidal. For educational use only, and may break in the future.
 
 Current state
 -------------
-If you are a Windows user, you might want to check out [Athame](svbnet/Athame), a graphical music download client. It also seems to work well on Mono, if you use Linux or OS X.
-
 RedSea is currently not being worked on any more. You are more than welcome to contribute, especially
-if you would like to fix the numerous Unicode issues. By the way, [this](https://listen.tidal.com/album/27937022) is an excellent test album to use to test Unicode compat with.
+if you would like to fix the numerous Unicode issues.
 
 Introduction
 ------------

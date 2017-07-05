@@ -22,7 +22,7 @@ class Tagger(object):
                     mainArtists.append(artist['name'])
                 elif artist['type'] == 'FEATURED':
                     featuredArtists.append(artist['name'])
-            if (len(featuredArtists) > 0):
+            if (len(featuredArtists) > 0 and '(feat.' not in title):
                 title += ' ' + FeaturingFormat.get_feature_format(featuredArtists)
             tagger['artist'] = FeaturingFormat.get_artist_format(mainArtists)
 

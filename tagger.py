@@ -36,7 +36,7 @@ class Tagger(object):
 	        # TODO: less hacky way of getting the year?
 	        tagger['date'] = str(album_info['releaseDate'][:4])
 
-        if track_info['version'] is not None:
+        if track_info['version'] is not None and track_info['version'] != '':
             fmt = ' ({})'.format(track_info['version'])
             title += fmt
         tagger['title'] = title

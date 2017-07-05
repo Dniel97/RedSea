@@ -39,10 +39,13 @@ class MediaDownloader(object):
         return where
 
     def _dl_picture(self, album_id, where):
-        return self._dl_url(TidalApi.get_album_artwork_url(album_id), where)
+        if album_id is not None:
+            return self._dl_url(TidalApi.get_album_artwork_url(album_id), where)
+        else:
+            return False
 
     def _sanitise_name(self, name):
-        return re.sub('[^\w\-_\. ]', '-', name)
+        return re.sub('[^\w\-_\. \(\)]', '-', name)
 
     def _normalise_info(self, track_info, album_info, use_album_artists=False):
         info = {k: self._sanitise_name(v) for k, v in self.tm.tags(track_info, album_info).items()}
@@ -135,7 +138,8 @@ class MediaDownloader(object):
         aa_location = path.join(album_location, 'Cover.jpg')
         if not path.isfile(aa_location):
             print('\tDownloading album art...')
-            self._dl_picture(track_info['album']['cover'], aa_location)
+            if not self._dl_picture(track_info['album']['cover'], aa_location):
+                aa_location = None
 
         #Tagging
         print('\tTagging media file...')

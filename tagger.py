@@ -10,7 +10,7 @@ class Tagger(object):
     def __init__(self, format_options):
         self.fmtopts = format_options
 
-    def tags(self, track_info, album_info=None, tagger={}):
+    def tags(self, track_info, track_type, album_info=None, tagger={}):
         title = track_info['title']
         if len(track_info['artists']) == 1:
             tagger['artist'] = track_info['artist']['name']
@@ -29,12 +29,15 @@ class Tagger(object):
         tagger['album'] = track_info['album']['title']
         tagger['tracknumber'] = str(track_info['trackNumber'])
         if album_info is not None:
-	        # TODO: find a way to get numberOfTracks relative to the volume
-	        # + '/' + str(track_info['album_info']['numberOfTracks'])
-	        tagger['discnumber'] = str(track_info['volumeNumber']) + '/' + str(album_info['numberOfVolumes'])
-
-	        # TODO: less hacky way of getting the year?
-	        tagger['date'] = str(album_info['releaseDate'][:4])
+            # TODO: find a way to get numberOfTracks relative to the volume
+            # + '/' + str(track_info['album_info']['numberOfTracks'])
+            if track_type == 'flac':
+                tagger['discnumber'] = str(track_info['volumeNumber'])
+                tagger['totaldiscs'] = str(album_info['numberOfVolumes'])
+            else:
+                tagger['discnumber'] = str(track_info['volumeNumber']) + '/' + str(album_info['numberOfVolumes'])
+            # TODO: less hacky way of getting the year?
+            tagger['date'] = str(album_info['releaseDate'][:4])
 
         if track_info['version'] is not None and track_info['version'] != '':
             fmt = ' ({})'.format(track_info['version'])
@@ -42,13 +45,13 @@ class Tagger(object):
         tagger['title'] = title
         return tagger
         
-    def _meta_tag(self, tagger, track_info, album_info):               
-        self.tags(track_info, album_info, tagger)
+    def _meta_tag(self, tagger, track_info, album_info, track_type): 
+        self.tags(track_info, track_type, album_info, tagger)
         
     def tag_flac(self, file_path, track_info, album_info, album_art_path=None):
         tagger = FLAC(file_path)
 
-        self._meta_tag(tagger, track_info, album_info)
+        self._meta_tag(tagger, track_info, album_info, 'flac')
         if self.fmtopts['embed_album_art'] and album_art_path is not None:
     	    pic = Picture()
     	    with open(album_art_path, 'rb') as f:
@@ -66,7 +69,7 @@ class Tagger(object):
     def tag_m4a(self, file_path, track_info, album_info, album_art_path=None):
         tagger = EasyMP4(file_path)
 
-        self._meta_tag(tagger, track_info, album_info)
+        self._meta_tag(tagger, track_info, album_info, 'm4a')
         if self.fmtopts['embed_album_art'] and album_art_path is not None:
     	    pic = None
     	    with open(album_art_path, 'rb') as f:

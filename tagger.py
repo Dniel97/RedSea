@@ -27,7 +27,7 @@ class Tagger(object):
             tagger['artist'] = FeaturingFormat.get_artist_format(mainArtists)
 
         tagger['album'] = track_info['album']['title']
-        tagger['tracknumber'] = str(track_info['trackNumber'])
+        tagger['tracknumber'] = str(track_info['trackNumber']).zfill(2)
         if album_info is not None:
             # TODO: find a way to get numberOfTracks relative to the volume
             # + '/' + str(track_info['album_info']['numberOfTracks'])

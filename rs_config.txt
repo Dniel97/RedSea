@@ -4,7 +4,7 @@
 		"save_album_json": false,
 		"tries": 10,
 		"path": "./",
-		"track_format": "{tracknumber} {title}",
+		"track_format": "{tracknumber} - {title}",
 		"album_format": "{artist} - {album}"
 	},
 	"tidal": {

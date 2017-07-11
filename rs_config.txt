@@ -5,7 +5,7 @@
 		"tries": 10,
 		"path": "./",
 		"track_format": "{tracknumber} - {title}",
-		"album_format": "{artist} - {album}"
+		"album_format": "{albumartist} - {album}"
 	},
 	"tidal": {
 		"quality": "HIGH",

@@ -3,7 +3,7 @@ import os.path as path
 import errno
 import re
 import json
-
+import sys
 import requests
 
 from tidal_api import TidalApi, TidalError
@@ -48,7 +48,7 @@ class MediaDownloader(object):
         return re.sub('[^\w\-_\. \(\)&\']', '-', name)
 
     def _normalise_info(self, track_info, album_info, use_album_artists=False):
-        info = {k: self._sanitise_name(v) for k, v in self.tm.tags(track_info, album_info).items()}
+        info = {k: self._sanitise_name(v) for k, v in self.tm.tags(track_info, None, album_info).items()}
         if len(album_info['artists']) > 1 and use_album_artists:
             info['artist'] = self._sanitise_name(FeaturingFormat.get_artist_format([a['name'] for a in album_info['artists'] if a['type'] == 'MAIN']))
         return info

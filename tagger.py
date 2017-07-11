@@ -26,6 +26,9 @@ class Tagger(object):
                 title += ' ' + FeaturingFormat.get_feature_format(featuredArtists)
             tagger['artist'] = FeaturingFormat.get_artist_format(mainArtists)
 
+        if album_info is not None:
+            tagger['albumartist'] = album_info['artist']['name']
+
         tagger['album'] = track_info['album']['title']
         tagger['tracknumber'] = str(track_info['trackNumber']).zfill(2)
         if album_info is not None:

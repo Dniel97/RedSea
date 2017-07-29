@@ -27,7 +27,10 @@ class MediaDownloader(object):
 
     def _dl_url(self, url, where):
         r = requests.get(url, stream=True)
-        total = int(r.headers['content-length'])
+        try:
+            total = int(r.headers['content-length'])
+        except KeyError:
+            return False
         with open(where, 'wb') as f:
             cc = 0
             for chunk in r.iter_content(chunk_size=1024):
@@ -40,7 +43,11 @@ class MediaDownloader(object):
 
     def _dl_picture(self, album_id, where):
         if album_id is not None:
-            return self._dl_url(TidalApi.get_album_artwork_url(album_id), where)
+            rc = self._dl_url(TidalApi.get_album_artwork_url(album_id), where)
+            if not rc:
+                return False
+            else:
+                return rc
         else:
             return False
 

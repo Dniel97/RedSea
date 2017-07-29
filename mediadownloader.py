@@ -45,7 +45,8 @@ class MediaDownloader(object):
             return False
 
     def _sanitise_name(self, name):
-        return re.sub('[^\w\-_\. \(\)&\']', '-', name)
+        name = re.sub('[\\\/*?"<>|]', '', name)
+        return re.sub('[:]', ' - ', name)
 
     def _normalise_info(self, track_info, album_info, use_album_artists=False):
         info = {k: self._sanitise_name(v) for k, v in self.tm.tags(track_info, None, album_info).items()}

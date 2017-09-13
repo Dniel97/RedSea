@@ -123,6 +123,10 @@ class MediaDownloader(object):
         album_location = path.join(self.opts['path'], self.opts['album_format'].format(**self._normalise_info(track_info, album_info, True)))
         track_file = self.opts['track_format'].format(**self._normalise_info(track_info, album_info))
         _mkdir_p(album_location)
+        # Make multi disc directories
+        if album_info['numberOfVolumes'] > 1:
+            disc_location = path.join(self.opts['path'], album_location, 'CD{num}'.format(num=track_info['volumeNumber']))
+            _mkdir_p(disc_location)
 
         # Attempt to get stream URL
         stream_data = self.get_stream_url(track_id, quality)
@@ -140,7 +144,11 @@ class MediaDownloader(object):
         else:
             ftype = 'flac'
 
-        track_path = path.join(album_location, track_file + '.' + ftype)
+        if album_info['numberOfVolumes'] > 1:
+            track_path = path.join(disc_location, track_file + '.' + ftype)
+        else:
+            track_path = path.join(album_location, track_file + '.' + ftype)
+
         temp_file = self._dl_url(stream_data['url'], track_path)
 
         aa_location = path.join(album_location, 'Cover.jpg')

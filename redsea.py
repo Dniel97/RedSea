@@ -34,6 +34,9 @@ def main():
     with open(args.o) as f:
         config = json.load(f)
     
+    if args.lossless:
+        config['download']['lossless_only'] = True
+
     # Override loaded config with CLI options if possible
     if args.p is not None:
         cli.rec_update(config, cli.parse_config_overrides(args.p))

@@ -91,6 +91,8 @@ class MediaDownloader(object):
             
         if not stream_data['soundQuality'] == quality:
             print('\tWARNING: {} quality requested, but only {} quality available.'.format(quality, stream_data['soundQuality']))
+            if self.opts['lossless_only']:
+                return
 
         if not stream_data['encryptionKey'] == '':
             print('\tUh-oh! Stream is encrypted. Perhaps you are using a desktop session ID?')

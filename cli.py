@@ -19,7 +19,10 @@ def get_args():
     # argparse setup
     #
     parser = argparse.ArgumentParser(description='A music downloader for Tidal.')
-
+    parser.add_argument('--lossless',
+        action='store_true',
+        help='Skip download if not available in lossless'
+    )
     parser.add_argument('-o', 
         default='rs_config.json',
         metavar='filename', 

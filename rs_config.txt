@@ -5,7 +5,8 @@
 		"tries": 10,
 		"path": "./",
 		"track_format": "{tracknumber} - {title}",
-		"album_format": "{albumartist} - {album}"
+		"album_format": "{albumartist} - {album}",
+        "lossless_only": false,
 	},
 	"tidal": {
 		"quality": "HIGH",
@@ -15,5 +16,5 @@
 	},
 	"tagging": {
 		"embed_album_art": true
-	}
+	},
 }

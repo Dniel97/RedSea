@@ -1,5 +1,6 @@
 import argparse
 import collections
+import re
 from urllib.parse import urlparse
 
 # https://stackoverflow.com/a/18394648/975018
@@ -41,6 +42,8 @@ def parse_media_option(mo):
     opts = []
     for m in mo:
         if m.startswith('http'):
+            m = re.sub(r'tidal.com\/.{2}\/store\/','tidal.com/',m)
+            m = re.sub(r'tidal.com\/store\/','tidal.com/',m)
             url = urlparse(m)
             components = url.path.split('/')
             if not components or len(components) <= 2:

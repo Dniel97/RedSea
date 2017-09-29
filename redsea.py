@@ -95,7 +95,11 @@ def main():
                     if item['type'] == 'track':
                         tracks.append(item['item'])
             else:
-                media_info = api.get_album(id)
+                try:
+                    media_info = api.get_album(id)
+                except:
+                    print('api error, skipping\n', end='\r')
+                    continue
                 tracks = api.get_album_tracks(id)['items']
 
             total = len(tracks)

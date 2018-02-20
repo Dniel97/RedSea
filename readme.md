@@ -21,6 +21,7 @@ Requirements
 * Python 3.5
 * requests
 * mutagen
+* pycrypto
 
 Setting up
 ----------

@@ -1,3 +1,4 @@
 __pycache__/
 rs_config.json
 .venv
+.vscode

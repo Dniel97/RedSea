@@ -1,0 +1,23 @@
+[[source]]
+
+url = "https://pypi.python.org/simple"
+verify_ssl = true
+name = "pypi"
+
+
+[packages]
+
+mutagen = "==1.31"
+requests = "==2.9.1"
+pycrypto = "*"
+
+
+[dev-packages]
+
+pylint = "*"
+yapf = "*"
+
+
+[requires]
+
+python_version = "3.6"

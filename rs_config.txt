@@ -9,9 +9,9 @@
 		"lossless_only": false
 	},
 	"tidal": {
-		"quality": "HIGH",
+		"quality": "LOSSLESS",
 		"session": "",
-		"auth_token": "kgsOOmYk3zShYrNP",
+		"auth_token": "4zx46pyr9o8qZNRw",
 		"country_code": ""
 	},
 	"tagging": {

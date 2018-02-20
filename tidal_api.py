@@ -60,9 +60,6 @@ class TidalApi(object):
     
     def get_favorite_tracks(self, user_id):
         return self._get('users/' + str(user_id) + '/favorites/tracks', {'limit': 9999})
-        
-    def get_favorite_tracks(self, user_id):
-        return self._get('users/' + str(user_id) + '/favorites/albums', {'limit': 9999})
     
     def get_track_contributors(self, track_id):
         return self._get('tracks/' + str(track_id) + '/contributors')

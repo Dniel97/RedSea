@@ -9,6 +9,8 @@ import requests
 from tidal_api import TidalApi, TidalError
 import FeaturingFormat
 
+from decryption import decrypt_security_token, decrypt_file
+
 def _mkdir_p(path):
     try:
         os.makedirs(path)
@@ -93,10 +95,6 @@ class MediaDownloader(object):
             print('\tWARNING: {} quality requested, but only {} quality available.'.format(quality, stream_data['soundQuality']))
             if self.opts['lossless_only']:
                 return
-
-        if not stream_data['encryptionKey'] == '':
-            print('\tUh-oh! Stream is encrypted. Perhaps you are using a desktop session ID?')
-            return
         
         return stream_data
     
@@ -152,6 +150,11 @@ class MediaDownloader(object):
             track_path = path.join(album_location, track_file + '.' + ftype)
 
         temp_file = self._dl_url(stream_data['url'], track_path)
+
+        if not stream_data['encryptionKey'] == '':
+            print('\tLooks like file is encrypted. Decrypting...')
+            key, nonce = decrypt_security_token(stream_data['encryptionKey'])
+            decrypt_file(temp_file, key, nonce)
 
         aa_location = path.join(album_location, 'Cover.jpg')
         if not path.isfile(aa_location):

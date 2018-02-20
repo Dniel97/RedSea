@@ -16,5 +16,5 @@
 	},
 	"tagging": {
 		"embed_album_art": true
-	},
+	}
 }

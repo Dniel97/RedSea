@@ -3,11 +3,12 @@ import collections
 import re
 from urllib.parse import urlparse
 
+
 # https://stackoverflow.com/a/18394648/975018
 def rec_update(orig_dict, new_dict):
     for key, val in new_dict.items():
         if isinstance(val, collections.Mapping):
-            tmp = rec_update(orig_dict.get(key, { }), val)
+            tmp = rec_update(orig_dict.get(key, {}), val)
             orig_dict[key] = tmp
         elif isinstance(val, list):
             orig_dict[key] = (orig_dict[key] + val)
@@ -15,35 +16,49 @@ def rec_update(orig_dict, new_dict):
             orig_dict[key] = new_dict[key]
     return orig_dict
 
+
 def get_args():
     #
     # argparse setup
     #
-    parser = argparse.ArgumentParser(description='A music downloader for Tidal.')
-    parser.add_argument('--lossless',
+    parser = argparse.ArgumentParser(
+        description='A music downloader for Tidal.')
+    parser.add_argument(
+        '--lossless',
         action='store_true',
-        help='Skip download if not available in lossless'
-    )
-    parser.add_argument('-o', 
+        help='Skip download if not available in lossless')
+    parser.add_argument(
+        '-o',
         default='rs_config.json',
-        metavar='filename', 
-        help='The path to a config file. If not supplied, uses `rs_config.json\' in the current directory.')
+        metavar='filename',
+        help=
+        'The path to a config file. If not supplied, uses `rs_config.json\' in the current directory.'
+    )
 
-    parser.add_argument('-p',
+    parser.add_argument(
+        '-p',
         metavar='option',
         action='append',
-        help='Any options specified here in `key=value\' form will override the config file -- e.g. `tidal.quality=LOW\' to force the quality to low. This can be used multiple times.')
+        help=
+        'Any options specified here in `key=value\' form will override the config file -- e.g. `tidal.quality=LOW\' to force the quality to low. This can be used multiple times.'
+    )
 
-    parser.add_argument('urls', nargs='+', help='The URLs to download. You may need to wrap the URLs in double quotes if you have issues downloading.')
+    parser.add_argument(
+        'urls',
+        nargs='+',
+        help=
+        'The URLs to download. You may need to wrap the URLs in double quotes if you have issues downloading.'
+    )
 
     return parser.parse_args()
+
 
 def parse_media_option(mo):
     opts = []
     for m in mo:
         if m.startswith('http'):
-            m = re.sub(r'tidal.com\/.{2}\/store\/','tidal.com/',m)
-            m = re.sub(r'tidal.com\/store\/','tidal.com/',m)
+            m = re.sub(r'tidal.com\/.{2}\/store\/', 'tidal.com/', m)
+            m = re.sub(r'tidal.com\/store\/', 'tidal.com/', m)
             url = urlparse(m)
             components = url.path.split('/')
             if not components or len(components) <= 2:
@@ -57,22 +72,16 @@ def parse_media_option(mo):
                 type_ = 't'
             elif type_ == 'playlist':
                 type_ = 'p'
-            opts.append({
-                'type': type_,
-                'id': id_
-            })
+            opts.append({'type': type_, 'id': id_})
             continue
 
         ci = m.index(':')
         hi = m.find('#')
         hi = len(m) if hi == -1 else hi
-        o = {
-            'type': m[:ci],
-            'id': m[ci + 1:hi],
-            'index': m[hi + 1:]
-        }
+        o = {'type': m[:ci], 'id': m[ci + 1:hi], 'index': m[hi + 1:]}
         opts.append(o)
     return opts
+
 
 def parse_config_overrides(l):
     if not len(l):
@@ -98,7 +107,3 @@ def parse_config_overrides(l):
                 else:
                     current = current[skey]
     return kstr
-
-
-
-

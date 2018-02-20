@@ -22,25 +22,26 @@ logo = """
                     (c) 2016 Joe Thatcher
                https://github.com/svbnet/RedSea
 \n"""
-    
+
+
 def main():
     print(logo)
-    
+
     # Get args
     args = cli.get_args()
-    
+
     # Load config
-    config = { }
+    config = {}
     with open(args.o) as f:
         config = json.load(f)
-    
+
     if args.lossless:
         config['download']['lossless_only'] = True
 
     # Override loaded config with CLI options if possible
     if args.p is not None:
         cli.rec_update(config, cli.parse_config_overrides(args.p))
-    
+
     # Create a new API object
     api = TidalApi(config['tidal']['session'], config['tidal']['country_code'])
 
@@ -68,7 +69,7 @@ def main():
 
     # Create a media downloader
     md = MediaDownloader(api, config['download'], Tagger(config['tagging']))
-    
+
     cm = 0
     for mt in media_to_download:
         cm += 1
@@ -78,7 +79,7 @@ def main():
         if mt['type'] == 't':
             print('<<< Getting track info... >>>', end='\r')
             track = api.get_track(id)
-            
+
             # Download and tag file
             print('<<< Downloading single track... >>>')
             _, filepath = md.download_media(track, config['tidal']['quality'])
@@ -103,17 +104,22 @@ def main():
                 tracks = api.get_album_tracks(id)['items']
 
             total = len(tracks)
-            print('<<< Downloading {0}: {1} track(s) in total >>>'.format(typename, total))
+            print('<<< Downloading {0}: {1} track(s) in total >>>'.format(
+                typename, total))
             cur = 0
             for track in tracks:
                 md.download_media(track, config['tidal']['quality'], media_info)
                 cur += 1
-                print('=== {0}/{1} complete ({2:.0f}% done) ===\n'.format(cur, total, (cur / total) * 100))
+                print('=== {0}/{1} complete ({2:.0f}% done) ===\n'.format(
+                    cur, total, (cur / total) * 100))
         else:
             print('Unknown media type - ' + mt['type'])
-        print('> Download queue: {0}/{1} items complete ({2:.0f}% done) <\n'.format(cm, len(media_to_download), (cm / len(media_to_download)) * 100))
+        print('> Download queue: {0}/{1} items complete ({2:.0f}% done) <\n'.
+              format(cm, len(media_to_download),
+                     (cm / len(media_to_download)) * 100))
 
     print('> All downloads completed. <')
+
 
 # Run from CLI - catch Ctrl-C and handle it gracefully
 if __name__ == '__main__':

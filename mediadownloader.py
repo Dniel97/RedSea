@@ -11,6 +11,7 @@ import FeaturingFormat
 
 from decryption import decrypt_security_token, decrypt_file
 
+
 def _mkdir_p(path):
     try:
         os.makedirs(path)
@@ -19,6 +20,7 @@ def _mkdir_p(path):
             pass
         else:
             raise
+
 
 class MediaDownloader(object):
 
@@ -37,8 +39,10 @@ class MediaDownloader(object):
             cc = 0
             for chunk in r.iter_content(chunk_size=1024):
                 cc += 1024
-                print("\tDownload progress: {0:.0f}%".format((cc / total) * 100), end='\r')
-                if chunk: # filter out keep-alive new chunks
+                print(
+                    "\tDownload progress: {0:.0f}%".format((cc / total) * 100),
+                    end='\r')
+                if chunk:  # filter out keep-alive new chunks
                     f.write(chunk)
             print()
         return where
@@ -58,13 +62,22 @@ class MediaDownloader(object):
         return re.sub('[:]', ' - ', name)
 
     def _normalise_info(self, track_info, album_info, use_album_artists=False):
-        info = {k: self._sanitise_name(v) for k, v in self.tm.tags(track_info, None, album_info).items()}
+        info = {
+            k: self._sanitise_name(v)
+            for k, v in self.tm.tags(track_info, None, album_info).items()
+        }
         if len(album_info['artists']) > 1 and use_album_artists:
-            info['artist'] = self._sanitise_name(FeaturingFormat.get_artist_format([a['name'] for a in album_info['artists'] if a['type'] == 'MAIN']))
+            info['artist'] = self._sanitise_name(
+                FeaturingFormat.get_artist_format([
+                    a['name']
+                    for a in album_info['artists']
+                    if a['type'] == 'MAIN'
+                ]))
         return info
-    
+
     def get_stream_url(self, track_id, quality):
         tries = self.opts['tries']
+
         def try_get_url(ntries):
             if ntries > tries:
                 print('\tExceeded maximum number of tries! Giving up...')
@@ -90,16 +103,19 @@ class MediaDownloader(object):
         stream_data = try_get_url(0)
         if stream_data is None:
             return
-            
+
         if not stream_data['soundQuality'] == quality:
-            print('\tWARNING: {} quality requested, but only {} quality available.'.format(quality, stream_data['soundQuality']))
+            print(
+                '\tWARNING: {} quality requested, but only {} quality available.'.
+                format(quality, stream_data['soundQuality']))
             if self.opts['lossless_only']:
                 return
-        
+
         return stream_data
-    
+
     def print_track_info(self, track_info, album_info):
-        line = '\tTrack: {tracknumber}\n\tTitle: {title}\n\tArtist: {artist}\n\tAlbum: {album}'.format(**self.tm.tags(track_info, album_info))
+        line = '\tTrack: {tracknumber}\n\tTitle: {title}\n\tArtist: {artist}\n\tAlbum: {album}'.format(
+            **self.tm.tags(track_info, album_info))
         try:
             print(line)
         except UnicodeEncodeError:
@@ -110,7 +126,9 @@ class MediaDownloader(object):
     def download_media(self, track_info, quality, album_info=None):
         track_id = track_info['id']
         if not track_info['allowStreaming']:
-            print('Unable to download track {0}: not allowed to stream/download. Continuing...'.format(track_id))
+            print(
+                'Unable to download track {0}: not allowed to stream/download. Continuing...'.
+                format(track_id))
             return
         print('=== Downloading track ID {0} ==='.format(track_id))
         self.print_track_info(track_info, album_info)
@@ -120,12 +138,18 @@ class MediaDownloader(object):
             album_info = self.api.get_album(track_info['album']['id'])
 
         # Make locations
-        album_location = path.join(self.opts['path'], self.opts['album_format'].format(**self._normalise_info(track_info, album_info, True)))
-        track_file = self.opts['track_format'].format(**self._normalise_info(track_info, album_info))
+        album_location = path.join(
+            self.opts['path'], self.opts['album_format'].format(
+                **self._normalise_info(track_info, album_info, True)))
+        track_file = self.opts['track_format'].format(
+            **self._normalise_info(track_info, album_info))
         _mkdir_p(album_location)
         # Make multi disc directories
         if album_info['numberOfVolumes'] > 1:
-            disc_location = path.join(self.opts['path'], album_location, 'CD{num}'.format(num=track_info['volumeNumber']))
+            disc_location = path.join(
+                self.opts['path'],
+                album_location,
+                'CD{num}'.format(num=track_info['volumeNumber']))
             _mkdir_p(disc_location)
 
         # Attempt to get stream URL

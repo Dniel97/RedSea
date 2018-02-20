@@ -30,8 +30,8 @@ def decrypt_security_token(security_token):
 
     # Get the audio stream decryption key and nonce from the decrypted security token
     key = decrypted_st[:16]
-    nonce = decrypted_st[16:24]# + b'\0'*8  # Pad the nonce for the CTR counter
-    
+    nonce = decrypted_st[16:24]
+
     return key, nonce
 
 
@@ -51,4 +51,3 @@ def decrypt_file(file, key, nonce):
         # Replace with decrypted file
         with open(file, 'wb') as dflac:
             dflac.write(flac)
-

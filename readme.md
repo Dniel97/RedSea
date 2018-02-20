@@ -25,7 +25,7 @@ Requirements
 
 Setting up
 ----------
-1. Run `pip install -r requirements.txt` to install dependencies
+1. Run `pipenv install --three` to install dependencies in a virtual env using Pipenv
 2. Rename  `rs_config.txt` to `rs_config.json`
 3. Run `redsea auth` (or `python redsea.py auth`) to authenticate
 

@@ -1,0 +1,25 @@
+'''
+Enter your tidal account details here
+
+You may add multiple account but the "default" account must
+always exist
+'''
+
+ACCOUNTS = {
+
+    # This account uses the auth token from the Tidal desktop app
+    "default": {
+        "session": "",
+        "auth_token": "",
+        "auth_token_app": "4zx46pyr9o8qZNRw",
+        "country_code": "US"
+    },
+
+    # This account uses the auth token from the Tidal mobile app
+    "mobile": {
+        "session": "",
+        "auth_token": "",
+        "auth_token_app": "4zx46pyr9o8qZNRw",
+        "country_code": "US"
+    },
+}

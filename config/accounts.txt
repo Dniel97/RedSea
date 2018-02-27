@@ -1,13 +1,14 @@
 '''
 Enter your tidal account details here
 
-You may add multiple account but the "default" account must
+You may add multiple accounts but the "default" account must
 always exist
 '''
 
 ACCOUNTS = {
 
     # This account uses the auth token from the Tidal desktop app
+    # Note: for MQA downloads, you must use the desktop auth token
     "default": {
         "session": "",
         "auth_token": "4zx46pyr9o8qZNRw",

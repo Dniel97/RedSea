@@ -10,16 +10,14 @@ ACCOUNTS = {
     # This account uses the auth token from the Tidal desktop app
     "default": {
         "session": "",
-        "auth_token": "",
-        "auth_token_app": "4zx46pyr9o8qZNRw",
-        "country_code": "US"
+        "auth_token": "4zx46pyr9o8qZNRw",
+        "country_code": ""
     },
 
     # This account uses the auth token from the Tidal mobile app
     "mobile": {
         "session": "",
-        "auth_token": "",
-        "auth_token_app": "4zx46pyr9o8qZNRw",
-        "country_code": "US"
+        "auth_token": "kgsOOmYk3zShYrNP",
+        "country_code": ""
     },
 }

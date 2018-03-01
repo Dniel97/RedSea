@@ -2,15 +2,15 @@
 
 import getpass
 import json
-from os import path
 
-import cli
+import redsea.cli as cli
+
 from redsea.mediadownloader import MediaDownloader
 from redsea.tagger import Tagger
 from redsea.tidal_api import TidalApi, TidalError
 
 try:
-    from config.setting import PRESETS, ACCOUNTS
+    from .config.setting import PRESETS, ACCOUNTS
 except Exception as e:
     raise e
 

@@ -1,13 +1,18 @@
 #!/usr/bin/env python
 
-import json
 import getpass
+import json
 from os import path
 
-from tagger import Tagger
-from tidal_api import TidalApi, TidalError
-from mediadownloader import MediaDownloader
 import cli
+from redsea.mediadownloader import MediaDownloader
+from redsea.tagger import Tagger
+from redsea.tidal_api import TidalApi, TidalError
+
+try:
+    from config.setting import PRESETS, ACCOUNTS
+except Exception as e:
+    raise e
 
 logo = """
  /$$$$$$$                  /$$  /$$$$$$                     
@@ -31,19 +36,11 @@ def main():
     args = cli.get_args()
 
     # Load config
-    config = {}
-    with open(args.o) as f:
-        config = json.load(f)
-
-    if args.lossless:
-        config['download']['lossless_only'] = True
-
-    # Override loaded config with CLI options if possible
-    if args.p is not None:
-        cli.rec_update(config, cli.parse_config_overrides(args.p))
+    PRESET = PRESETS[args.p]
+    ACCOUNT = ACCOUNTS[args.a]
 
     # Create a new API object
-    api = TidalApi(config['tidal']['session'], config['tidal']['country_code'])
+    api = TidalApi(ACCOUNT['session'], ACCOUNT['country_code'])
 
     # Authentication
     if args.urls[0] == 'auth':
@@ -51,16 +48,16 @@ def main():
         uname = input('Username: ')
         pswd = getpass.getpass('Password: ')
         print('Attempting authentication...')
-        auth = TidalApi.login(uname, pswd, config['tidal']['auth_token'])
-        config['tidal']['session'] = auth['sessionId']
-        config['tidal']['country_code'] = auth['countryCode']
+        auth = TidalApi.login(uname, pswd, ACCOUNT['auth_token'])
+        ACCOUNT['session'] = auth['sessionId']
+        ACCOUNT['country_code'] = auth['countryCode']
         with open(args.o, 'w') as f:
             json.dump(config, f, indent='\t')
         print('Success!')
         exit()
 
     # Check if we need to authenticate
-    if config['tidal']['session'] == '':
+    if ACCOUNT['session'] == '':
         print('Authentication required. Run again with `auth`.')
         exit()
 
@@ -68,7 +65,7 @@ def main():
     media_to_download = cli.parse_media_option(args.urls)
 
     # Create a media downloader
-    md = MediaDownloader(api, config['download'], Tagger(config['tagging']))
+    md = MediaDownloader(api, PRESET, Tagger(PRESET))
 
     cm = 0
     for mt in media_to_download:
@@ -108,7 +105,8 @@ def main():
                 typename, total))
             cur = 0
             for track in tracks:
-                md.download_media(track, config['tidal']['quality'], media_info)
+                md.download_media(track, config['tidal']['quality'],
+                                  media_info)
                 cur += 1
                 print('=== {0}/{1} complete ({2:.0f}% done) ===\n'.format(
                     cur, total, (cur / total) * 100))

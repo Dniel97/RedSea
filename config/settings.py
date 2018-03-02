@@ -80,7 +80,7 @@ PRESETS = {
     },
 
     # This preset will allow FLAC_16 and MQA files only
-    "mqa_FLAC_16": {
+    "mqa_lossless": {
         "keep_cover_jpg": True,
         "embed_album_art": True,
         "save_album_json": False,

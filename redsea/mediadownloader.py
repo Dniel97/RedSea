@@ -103,14 +103,11 @@ class MediaDownloader(object):
 
         stream_data = try_get_url(0)
         if stream_data is None:
-            return
+            raise ValueError('Stream could not be acquired')
 
-        if not stream_data['soundQuality'] == quality:
-            print(
-                '\tWARNING: {} quality requested, but only {} quality available.'.
+        if stream_data['soundQuality'] not in quality:
+            raise ValueError('ERROR: {} quality requested, but only {} quality available.'.
                 format(quality, stream_data['soundQuality']))
-            if self.opts['lossless_only']:
-                return
 
         return stream_data
 
@@ -155,8 +152,6 @@ class MediaDownloader(object):
 
         # Attempt to get stream URL
         stream_data = self.get_stream_url(track_id, quality)
-        if stream_data is None:
-            return
 
         # Hacky way to get extension of file from URL
         ftype = None

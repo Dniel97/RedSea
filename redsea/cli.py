@@ -23,6 +23,13 @@ def get_args():
         help='Select an account to use. Defaults to desktop app mode per /config/accounts.py')
 
     parser.add_argument(
+        '-s',
+        '--skip',
+        action='store_true',
+        default='False',
+        help='Halt on format/value error. This occurs when the requested quality is not found')
+
+    parser.add_argument(
         'urls',
         nargs='+',
         help=

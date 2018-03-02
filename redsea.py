@@ -55,6 +55,7 @@ def main():
         cm += 1
         id = mt['id']
         tracks = []
+
         # Single track
         if mt['type'] == 't':
             print('<<< Getting track info... >>>', end='\r')
@@ -62,14 +63,27 @@ def main():
 
             # Download and tag file
             print('<<< Downloading single track... >>>')
-            _, filepath = md.download_media(track, config['tidal']['quality'])
+            try:
+                _, filepath = md.download_media(track, preset['quality'])
+            except ValueError as e:
+                print("\t" + str(e))
+                if args.skip is True:
+                    print('Skipping track "{} - {}" due to insufficient quality'.format(
+                        track['artist']['name'], track['title']))
+                else:
+                    print('Halting on track "{} - {}" due to insufficient quality'.format(
+                        track['artist']['name'], track['title']))
+                    quit()
+
             print('=== 1/1 complete (100% done) ===\n')
+
         # Collection
         elif mt['type'] == 'p' or mt['type'] == 'a' or mt['type'] == 'f':
             typename = 'playlist' if mt['type'] == 'p' else 'album'
             print('<<< Getting {0} info... >>>'.format(typename), end='\r')
             media_info = None
             if mt['type'] == 'p':
+
                 # Make sure only tracks are in playlist items
                 playlistItems = api.get_playlist_items(id)['items']
                 for item in playlistItems:
@@ -87,8 +101,9 @@ def main():
             print('<<< Downloading {0}: {1} track(s) in total >>>'.format(
                 typename, total))
             cur = 0
+
             for track in tracks:
-                md.download_media(track, config['tidal']['quality'],
+                md.download_media(track, preset['quality'],
                                   media_info)
                 cur += 1
                 print('=== {0}/{1} complete ({2:.0f}% done) ===\n'.format(

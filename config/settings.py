@@ -14,15 +14,15 @@ track_format: naming mask for tracks
 album_format: naming mask for abum directories
 
 === Formats ===
-HI_RES: MQA Format / 24bit FLAC with high-frequency "folded" data
-LOSSLESS: 16bit FLAC
-HIGH: 320Kbps AAC
-LOW: 96Kbps AAC
+MQA_FLAC_24: MQA Format / 24bit FLAC with high-frequency "folded" data
+FLAC_16: 16bit FLAC
+AAC_320: 320Kbps AAC
+AAC_96: 96Kbps AAC
 
 '''
 
 try:
-    from accounts import ACCOUNTS
+    from .accounts import ACCOUNTS
 except ModuleNotFoundError as e:
     import shutil
     import fileinput
@@ -49,7 +49,7 @@ except ModuleNotFoundError as e:
 
 PRESETS = {
 
-    # Default settings / only download LOSSLESS
+    # Default settings / only download FLAC_16
     "default": {
         "keep_cover_jpg": True,
         "embed_album_art": True,
@@ -58,10 +58,10 @@ PRESETS = {
         "path": "./",
         "track_format": "{tracknumber} - {title}",
         "album_format": "{albumartist} - {album}",
-        "HI_RES": False,
-        "LOSSLESS": True,
-        "HIGH": False,
-        "LOW": False
+        "MQA_FLAC_24": False,
+        "FLAC_16": True,
+        "AAC_320": False,
+        "AAC_96": False
     },
 
     # This will download the highest available quality including MQA
@@ -73,14 +73,14 @@ PRESETS = {
         "path": "./",
         "track_format": "{tracknumber} - {title}",
         "album_format": "{albumartist} - {album}",
-        "HI_RES": True,
-        "LOSSLESS": True,
-        "HIGH": True,
-        "LOW": True
+        "MQA_FLAC_24": True,
+        "FLAC_16": True,
+        "AAC_320": True,
+        "AAC_96": True
     },
 
-    # This preset will allow LOSSLESS and MQA files only
-    "mqa_lossless": {
+    # This preset will allow FLAC_16 and MQA files only
+    "mqa_FLAC_16": {
         "keep_cover_jpg": True,
         "embed_album_art": True,
         "save_album_json": False,
@@ -88,10 +88,10 @@ PRESETS = {
         "path": "./",
         "track_format": "{tracknumber} - {title}",
         "album_format": "{albumartist} - {album}",
-        "HI_RES": True,
-        "LOSSLESS": True,
-        "HIGH": False,
-        "LOW": False
+        "MQA_FLAC_24": True,
+        "FLAC_16": True,
+        "AAC_320": False,
+        "AAC_96": False
     },
 
     # This preset will only download MQA
@@ -103,9 +103,9 @@ PRESETS = {
         "path": "./",
         "track_format": "{tracknumber} - {title}",
         "album_format": "{albumartist} - {album}",
-        "HI_RES": True,
-        "LOSSLESS": False,
-        "HIGH": False,
-        "LOW": False
+        "MQA_FLAC_24": True,
+        "FLAC_16": False,
+        "AAC_320": False,
+        "AAC_96": False
     },
 }

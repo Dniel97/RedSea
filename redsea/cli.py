@@ -11,17 +11,15 @@ def get_args():
         description='A music downloader for Tidal.')
 
     parser.add_argument(
-        '-p'
+        '-p',
         '--preset',
         default='default',
-        action='store_true',
         help='Select a download preset. Defaults to Lossless only. See /config/settings.py for presets')
 
     parser.add_argument(
-        '-a'
+        '-a',
         '--account',
         default='default',
-        action='store_true',
         help='Select an account to use. Defaults to desktop app mode per /config/accounts.py')
 
     parser.add_argument(

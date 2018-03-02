@@ -33,36 +33,22 @@ def main():
     args = cli.get_args()
 
     # Load config
-    PRESET = PRESETS[args.p]
-    ACCOUNT = ACCOUNTS[args.a]
+    preset = PRESETS[args.preset]
+    ACCOUNT = ACCOUNTS[args.account]
 
     # Create a new API object
     api = TidalApi(ACCOUNT['session'], ACCOUNT['country_code'])
 
-    # Authentication
-    if args.urls[0] == 'auth':
-        print('AUTHENTICATION: Enter your Tidal username and password:\n')
-        uname = input('Username: ')
-        pswd = getpass.getpass('Password: ')
-        print('Attempting authentication...')
-        auth = TidalApi.login(uname, pswd, ACCOUNT['auth_token'])
-        ACCOUNT['session'] = auth['sessionId']
-        ACCOUNT['country_code'] = auth['countryCode']
-        with open(args.o, 'w') as f:
-            json.dump(config, f, indent='\t')
-        print('Success!')
-        exit()
-
-    # Check if we need to authenticate
-    if ACCOUNT['session'] == '':
-        print('Authentication required. Run again with `auth`.')
-        exit()
-
     # Parse options
+    preset['quality'] = []
+    preset['quality'].append('HI_RES') if preset['MQA_FLAC_24'] else None
+    preset['quality'].append('LOSSLESS') if preset['FLAC_16'] else None
+    preset['quality'].append('HIGH') if preset['AAC_320'] else None
+    preset['quality'].append('LOW') if preset['AAC_96'] else None
     media_to_download = cli.parse_media_option(args.urls)
 
     # Create a media downloader
-    md = MediaDownloader(api, PRESET, Tagger(PRESET))
+    md = MediaDownloader(api, preset, Tagger(preset))
 
     cm = 0
     for mt in media_to_download:

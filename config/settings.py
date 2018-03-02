@@ -21,7 +21,31 @@ LOW: 96Kbps AAC
 
 '''
 
-from accounts import ACCOUNTS
+try:
+    from accounts import ACCOUNTS
+except ModuleNotFoundError as e:
+    import shutil
+    import fileinput
+    import getpass
+    from redsea.tidal_api import TidalApi
+
+    print('AUTHENTICATION: Enter your Tidal username and password:\n')
+    uname = input('Username: ')
+    pswd = getpass.getpass('Password: ')
+
+    print('Creating account store...')
+    shutil.copy('./config/accounts.txt', './config/accounts.py')
+
+    print('Attempting authentication...')
+    auth = TidalApi.login(uname, pswd, 'kgsOOmYk3zShYrNP')
+
+    for line in fileinput.input('./config/accounts.py', inplace=True):
+        print(
+            line.replace('{session}', auth['sessionId']).replace(
+                '{country_code}', auth['countryCode']), end='')
+
+    print('Success! Continuing..')
+
 
 PRESETS = {
 

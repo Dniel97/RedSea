@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-import getpass
 import json
 
 import redsea.cli as cli
@@ -9,10 +8,8 @@ from redsea.mediadownloader import MediaDownloader
 from redsea.tagger import Tagger
 from redsea.tidal_api import TidalApi, TidalError
 
-try:
-    from .config.setting import PRESETS, ACCOUNTS
-except Exception as e:
-    raise e
+from config.settings import PRESETS, ACCOUNTS
+
 
 logo = """
  /$$$$$$$                  /$$  /$$$$$$                     

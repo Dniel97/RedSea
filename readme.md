@@ -70,7 +70,24 @@ TODO
 Config reference
 ----------------
 
-### `Presets`
+### `Stock Presets`
+
+`default`: FLAC 44.1k / 16bit only
+
+`best_available`: Download the highest available quality (MQA > FLAC > 320 > 96)
+
+`mqa_flac`: Accept both MQA 24bit and FLAC 16bit
+
+`MQA`: Only allow FLAC 44.1k / 24bit (includes 'folded' 96k content)
+
+`FLAC`: FLAC 44.1k / 16bit only
+
+`320`: AAC ~320 VBR only
+
+`96`: AAC ~96 VBR only
+
+
+### `Preset Configuration Variables`
 
 `keep_cover_jpg`: Whether to keep the cover.jpg file in the album directory
 

@@ -4,6 +4,16 @@ Store your redsea download presets here
 You may modify/add/remove as you wish. The only preset which must exist is "default"
 and you may change the default as needed.
 
+=== Stock Presets ===
+(use these with the -p flag)
+default:            FLAC 44.1k / 16bit only
+best_available:     Download the highest available quality (MQA > FLAC > 320 > 96)
+mqa_flac:           Accept both MQA 24bit and FLAC 16bit
+MQA:                Only allow FLAC 44.1k / 24bit (includes 'folded' 96k content)
+FLAC:               FLAC 44.1k / 16bit only
+320:                AAC ~320 VBR only
+96:                 AAC ~96 VBR only
+
 === Options ===
 keep_cover_jpg: save the cover art to the album directory
 embed_album_art: embed the album art into each audio file

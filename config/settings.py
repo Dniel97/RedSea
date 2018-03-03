@@ -56,7 +56,7 @@ PRESETS = {
     },
 
     # This preset will allow FLAC_16 and MQA files only
-    "mqa_lossless": {
+    "mqa_flac": {
         "keep_cover_jpg": True,
         "embed_album_art": True,
         "save_album_json": False,
@@ -71,7 +71,7 @@ PRESETS = {
     },
 
     # This preset will only download MQA
-    "mqa_only": {
+    "MQA": {
         "keep_cover_jpg": True,
         "embed_album_art": True,
         "save_album_json": False,
@@ -83,6 +83,54 @@ PRESETS = {
         "FLAC_16": False,
         "AAC_320": False,
         "AAC_96": False
+    },
+
+
+    # This preset will only download FLAC 16
+    "FLAC": {
+        "keep_cover_jpg": True,
+        "embed_album_art": True,
+        "save_album_json": False,
+        "tries": 5,
+        "path": "./",
+        "track_format": "{tracknumber} - {title}",
+        "album_format": "{albumartist} - {album}",
+        "MQA_FLAC_24": False,
+        "FLAC_16": True,
+        "AAC_320": False,
+        "AAC_96": False
+    },
+
+
+    # This preset will only download AAC ~320
+    "320": {
+        "keep_cover_jpg": True,
+        "embed_album_art": True,
+        "save_album_json": False,
+        "tries": 5,
+        "path": "./",
+        "track_format": "{tracknumber} - {title}",
+        "album_format": "{albumartist} - {album}",
+        "MQA_FLAC_24": False,
+        "FLAC_16": False,
+        "AAC_320": True,
+        "AAC_96": False
+    },
+
+
+    # This preset will only download AAC ~96
+    "96": {
+        "keep_cover_jpg": True,
+        "embed_album_art": True,
+        "save_album_json": False,
+        "tries": 5,
+        "path": "./",
+        "track_format": "{tracknumber} - {title}",
+        "album_format": "{albumartist} - {album}",
+        "MQA_FLAC_24": False,
+        "FLAC_16": False,
+        "AAC_320": False,
+        "AAC_96": True
     },
 }
 

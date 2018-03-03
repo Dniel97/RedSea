@@ -3,7 +3,34 @@ from mutagen.mp4 import MP4Cover
 from mutagen.easymp4 import EasyMP4
 from mutagen.id3 import PictureType
 
-import FeaturingFormat
+
+class FeaturingFormat():
+    '''
+    Formatter for featuring artist tags
+    '''
+    def _format(self, featuredArtists, andStr):
+        artists = ''
+        if len(featuredArtists) == 1:
+            artists = featuredArtists[0]
+        elif len(featuredArtists) == 2:
+            artists = featuredArtists[0] + ' {} '.format(andStr) + featuredArtists[1]
+        else:
+            for i in range(0, len(featuredArtists)):
+                name = featuredArtists[i]
+                artists += name
+                if i < len(featuredArtists) - 1:
+                    artists += ', '
+                if i == len(featuredArtists) - 2:
+                    artists += andStr + ' '
+        return artists
+
+
+    def get_artist_format(self, mainArtists):
+        return self._format(mainArtists, '&')
+
+
+    def get_feature_format(self, featuredArtists):
+        return '(feat. {})'.format(self._format(featuredArtists, 'and'))
 
 
 class Tagger(object):
@@ -24,9 +51,10 @@ class Tagger(object):
                 elif artist['type'] == 'FEATURED':
                     featuredArtists.append(artist['name'])
             if (len(featuredArtists) > 0 and '(feat.' not in title):
-                title += ' ' + FeaturingFormat.get_feature_format(
+                self.featform = FeaturingFormat()
+                title += ' ' + self.featform.get_feature_format(
                     featuredArtists)
-            tagger['artist'] = FeaturingFormat.get_artist_format(mainArtists)
+            tagger['artist'] = self.featform.get_artist_format(mainArtists)
 
         if album_info is not None:
             tagger['albumartist'] = album_info['artist']['name']
@@ -84,3 +112,5 @@ class Tagger(object):
             tagger.RegisterTextKey('covr', 'covr')
             tagger['covr'] = [pic]
         tagger.save(file_path)
+
+

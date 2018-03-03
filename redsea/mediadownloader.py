@@ -106,8 +106,9 @@ class MediaDownloader(object):
             raise ValueError('Stream could not be acquired')
 
         if stream_data['soundQuality'] not in quality:
-            raise ValueError('ERROR: {} quality requested, but only {} quality available.'.
-                format(quality, stream_data['soundQuality']))
+            if not (stream_data['codec'] == 'MQA' and quality[0] == 'HI_RES'):
+                raise ValueError('ERROR: {} quality requested, but only {} quality available.'.
+                    format(quality, stream_data['soundQuality']))
 
         return stream_data
 

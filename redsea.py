@@ -37,7 +37,7 @@ def main():
     ACCOUNT = ACCOUNTS[args.account]
 
     # Create a new API object
-    api = TidalApi(ACCOUNT['session'], ACCOUNT['country_code'])
+    api = TidalApi(ACCOUNT['sessionId'], ACCOUNT['countryCode'])
 
     # Parse options
     preset['quality'] = []

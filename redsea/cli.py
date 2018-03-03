@@ -19,15 +19,15 @@ def get_args():
     parser.add_argument(
         '-a',
         '--account',
-        default='default',
-        help='Select an account to use. Defaults to desktop app mode per /config/accounts.py')
+        default='desktop',
+        help='Select an account to use. Defaults to desktop account as defined in /config/accounts.json')
 
     parser.add_argument(
         '-s',
         '--skip',
         action='store_true',
         default='False',
-        help='Halt on format/value error. This occurs when the requested quality is not found')
+        help='Pass this flag to skip track and continue when a track does not meet the requested quality')
 
     parser.add_argument(
         'urls',

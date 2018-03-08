@@ -20,7 +20,7 @@ def get_args():
         '-a',
         '--account',
         default='default',
-        help='Select an account to use. Defaults to desktop account as defined in /config/accounts.json')
+        help='Select a session/account to use. Defaults to the "default" session.')
 
     parser.add_argument(
         '-s',

@@ -34,6 +34,24 @@ Setting up (with Pipenv)
 2. Run `pipenv run python redsea.py -h` to view the help file
 3. Run `pipenv run python redsea.py urls` to download lossless files from urls
 
+How to add accounts/sessions
+----------------------------
+    usage:  redsea.py auth list
+            redsea.py auth add
+            redsea.py auth remove
+
+
+    positional arguments:
+
+    list                Lists stored sessions if any exist
+
+    add                 Prompts for a Tidal username and password and
+                        authorizes a session which then gets stored in
+                        the sessions file
+
+    remove              Removes a stored session from the sessions file
+                        by name
+
 How to use
 ----------
     usage: redsea.py [-h] [-p PRESET] [-a ACCOUNT] [-s] urls [urls ...]
@@ -41,17 +59,18 @@ How to use
     A music downloader for Tidal.
 
     positional arguments:
-    urls                  The URLs to download. You may need to wrap the URLs in
+    urls                    The URLs to download. You may need to wrap the URLs in
                             double quotes if you have issues downloading.
 
     optional arguments:
-    -h, --help            show this help message and exit
+    -h, --help              show this help message and exit
     -p PRESET, --preset PRESET
                             Select a download preset. Defaults to Lossless only.
                             See /config/settings.py for presets
     -a ACCOUNT, --account ACCOUNT
-                            Select an account to use. Defaults to desktop account
-                            as defined in /config/accounts.json
+                            Select a session/account to use. Defaults to
+                            the "default" session. If it does not exist, you
+                            will be prompted to create one
     -s, --skip            Pass this flag to skip track and continue when a track
                             does not meet the requested quality
 
@@ -104,14 +123,3 @@ Format variables are `{title}`, `{artist}`, `{album}`, `{tracknumber}`.
 `track_format`: How tracks are formatted. The relevant extension is appended to the end.
 
 `album_format`: Base album directory - tracks and cover art are stored here. May have slashes in it, for instance {artist}/{album}.
-
-
-### `Accounts`
-
-`sessionId`: Automatically generated from authentication
-
-`countryCode`: Automatically generated from authentication
-
-`auth_token`: Special Tidal authentication token which tells Tidal where the request is from
-
-`userId`: Your unique Tidal account user ID

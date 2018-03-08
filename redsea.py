@@ -6,9 +6,9 @@ import redsea.cli as cli
 
 from redsea.mediadownloader import MediaDownloader
 from redsea.tagger import Tagger
-from redsea.tidal_api import TidalApi, TidalError
+from redsea.tidal_api import TidalApi, TidalError, TidalSessionStore
 
-from config.settings import PRESETS, ACCOUNTS
+from config.settings import PRESETS
 
 
 logo = """
@@ -27,17 +27,37 @@ logo = """
 
 
 def main():
-    print(logo)
-
     # Get args
     args = cli.get_args()
 
+    # Check for auth flag / session settings
+    sessions = TidalSessionStore('./config/sessions.pk')
+    if args.urls[0] == 'auth' and len(args.urls) == 1:
+        print('\nThe "auth" command provides the following methods:')
+        print('\n  list:    list the currently stored sessions')
+        print('  add:     login and store a new session')
+        print('  remove:  permanently remove a stored session')
+        print('\nUsage: redsea.py auth add\n')
+        exit()
+    elif args.urls[0] == 'auth' and len(args.urls) > 1:
+        if args.urls[1] == 'list':
+            sessions.list_accounts()
+            exit()
+        elif args.urls[1] == 'add':
+            sessions.new_session()
+            sessions.save_session()
+            exit()
+        elif args.urls[1] == 'remove':
+            sessions.remove_session()
+            exit()
+
     # Load config
+    print(logo)
     preset = PRESETS[args.preset]
-    ACCOUNT = ACCOUNTS[args.account]
+    session = sessions.load_session(args.account)
 
     # Create a new API object
-    api = TidalApi(ACCOUNT['sessionId'], ACCOUNT['countryCode'])
+    api = TidalApi(session['sessionId'], session['countryCode'])
 
     # Parse options
     preset['quality'] = []

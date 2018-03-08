@@ -19,7 +19,7 @@ def get_args():
     parser.add_argument(
         '-a',
         '--account',
-        default='desktop',
+        default='default',
         help='Select an account to use. Defaults to desktop account as defined in /config/accounts.json')
 
     parser.add_argument(

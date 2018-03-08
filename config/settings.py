@@ -31,8 +31,6 @@ AAC_96: 96Kbps AAC
 
 '''
 
-import json
-
 PRESETS = {
 
     # Default settings / only download FLAC_16
@@ -143,50 +141,3 @@ PRESETS = {
         "AAC_96": True
     },
 }
-
-def get_accounts(atext='./config/accounts.txt', 
-                 ajson='./config/accounts.json',
-                 auth_types={
-                     'desktop': '4zx46pyr9o8qZNRw',
-                     'mobile': 'kgsOOmYk3zShYrNP',
-                 }):
-    '''
-    This method attempts to load the accounts file. If the file cannot be loaded,
-    it attempts to generate the accounts file by providing a method of authentication
-    '''
-    try:
-        with open(ajson) as f:
-            return json.load(f)
-    except FileNotFoundError as e:
-        try:
-            import getpass
-
-            from redsea.tidal_api import TidalApi
-
-            print('AUTHENTICATION: Enter your Tidal username and password:\n')
-            uname = input('Username: ')
-            pswd = getpass.getpass('Password: ')
-
-            print('Attempting authentication...')
-            accounts = {}
-            for t in auth_types:
-                auth = TidalApi.login(uname, pswd, auth_types[t])
-                auth['auth_token'] = auth_types[t]
-                accounts[t] = auth
-
-            print('Writing sessions to file...')
-            with open(ajson, 'w') as f:
-                json.dump(accounts, f, indent='\t')
-                f.close()
-
-            print('Success! Continuing..')
-            return accounts
-
-        except Exception as e:
-            print('Authentication failed. Reverting changes..')
-            import os
-            if ajson is not None and os.path.isfile(ajson):
-                os.remove(ajson)
-            raise e
-
-ACCOUNTS = get_accounts()

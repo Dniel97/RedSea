@@ -43,6 +43,7 @@ class Tagger(object):
         if len(track_info['artists']) == 1:
             tagger['artist'] = track_info['artist']['name']
         else:
+            self.featform = FeaturingFormat()
             mainArtists = []
             featuredArtists = []
             for artist in track_info['artists']:
@@ -51,7 +52,6 @@ class Tagger(object):
                 elif artist['type'] == 'FEATURED':
                     featuredArtists.append(artist['name'])
             if (len(featuredArtists) > 0 and '(feat.' not in title):
-                self.featform = FeaturingFormat()
                 title += ' ' + self.featform.get_feature_format(
                     featuredArtists)
             tagger['artist'] = self.featform.get_artist_format(mainArtists)

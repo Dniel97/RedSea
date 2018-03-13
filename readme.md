@@ -6,14 +6,13 @@ Music downloader and tagger for Tidal. For educational use only, and may break i
 
 Current state
 -------------
-RedSea is currently not being worked on any more. You are more than welcome to contribute, especially
-if you would like to fix the numerous Unicode issues.
+RedSea is currently being worked on by members of RED. Reach out to RedSudo for more info
 
 Introduction
 ------------
 RedSea is a music downloader and tagger for the Tidal music streaming service. It is designed partially as a Tidal API example ~~and partially as a proof-of-concept of the Tidal
 lossless download hack~~. Tidal seems to have fixed this hack, so you can't download FLACs on a normal subscription. :(. This repository also hosts a wildly incomplete Python Tidal
-API implementation - it is contained in `tidal_api.py` and only requires `requests` to be
+API implementation - it is contained in `config/tidal_api.py` and only requires `requests` to be
 installed. Note that you will you have to implement the Tidal lossless download hack yourself -- you can find this in `mediadownloader.py`.
 
 Requirements
@@ -21,32 +20,59 @@ Requirements
 * Python 3.5
 * requests
 * mutagen
+* pycrypto
 
-Setting up
-----------
+Setting up (with pip)
+------------------------
 1. Run `pip install -r requirements.txt` to install dependencies
-2. Rename  `rs_config.txt` to `rs_config.json`
-3. Run `redsea auth` (or `python redsea.py auth`) to authenticate
+2. Run `python redsea.py -h` to view the help file
+3. Run `python redsea.py urls` to download lossless files from urls
+
+Setting up (with Pipenv)
+------------------------
+1. Run `pipenv install --three` to install dependencies in a virtual env using Pipenv
+2. Run `pipenv run python redsea.py -h` to view the help file
+3. Run `pipenv run python redsea.py urls` to download lossless files from urls
+
+How to add accounts/sessions
+----------------------------
+    usage:  redsea.py auth list
+            redsea.py auth add
+            redsea.py auth remove
+
+
+    positional arguments:
+
+    list                Lists stored sessions if any exist
+
+    add                 Prompts for a Tidal username and password and
+                        authorizes a session which then gets stored in
+                        the sessions file
+
+    remove              Removes a stored session from the sessions file
+                        by name
 
 How to use
 ----------
-    usage: redsea.py [-h] [-o filename] [-p option] urls [urls ...]
+    usage: redsea.py [-h] [-p PRESET] [-a ACCOUNT] [-s] urls [urls ...]
 
     A music downloader for Tidal.
 
     positional arguments:
-      urls         The URLs to download. You may need to wrap the URLs in double
-                   quotes if you have issues downloading.
+    urls                    The URLs to download. You may need to wrap the URLs in
+                            double quotes if you have issues downloading.
 
     optional arguments:
-      -h, --help   show this help message and exit
-      -o filename  The path to a config file. If not supplied, uses
-                   `rs_config.json' in the current directory.
-      -p option    Any options specified here in `key=value' form will override
-                   the config file -- e.g. `tidal.quality=LOW' to force the
-                   quality to low. This can be used multiple times.
-
-Note that the old x:id syntax still works, but it will be removed in future commits.
+    -h, --help              show this help message and exit
+    -p PRESET, --preset PRESET
+                            Select a download preset. Defaults to Lossless only.
+                            See /config/settings.py for presets
+    -a ACCOUNT, --account ACCOUNT
+                            Select a session/account to use. Defaults to
+                            the "default" session. If it does not exist, you
+                            will be prompted to create one
+    -s, --skip            Pass this flag to skip track and continue when a track
+                            does not meet the requested quality
 
 Tidal issues
 ------------
@@ -62,30 +88,38 @@ TODO
 
 Config reference
 ----------------
-### `tidal`
 
-`session`: Automatically generated from authentication
+### `Stock Presets`
 
-`country_code`: Automatically generated from authentication
+`default`: FLAC 44.1k / 16bit only
 
-`auth_token`: Special Tidal authentication token
+`best_available`: Download the highest available quality (MQA > FLAC > 320 > 96)
 
-`quality`: either LOW (96kbps M4A), HIGH (320kbps M4A), LOSSLESS (FLAC) - both lossy formats are VBR
+`mqa_flac`: Accept both MQA 24bit and FLAC 16bit
 
-### `download`
+`MQA`: Only allow FLAC 44.1k / 24bit (includes 'folded' 96k content)
+
+`FLAC`: FLAC 44.1k / 16bit only
+
+`320`: AAC ~320 VBR only
+
+`96`: AAC ~96 VBR only
+
+
+### `Preset Configuration Variables`
+
+`keep_cover_jpg`: Whether to keep the cover.jpg file in the album directory
+
+`embed_album_art`: Whether to embed album art or not into the file.
+
+`save_album_json`: save the album metadata as a json file
+
+`tries`: How many times to attempt to get a valid stream URL.
 
 `path`: Base download directory
 
 Format variables are `{title}`, `{artist}`, `{album}`, `{tracknumber}`.
 
-`album_format`: Base album directory - tracks and cover art are stored here. May have slashes in it, for instance {artist}/{album}.
-
 `track_format`: How tracks are formatted. The relevant extension is appended to the end.
 
-`keep_cover_jpg`: Whether to keep the cover.jpg file in the album directory
-
-`tries`: How many times to attempt to get a valid stream URL.
-
-### `tagging`
-
-`embed_album_art`: Whether to embed album art or not into the file.
+`album_format`: Base album directory - tracks and cover art are stored here. May have slashes in it, for instance {artist}/{album}.

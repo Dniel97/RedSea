@@ -37,6 +37,7 @@ def main():
         print('\n  list:    list the currently stored sessions')
         print('  add:     login and store a new session')
         print('  remove:  permanently remove a stored session')
+        print('  default: set a session as default')
         print('\nUsage: redsea.py auth add\n')
         exit()
     elif args.urls[0] == 'auth' and len(args.urls) > 1:
@@ -49,6 +50,9 @@ def main():
             exit()
         elif args.urls[1] == 'remove':
             sessions.remove_session()
+            exit()
+        elif args.urls[1] == 'default':
+            sessions.set_default()
             exit()
 
     # Load config

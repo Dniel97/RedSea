@@ -39,7 +39,7 @@ How to add accounts/sessions
     usage:  redsea.py auth list
             redsea.py auth add
             redsea.py auth remove
-
+            redsea.py auth default
 
     positional arguments:
 
@@ -51,6 +51,9 @@ How to add accounts/sessions
 
     remove              Removes a stored session from the sessions file
                         by name
+
+    default             Set a default account for redsea to use when the
+                        -a flag has not been passed
 
 How to use
 ----------

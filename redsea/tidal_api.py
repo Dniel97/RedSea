@@ -124,6 +124,7 @@ class TidalSessionStore(object):
 
         self.active = requests.post(self.TIDAL_API_BASE + 'login/username', data=postParams).json()
         self.active['auth_token'] = token
+        self.active['default'] = False
 
         if 'status' in self.active and not self.active['status'] == 200:
             raise TidalError(self.active)
@@ -162,28 +163,40 @@ class TidalSessionStore(object):
         if self.sessions is not None:
             with open(self.session_file, 'wb') as f:
                 pickle.dump(self.sessions, f)
+            return True
         else:
             raise ValueError('There are no currently loaded sessions')
 
-    def load_session(self, name):
+    def load_session(self, name=''):
         '''
         Loads session from session store by name
         '''
         if self.sessions is None:
-            print('test')
             raise ValueError('There are no currently loaded sessions')
 
-        if name in self.sessions:
+        if name is '' and len(self.sessions) > 0:
+            while self.active is None:
+                for s in self.sessions:
+                    if 'default' in self.sessions[s] and self.sessions[s]['default'] == True:
+                        self.active = self.sessions[s]
+                        return self.active
+                print('ERROR: No default session has been set!')
+                self.set_default()
+        elif name in self.sessions:
             self.active = self.sessions[name]
+            return self.active
+        elif len(self.sessions) == 0:
+            confirm = input('No sessions found. Would you like to login now [Y/n]? ')
         else:
             confirm = input('No session "{}" found. Would you like to login now [Y/n]? '.format(name))
-            if confirm is '' or confirm.upper() == 'Y':
-                if self.new_session():
-                    self.save_session(name=name)
+            
+        if confirm is '' or confirm.upper() == 'Y':
+            if self.new_session():
+                self.save_session(name=name)
 
         return self.active
 
-    def save_session(self, name=None):
+    def save_session(self, name=''):
         '''
         Save session to session store file
         '''
@@ -193,24 +206,30 @@ class TidalSessionStore(object):
         if self.active is None:
             raise ValueError('Active session is missing. Make sure you are logged in.')
 
-        while name == None:
-            n = input('What would you like to call this new account? ')
-            if not n == '':
-                name = n
-                print('Account named "{}". Use the -a flag when running redsea to choose account'.format(n))
+        while name == '':
+            name = input('What would you like to call this new session? ')
+            if not name == '':
+                if len(self.sessions) == 0:
+                    self.active['default'] = True
+                    print('Session "{}" has been set as the default session.'.format(name))
+                else:
+                    confirm = input('Would you like to set this session as default [y/N]? ')
+                    if confirm.upper() == 'Y':
+                        self.active['default'] = True
+                print('Session named "{}". Use the -a flag when running redsea to choose session'.format(name))
             else:
                 confirm = input('Invalid entry! Would you like to cancel [y/N]? ')
                 if confirm is not '' and confirm.upper() == 'Y':
                     return False
         
         if name in self.sessions:
-            confirm = input('An account with name "{}" already exists. Overwrite [y/N]? '.format(name))
+            confirm = input('A session with name "{}" already exists. Overwrite [y/N]? '.format(name))
             if confirm is not '' and confirm.upper() == 'Y':
                 return False
         
         self.sessions[name] = self.active
         self.save_file()
-        print('New account "{}" has been added'.format(name))
+        print('New session "{}" has been added'.format(name))
 
     def remove_session(self, name=None):
         '''
@@ -246,7 +265,37 @@ class TidalSessionStore(object):
             print('No sessions currently stored')
             return False
 
+        default = None
         print('\nSESSIONS:')
         for s in self.sessions:
             print('  ' + s)
+            if 'default' in self.sessions[s] and self.sessions[s]['default'] == True:
+                default = s
         print('')
+        if default is not None:
+            print('Default session is currently set to: {}'.format(default))
+            print('')
+        
+        return True
+
+    def set_default(self):
+        '''
+        Sets a session as the default
+        '''
+
+        if not self.list_accounts():
+            return False
+
+        while True:
+            name = input('Please provide the name of the session you would like to set as default: ')
+            if name is not '' and name in self.sessions:
+                for s in self.sessions:
+                    self.sessions[s]['default'] = False
+                self.sessions[name]['default'] = True
+                self.save_file()
+                print('Default session has successfully been set to "{}"'.format(name))
+                return True
+            else:
+                print('ERROR: Session "{}" not found in sessions store!'.format(name))
+
+        return False

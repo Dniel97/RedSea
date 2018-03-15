@@ -67,13 +67,14 @@ class MediaDownloader(object):
             for k, v in self.tm.tags(track_info, None, album_info).items()
         }
         if len(album_info['artists']) > 1 and use_album_artists:
-            self.featform = FeaturingFormat
-            info['artist'] = self._sanitise_name(
-                self.featform.get_artist_format([
-                    a['name']
-                    for a in album_info['artists']
-                    if a['type'] == 'MAIN'
-                ]))
+            self.featform = FeaturingFormat()
+
+            artists = []
+            for a in album_info['artists']:
+                if a['type'] == 'MAIN':
+                    artists.append(a['name'])
+
+            info['artist'] = self._sanitise_name(self.featform.get_artist_format(artists))
         return info
 
     def get_stream_url(self, track_id, quality):

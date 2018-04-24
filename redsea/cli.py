@@ -60,10 +60,12 @@ def parse_media_option(mo):
                 type_ = 'p'
             opts.append({'type': type_, 'id': id_})
             continue
-
-        ci = m.index(':')
-        hi = m.find('#')
-        hi = len(m) if hi == -1 else hi
-        o = {'type': m[:ci], 'id': m[ci + 1:hi], 'index': m[hi + 1:]}
-        opts.append(o)
+        elif ':' in m and '#' in m:
+            ci = m.index(':')
+            hi = m.find('#')
+            hi = len(m) if hi == -1 else hi
+            o = {'type': m[:ci], 'id': m[ci + 1:hi], 'index': m[hi + 1:]}
+            opts.append(o)
+        else:
+            print('Input "{}" does not appear to be a valid url.'.format(m))
     return opts

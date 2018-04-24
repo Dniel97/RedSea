@@ -19,7 +19,7 @@ def get_args():
     parser.add_argument(
         '-a',
         '--account',
-        default='default',
+        default='',
         help='Select a session/account to use. Defaults to the "default" session.')
 
     parser.add_argument(

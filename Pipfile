@@ -9,7 +9,7 @@ name = "pypi"
 
 mutagen = "==1.31"
 requests = "==2.9.1"
-pycrypto = "*"
+pycryptodome = "*"
 
 
 [dev-packages]

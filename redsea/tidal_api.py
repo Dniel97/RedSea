@@ -1,5 +1,6 @@
 import pickle
 import uuid
+import os
 
 import requests
 
@@ -21,17 +22,16 @@ class TidalApi(object):
     TIDAL_API_BASE = 'https://api.tidalhifi.com/v1/'
     TIDAL_CLIENT_VERSION = '1.9.1'
 
-    def __init__(self, session_id, country_code):
-        self.session_id = session_id
-        self.country_code = country_code
+    def __init__(self, session):
+        self.session = session
 
     def _get(self, url, params={}):
-        params['countryCode'] = self.country_code
+        params['countryCode'] = self.session.country_code
         
         resp = requests.get(
             self.TIDAL_API_BASE + url,
             headers={
-                'X-Tidal-SessionId': self.session_id
+                'X-Tidal-SessionId': self.session.session_id
             },
             params=params).json()
         
@@ -149,43 +149,44 @@ class TidalSession(object):
 
 class TidalSessionFile(object):
     '''
-    Tidal session storage file which can save/retrieve/list sessions
+    Tidal session storage file which can save/load
     '''
 
     def __init__(self, session_file):
         self.VERSION = '1.0'
         self.session_file = session_file # Session file path
-        self.session_store = None  # Will contain data from session file
-        self.sessions = None  # Will contain session from session_store['sessions']
+        self.session_store = {}  # Will contain data from session file
+        self.sessions = {}  # Will contain sessions from session_store['sessions']
         self.default = None  # Specifies the name of the default session to use
 
-        with open(self.session_file, 'rb') as f:
-            self.session_store = pickle.load(f)
-            if 'version' in self.session_store and self.session_store['version'] == self.VERSION:
-                self.sessions = self.session_store['sessions']
-                self.default = self.session_store['default']
-            elif 'version' in self.session_store:
-                raise ValueError(
-                    'Session file is version {} while redsea expects version {}'.
-                    format(self.session_store['version'], self.VERSION))
-            else:
-                raise ValueError('Existing session file is malformed. Please rebuild session file.')
-            f.close()
+        if os.path.isfile(self.session_file):
+            with open(self.session_file, 'rb') as f:
+                self.session_store = pickle.load(f)
+                if 'version' in self.session_store and self.session_store['version'] == self.VERSION:
+                    self.sessions = self.session_store['sessions']
+                    self.default = self.session_store['default']
+                elif 'version' in self.session_store:
+                    raise ValueError(
+                        'Session file is version {} while redsea expects version {}'.
+                        format(self.session_store['version'], self.VERSION))
+                else:
+                    raise ValueError('Existing session file is malformed. Please delete/rebuild session file.')
+                f.close()
+        else:
+            self._save()
+            self = TidalSessionFile(session_file=self.session_file)
 
     def _save(self):
         '''
         Attempts to write current session store to file
         '''
 
-        if self.sessions is not None:
-            self.session_store['version'] = self.VERSION
-            self.session_store['sessions'] = self.sessions
-            self.session_store['default'] = self.default
+        self.session_store['version'] = self.VERSION
+        self.session_store['sessions'] = self.sessions
+        self.session_store['default'] = self.default
 
-            with open(self.session_file, 'wb') as f:
-                pickle.dump(self.session_store, f)
-        else:
-            raise ValueError('There are no currently loaded sessions')
+        with open(self.session_file, 'wb') as f:
+            pickle.dump(self.session_store, f)
 
     def new_session(self, session_name, username, password, token='4zx46pyr9o8qZNRw'):
         '''
@@ -196,7 +197,7 @@ class TidalSessionFile(object):
             self.sessions[session_name] = TidalSession(username, password, token=token)
             password = None
 
-            if len(self.sessions) < 2:
+            if len(self.sessions) == 1:
                 self.default = session_name
         else:
             password = None
@@ -220,6 +221,9 @@ class TidalSessionFile(object):
         Returns a session from the session store
         '''
 
+        if len(self.sessions) == 0:
+            raise ValueError('There are no sessions in session file!')
+
         if session_name is None:
             session_name = self.default
         
@@ -236,3 +240,4 @@ class TidalSessionFile(object):
 
         if session_name in self.sessions:
             self.default = session_name
+            self._save()

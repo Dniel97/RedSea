@@ -43,22 +43,26 @@ def parse_media_option(mo):
     opts = []
     for m in mo:
         if m.startswith('http'):
-            m = re.sub(r'tidal.com\/.{2}\/store\/', 'tidal.com/', m)
-            m = re.sub(r'tidal.com\/store\/', 'tidal.com/', m)
+            m = m.replace('store/', '')
             url = urlparse(m)
             components = url.path.split('/')
             if not components or len(components) <= 2:
                 print('Invalid URL: ' + m)
                 exit()
-            type_ = components[1]
-            id_ = components[2]
+            elif len(components) == 3:
+                type_ = components[1]
+                id_ = components[2]
+            elif len(components) >= 4:
+                region_ = components[1].upper()
+                type_ = components[2]
+                id_ = components[3]
             if type_ == 'album':
                 type_ = 'a'
             elif type_ == 'track':
                 type_ = 't'
             elif type_ == 'playlist':
                 type_ = 'p'
-            opts.append({'type': type_, 'id': id_})
+            opts.append({'type': type_, 'id': id_, 'region': region_})
             continue
         elif ':' in m and '#' in m:
             ci = m.index(':')

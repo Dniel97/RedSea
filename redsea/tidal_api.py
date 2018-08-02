@@ -124,6 +124,8 @@ class TidalSession(object):
         self.user_id = r['userId']
         self.country_code = r['countryCode']
 
+        assert self.valid()
+
     def session_type(self):
         '''
         Returns the type of token used to create the session
@@ -229,6 +231,7 @@ class TidalSessionFile(object):
             session_name = self.default
         
         if session_name in self.sessions:
+            assert self.sessions[session_name].valid()
             return self.sessions[session_name]
 
         raise ValueError('Session "{}" could not be found.'.format(session_name))
@@ -240,5 +243,6 @@ class TidalSessionFile(object):
         '''
 
         if session_name in self.sessions:
+            assert self.sessions[session_name].valid()
             self.default = session_name
             self._save()

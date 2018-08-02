@@ -69,81 +69,65 @@ def main():
     preset['quality'].append('LOW') if preset['AAC_96'] else None
     media_to_download = cli.parse_media_option(args.urls)
 
-    # Check session to ensure that sessionId is still valid
-    session = RSF.default if args.account == '' else args.account
-    assert RSF.load_session(args.account).valid(), 'Session "{}" is not valid. Please re-authenticate.'.format(session)
-
-    # Create a new TidalApi and pass it to a new MediaDownloader
-    md = MediaDownloader(TidalApi(RSF.load_session(args.account)), preset, Tagger(preset))
-
+    # Loop through media and download if possible
     cm = 0
     for mt in media_to_download:
-        md.api = TidalApi(RSF.load_session(args.account))
-        cm += 1
-        id = mt['id']
-        tracks = []
 
-        # Is it an acceptable media type?
+        # Is it an acceptable media type? (skip if not)
         if not mt['type'] in MEDIA_TYPES:
             print('Unknown media type - ' + mt['type'])
             continue
+
+        cm += 1
+        id = mt['id']
+        media_info = None
+        tracks = []
         
         print('<<< Getting {0} info... >>>'.format(MEDIA_TYPES[mt['type']]), end='\r')
-        media_info = None
+        
+        # Create a new TidalApi and pass it to a new MediaDownloader
+        api = get_api(rsf=RSF, preferred=args.account, mt=mt, quality=preset['quality'])
+        md = MediaDownloader(api, preset, Tagger(preset))
 
-        # Prepare a single track for download
-        if mt['type'] == 't':
-            tracks.append(md.api.get_track(id))
+        # Get media info
+        try:
 
-        # Prepare a playlist for download
-        elif mt['type'] == 'p':
+            # Track
+            if mt['type'] == 't':
+                tracks.append(md.api.get_track(id))
 
-            # Make sure only tracks are in playlist items
-            playlistItems = md.api.get_playlist_items(id)['items']
-            for item in playlistItems:
-                if item['type'] == 'track':
-                    tracks.append(item['item'])
+            # Playlist
+            elif mt['type'] == 'p':
 
-        # Prepare an album for download
-        else:
-            try:
-                # Try to get album information
+                # Make sure only tracks are in playlist items
+                playlistItems = md.api.get_playlist_items(id)['items']
+                for item in playlistItems:
+                    if item['type'] == 'track':
+                        tracks.append(item['item'])
+
+            # Album
+            else:
+                # Get album information
                 media_info = md.api.get_album(id)
-            except TidalError as e:
-                if 'not found. This might be region-locked.' in str(e) and (AUTOSELECT or BRUTEFORCEREGION):
-                    print(e)
 
-                    # Try to select a better TidalSession based on the region parsed from the URL
-                    if not BRUTEFORCEREGION:
-                        if mt['region'] is not None and len(mt['region']) == 2:
-                            print('Region appears to be "{}" based on URL. Autoselect is enabled. Checking accounts..'.format(mt['region']))
-                            session = get_session(tsf=RSF, id=id, quality=preset['quality'], album=True, country_code=mt['region'])
-                        else:
-                            print('Autoselect is enabled but region could not be determined. Try bruteforce. Skipping..')
-                            continue
-                    
-                    # Try to get media info with all available TidalSessions
-                    else:
-                        print('Session brute force is enabled. Trying all accounts..')
-                        session = get_session(tsf=RSF, id=id, quality=preset['quality'], album=True)
+                # Get a list of the tracks from the album
+                tracks = md.api.get_album_tracks(id)['items']
 
-                    # If we got session match, load a new TidalApi instance into the MediaDownloader
-                    if session:
-                        md.api = TidalApi(RSF.load_session(session))
-                        media_info = md.api.get_album(id)
+        except TidalError as e:
+            if 'not found. This might be region-locked.' in str(e) and (AUTOSELECT or BRUTEFORCEREGION):
+                print(e)
 
-                    # Let the user know we cannot download this release and skip it
-                    else:
-                        print('None of the available accounts were able to download release {}. Skipping..'.format(id))
-                        continue
-
-            # Helpful unspecified API error is helpful /s
-            except:
-                print('API Error, Skipping\n', end='\r')
+                # Let the user know we cannot download this release and skip it
+                print('None of the available accounts were able to download release {}. Skipping..'.format(id))
+                if not BRUTEFORCEREGION:
+                    print('TIP: Try using the bruteforce option to test all available accounts')
                 continue
 
-            # Get a list of the tracks on the album
-            tracks = md.api.get_album_tracks(id)['items']
+        # Helpful unspecified API error is helpful /s
+        except Exception as e:
+            print('API Error, Skipping\n', end='\r')
+            print(e)
+            continue
 
         total = len(tracks)
 
@@ -158,7 +142,7 @@ def main():
 
         cur = 0
         for track in tracks:
-            # Actually download the track (finally)
+            # Actually download the track (finally )
             try:
                 md.download_media(track, preset['quality'], media_info)
             except ValueError as e:
@@ -182,52 +166,93 @@ def main():
 
     print('> All downloads completed. <')
 
-def get_session(tsf, id, quality, album, country_code=None):
+
+def get_api(rsf, preferred, mt, quality):
     '''
     Loops through all available sessions and attempts
-    to find a session capable of downloading the release
+    to find a session capable of downloading the release.
+    Returns a TidalApi object
 
-    tsf: an instace of TidalSessionFile or RedseaSessionFile
-    id: release ID
+    rsf: an instace of TidalSessionFile or RedseaSessionFile
+    preferred: name of the session preferred by the user
+    mt: dict of media info (id, type, region)
     quality: requested stream quality
-    album: boolean True if album, boolen False if track
-    country_code: the two-character country_code of an acceptable region for the release
-                  if blank, function will test all available sessions
+
     '''
 
-    for session in tsf.sessions:
+    preferred = rsf.default if preferred == '' else preferred
 
-        cc = tsf.sessions[session].country_code
-        if country_code is not None and country_code != cc:
-            continue
+    # Should we dynamically select a session? If not, use default or preferred session
+    if not (AUTOSELECT or BRUTEFORCEREGION):
 
-        if not tsf.load_session(session).valid():
-            print('WARNING: Session "{}" is not valid. Please re-authenticate.'.format(session))
-            continue
+        # Check user-preferred session to ensure that sessionId is still valid
+        assert rsf.load_session(preferred).valid(), 'Session "{}" is not valid. Please re-authenticate.'.format(preferred)
 
-        tidal = TidalApi(tsf.load_session(session))
+    # Dyanamically select session based on release ID if AUTOSELECT or BRUTEFORCE are enabled
+    else:
+        for session in rsf.sessions:
+            
+            # Get country_code of session
+            cc = rsf.sessions[session].country_code
 
-        try:
-            print('Fetching track info with session "{}" in region {}'.format(session, cc), end="", flush=True)
-            tracks = tidal.get_album_tracks(id)['items']
-            print('  [success]')
-        except TidalError as e:
-            if 'not found. This might be region-locked.' in str(e):
+            # If AUTOSELECT, skip all non-matching regions
+            if AUTOSELECT and not BRUTEFORCEREGION:
+                if mt['region'] is None:
+                    print('WARNING: Autoselect is enabled but region could not be determined. Using default session..')
+                    break
+                elif mt['region'] != cc:
+                    continue
+
+            # Is this sessionId still valid?
+            if not rsf.load_session(session).valid():
+                print('WARNING: Session "{}" is not valid. Please re-authenticate.'.format(session))
+                continue
+
+            # Initialize TidalApi for test
+            tidal = TidalApi(rsf.load_session(session))
+
+            # Can we get album / track info?
+            try:
+                print('Checking info fetch with session "{}" in region {}'.format(session, cc), end="", flush=True)
+
+                # Track
+                if mt['type'] == 't':
+                    track = tidal.get_track(mt['id'])
+
+                # Playlist
+                elif mt['type'] == 'p':
+
+                    # Get first "track" in playlist
+                    tracks = tidal.get_playlist_items(mt['id'])['items']
+                    for t in tracks:
+                        if t['type'] == 'track':
+                            track = t
+                            break
+
+                # Album
+                else:
+                    tracks = tidal.get_album_tracks(mt['id'])['items']
+                    track = tidal.get_track(tracks[0]['id'])
+
+                print('  [success]')
+            except TidalError as e:
+                if 'not found. This might be region-locked.' in str(e):
+                    print('  [failed]')
+                    continue
+                else:
+                    raise(e)
+
+            # Can we get an audio stream?
+            try:
+                print('Checking audio stream with session "{}"'.format(session), end="", flush=True)
+                tidal.get_stream_url(track['id'], quality)
+                print('  [success]')
+                return TidalApi(rsf.load_session(session))
+            except Exception as e:
                 print('  [failed]')
                 continue
-            else:
-                raise(e)
 
-        try:
-            print('Fetching audio stream with session "{}"'.format(session), end="", flush=True)
-            tidal.get_stream_url(tracks[0]['id'], quality)
-            print('  [success]')
-            return session
-        except Exception as e:
-            print('  [failed]')
-            raise(e)
-
-        return False
+    return TidalApi(rsf.load_session(preferred))
 
 # Run from CLI - catch Ctrl-C and handle it gracefully
 if __name__ == '__main__':

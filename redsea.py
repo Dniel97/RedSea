@@ -67,6 +67,7 @@ def main():
     preset['quality'].append('LOW') if preset['AAC_96'] else None
     media_to_download = cli.parse_media_option(args.urls)
 
+    # Check session to ensure that sessionId is still valid
     session = RSF.default if args.account == '' else args.account
     assert RSF.load_session(args.account).valid(), 'Session "{}" is not valid. Please re-authenticate.'.format(session)
 
@@ -174,6 +175,10 @@ def get_session(tsf, id, quality, album, country_code=None):
 
         cc = tsf.sessions[session].country_code
         if country_code is not None and country_code != cc:
+            continue
+
+        if not tsf.load_session(session).valid():
+            print('WARNING: Session "{}" is not valid. Please re-authenticate.'.format(session))
             continue
 
         tidal = TidalApi(tsf.load_session(session))

@@ -139,7 +139,8 @@ class TidalSession(object):
         '''
         Checks if session is still valid and returns True/False
         '''
-        r = requests.get(self.TIDAL_API_BASE + 'users/' + self.user_id).json()
+        r = requests.get(self.TIDAL_API_BASE + 'users/' + str(self.user_id),
+            params={'sessionId': self.session_id}).json()
 
         if 'status' in r and not r['status'] == 200:
             return False

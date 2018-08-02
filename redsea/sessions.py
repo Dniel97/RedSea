@@ -76,6 +76,14 @@ class RedseaSessionFile(TidalSessionFile):
                     else:
                         return self.sessions[session_name]
 
+    def get_session(self):
+        '''
+        Generator which iterates through available sessions
+        '''
+
+        for session in self.sessions:
+            yield self.sessions[session], session
+
     def remove_session(self):
         '''
         Removes a session from the session store

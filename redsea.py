@@ -12,7 +12,7 @@ from redsea.sessions import RedseaSessionFile
 from config.settings import PRESETS, AUTOSELECT, BRUTEFORCEREGION
 
 
-logo = """
+LOGO = """
  /$$$$$$$                  /$$  /$$$$$$                     
 | $$__  $$                | $$ /$$__  $$                    
 | $$  \ $$  /$$$$$$   /$$$$$$$| $$  \__/  /$$$$$$   /$$$$$$ 
@@ -26,6 +26,7 @@ logo = """
                https://github.com/svbnet/RedSea
 \n"""
 
+MEDIA_TYPES = {'t': 'track', 'p': 'playlist', 'a': 'album', 'f':'album'}
 
 def main():
     # Get args
@@ -55,8 +56,9 @@ def main():
             RSF.set_default()
             exit()
 
+    print(LOGO)
+
     # Load config
-    print(logo)
     preset = PRESETS[args.preset]
 
     # Parse options
@@ -81,15 +83,84 @@ def main():
         id = mt['id']
         tracks = []
 
-        # Single track
-        if mt['type'] == 't':
-            print('<<< Getting track info... >>>', end='\r')
-            track = md.api.get_track(id)
+        # Is it an acceptable media type?
+        if not mt['type'] in MEDIA_TYPES:
+            print('Unknown media type - ' + mt['type'])
+            continue
+        
+        print('<<< Getting {0} info... >>>'.format(MEDIA_TYPES[mt['type']]), end='\r')
+        media_info = None
 
-            # Download and tag file
-            print('<<< Downloading single track... >>>')
+        # Prepare a single track for download
+        if mt['type'] == 't':
+            tracks.append(md.api.get_track(id))
+
+        # Prepare a playlist for download
+        elif mt['type'] == 'p':
+
+            # Make sure only tracks are in playlist items
+            playlistItems = md.api.get_playlist_items(id)['items']
+            for item in playlistItems:
+                if item['type'] == 'track':
+                    tracks.append(item['item'])
+
+        # Prepare an album for download
+        else:
             try:
-                _, filepath = md.download_media(track, preset['quality'])
+                # Try to get album information
+                media_info = md.api.get_album(id)
+            except TidalError as e:
+                if 'not found. This might be region-locked.' in str(e) and (AUTOSELECT or BRUTEFORCEREGION):
+                    print(e)
+
+                    # Try to select a better TidalSession based on the region parsed from the URL
+                    if not BRUTEFORCEREGION:
+                        if mt['region'] is not None and len(mt['region']) == 2:
+                            print('Region appears to be "{}" based on URL. Autoselect is enabled. Checking accounts..'.format(mt['region']))
+                            session = get_session(tsf=RSF, id=id, quality=preset['quality'], album=True, country_code=mt['region'])
+                        else:
+                            print('Autoselect is enabled but region could not be determined. Try bruteforce. Skipping..')
+                            continue
+                    
+                    # Try to get media info with all available TidalSessions
+                    else:
+                        print('Session brute force is enabled. Trying all accounts..')
+                        session = get_session(tsf=RSF, id=id, quality=preset['quality'], album=True)
+
+                    # If we got session match, load a new TidalApi instance into the MediaDownloader
+                    if session:
+                        md.api = TidalApi(RSF.load_session(session))
+                        media_info = md.api.get_album(id)
+
+                    # Let the user know we cannot download this release and skip it
+                    else:
+                        print('None of the available accounts were able to download release {}. Skipping..'.format(id))
+                        continue
+
+            # Helpful unspecified API error is helpful /s
+            except:
+                print('API Error, Skipping\n', end='\r')
+                continue
+
+            # Get a list of the tracks on the album
+            tracks = md.api.get_album_tracks(id)['items']
+
+        total = len(tracks)
+
+        # Single
+        if total == 1:
+            print('<<< Downloading single track... >>>')
+
+        # Playlist or album
+        else:
+            print('<<< Downloading {0}: {1} track(s) in total >>>'.format(
+                MEDIA_TYPES[mt['type']], total))
+
+        cur = 0
+        for track in tracks:
+            # Actually download the track (finally)
+            try:
+                md.download_media(track, preset['quality'], media_info)
             except ValueError as e:
                 print("\t" + str(e))
                 if args.skip is True:
@@ -100,58 +171,11 @@ def main():
                         track['artist']['name'], track['title']))
                     quit()
 
-            print('=== 1/1 complete (100% done) ===\n')
+            cur += 1
+            print('=== {0}/{1} complete ({2:.0f}% done) ===\n'.format(
+                cur, total, (cur / total) * 100))
+        
 
-        # Collection
-        elif mt['type'] == 'p' or mt['type'] == 'a' or mt['type'] == 'f':
-            typename = 'playlist' if mt['type'] == 'p' else 'album'
-            print('<<< Getting {0} info... >>>'.format(typename), end='\r')
-            media_info = None
-            if mt['type'] == 'p':
-
-                # Make sure only tracks are in playlist items
-                playlistItems = md.api.get_playlist_items(id)['items']
-                for item in playlistItems:
-                    if item['type'] == 'track':
-                        tracks.append(item['item'])
-            else:
-                try:
-                    media_info = md.api.get_album(id)
-                except TidalError as e:
-                    if 'not found. This might be region-locked.' in str(e) and (AUTOSELECT or BRUTEFORCEREGION):
-                        print(e)
-
-                        if not BRUTEFORCEREGION:
-                            print('Region appears to be "{}" based on URL. Autoselect is enabled. Checking accounts..'.format(mt['region']))
-                            session = get_session(tsf=RSF, id=id, quality=preset['quality'], album=True, country_code=mt['region'])
-                        else:
-                            print('Session brute force is enabled. Trying all accounts..')
-                            session = get_session(tsf=RSF, id=id, quality=preset['quality'], album=True)
-
-                        if session:
-                            md.api = TidalApi(RSF.load_session(session))
-                            media_info = md.api.get_album(id)
-                        else:
-                            print('None of the available accounts were able to download release {}. Skipping..'.format(id))
-                            continue
-                except:
-                    print('API Error, Skipping\n', end='\r')
-                    continue
-                tracks = md.api.get_album_tracks(id)['items']
-
-            total = len(tracks)
-            print('<<< Downloading {0}: {1} track(s) in total >>>'.format(
-                typename, total))
-            cur = 0
-
-            for track in tracks:
-                md.download_media(track, preset['quality'],
-                                  media_info)
-                cur += 1
-                print('=== {0}/{1} complete ({2:.0f}% done) ===\n'.format(
-                    cur, total, (cur / total) * 100))
-        else:
-            print('Unknown media type - ' + mt['type'])
         print('> Download queue: {0}/{1} items complete ({2:.0f}% done) <\n'.
               format(cm, len(media_to_download),
                      (cm / len(media_to_download)) * 100))

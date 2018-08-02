@@ -50,6 +50,7 @@ def parse_media_option(mo):
                 print('Invalid URL: ' + m)
                 exit()
             elif len(components) == 3:
+                region_ = None
                 type_ = components[1]
                 id_ = components[2]
             elif len(components) >= 4:

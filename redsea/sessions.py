@@ -28,7 +28,7 @@ class RedseaSessionFile(TidalSessionFile):
                 if name in self.sessions:
                     confirm = input('A session with name "{}" already exists. Overwrite [y/N]? '.format(name))
                     if confirm.upper() == 'Y':
-                        super().remove_session(name)
+                        super().remove(name)
                     else:
                         name = ''
                         continue
@@ -81,9 +81,9 @@ class RedseaSessionFile(TidalSessionFile):
         Removes a session from the session store
         '''
 
-        if not self.list_accounts():
-            return False
+        self.list_sessions()
 
+        name = ''
         while name == '':
             name = input('Type the full name of the session you would like to remove: ')
             if not name == '':
@@ -108,7 +108,7 @@ class RedseaSessionFile(TidalSessionFile):
 
         print('\nSESSIONS:')
         for s in self.sessions:
-            print('  ' + s)
+            print('   [{}] {} | {}'.format(self.sessions[s].country_code, self.sessions[s].username, s))
 
         print('')
         if self.default is not None:

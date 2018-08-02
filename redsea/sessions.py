@@ -76,7 +76,7 @@ class RedseaSessionFile(TidalSessionFile):
                     else:
                         return self.sessions[session_name]
 
-    def remove_session(self, session_name):
+    def remove_session(self):
         '''
         Removes a session from the session store
         '''

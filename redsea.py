@@ -70,6 +70,9 @@ def main():
     preset['quality'].append('LOW') if preset['AAC_96'] else None
     media_to_download = cli.parse_media_option(args.urls)
 
+    session = RSF.default if args.account == '' else args.account
+    assert RSF.load_session(args.account).valid(), 'Session "{}" is not valid. Please re-authenticate.'.format(session)
+
     # Create a media downloader
     md = MediaDownloader(api, preset, Tagger(preset))
 

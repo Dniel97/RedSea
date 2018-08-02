@@ -44,6 +44,12 @@ class RedseaSessionFile(TidalSessionFile):
             if str(e).startswith('3001'):
                 print('\nUSERNAME OR PASSWORD INCORRECT. Please try again.\n\n')
                 self.new_session()
+        except AssertionError as e:
+            if 'invalid sessionId' in str(e):
+                print(e)
+                confirm = input('Would you like to try again [Y/n]? ')
+                if not confirm.upper() == 'N':
+                    self.new_session()
 
         print('Session saved!')
         if not self.default == name:

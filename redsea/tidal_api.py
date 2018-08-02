@@ -124,7 +124,7 @@ class TidalSession(object):
         self.user_id = r['userId']
         self.country_code = r['countryCode']
 
-        assert self.valid()
+        assert self.valid(), 'This session has an invalid sessionId. Please re-authenticate'
 
     def session_type(self):
         '''
@@ -231,7 +231,7 @@ class TidalSessionFile(object):
             session_name = self.default
         
         if session_name in self.sessions:
-            assert self.sessions[session_name].valid()
+            assert self.sessions[session_name].valid(), '{} has an invalid sessionId. Please re-authenticate'.format(session_name)
             return self.sessions[session_name]
 
         raise ValueError('Session "{}" could not be found.'.format(session_name))
@@ -243,6 +243,6 @@ class TidalSessionFile(object):
         '''
 
         if session_name in self.sessions:
-            assert self.sessions[session_name].valid()
+            assert self.sessions[session_name].valid(), '{} has an invalid sessionId. Please re-authenticate'.format(session_name)
             self.default = session_name
             self._save()

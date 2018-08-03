@@ -9,7 +9,7 @@ import requests
 
 from .decryption import decrypt_file, decrypt_security_token
 from .tagger import FeaturingFormat
-from .tidal_api import TidalApi, TidalError
+from .tidal_api import TidalApi, TidalRequestError
 
 
 def _mkdir_p(path):
@@ -87,7 +87,7 @@ class MediaDownloader(object):
             print('\tGrabbing stream URL...')
             try:
                 return self.api.get_stream_url(track_id, quality)
-            except TidalError as te:
+            except TidalRequestError as te:
                 if te.payload['status'] == 404:
                     print('\tTrack does not exist.')
                 elif te.payload['subStatus'] == 4005:
@@ -125,11 +125,8 @@ class MediaDownloader(object):
 
     def download_media(self, track_info, quality, album_info=None):
         track_id = track_info['id']
-        if not track_info['allowStreaming']:
-            print(
-                'Unable to download track {0}: not allowed to stream/download. Continuing...'.
-                format(track_id))
-            return
+        assert track_info['allowStreaming'], 'Unable to download track {0}: not allowed to stream/download'.format(track_id)
+        
         print('=== Downloading track ID {0} ==='.format(track_id))
         self.print_track_info(track_info, album_info)
 

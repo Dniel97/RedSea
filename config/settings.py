@@ -31,12 +31,8 @@ AAC_96: 96Kbps AAC
 
 '''
 
-# AUTOSELECT: Automatically selects the appropriate account based on the track/album region
-# Note: This derives the region from the URL of the link. If it is not a store link, it will not work
-AUTOSELECT = True
-
 # BRUTEFORCEREGION: Attempts to download the track/album with all available accounts if dl fails
-BRUTEFORCEREGION = False 
+BRUTEFORCEREGION = True
 
 PRESETS = {
 

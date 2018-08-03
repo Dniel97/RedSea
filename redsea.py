@@ -9,7 +9,7 @@ from redsea.tagger import Tagger
 from redsea.tidal_api import TidalApi, TidalRequestError, TidalError
 from redsea.sessions import RedseaSessionFile
 
-from config.settings import PRESETS, AUTOSELECT, BRUTEFORCEREGION
+from config.settings import PRESETS, BRUTEFORCEREGION
 
 
 LOGO = """
@@ -79,54 +79,78 @@ def main():
             continue
 
         cm += 1
-        id = mt['id']
-        media_info = None
-        tracks = []
-        
         print('<<< Getting {0} info... >>>'.format(MEDIA_TYPES[mt['type']]), end='\r')
         
         # Create a new TidalApi and pass it to a new MediaDownloader
-        api = get_api(rsf=RSF, preferred=args.account, mt=mt, quality=preset['quality'])
-        md = MediaDownloader(api, preset, Tagger(preset))
+        md = MediaDownloader(TidalApi(RSF.load_session(args.account)), preset, Tagger(preset))
+
+        # Create a new session generator in case we need to switch sessions
+        session_gen = RSF.get_session()
 
         # Get media info
+        def get_tracks(media):
+            tracks = []
+            media_info = None
+            from config.settings import AUTOSELECT
+
+            if AUTOSELECT and media['region'] is None and not BRUTEFORCEREGION:
+                AUTOSELECT = False
+                print('WARNING: Region could not be determined from URL. Autoselect is disabled for this release.')
+
+            while True:
+                try:
+                    # Track
+                    if media['type'] == 't':
+                        tracks.append(md.api.get_track(media['id']))
+
+                    # Playlist
+                    elif media['type'] == 'p':
+
+                        # Make sure only tracks are in playlist items
+                        playlistItems = md.api.get_playlist_items(media['id'])['items']
+                        for item in playlistItems:
+                            if item['type'] == 'track':
+                                tracks.append(item['item'])
+
+                    # Album
+                    else:
+                        # Get album information
+                        media_info = md.api.get_album(media['id'])
+
+                        # Get a list of the tracks from the album
+                        tracks = md.api.get_album_tracks(media['id'])['items']
+
+                    return tracks, media_info
+
+                except TidalError as e:
+                    if 'not found. This might be region-locked.' in str(e) and (AUTOSELECT or BRUTEFORCEREGION):
+                        
+                        if AUTOSELECT or BRUTEFORCEREGION:
+                            # Try again with a different session
+                            try:
+                                while True:
+                                    session, name = next(session_gen)
+                                    if BRUTEFORCEREGION:
+                                        break
+                                    elif media['region'] == None:
+                                        
+                                        
+                                md.api = TidalApi(session)
+                                print('Checking info fetch with session "{}" in region {}'.format(name, session.country_code))
+                                continue
+                            except StopIteration as s:                    
+                                print(e)
+                                raise s
+                        else:
+                            raise(e)
+
         try:
-
-            # Track
-            if mt['type'] == 't':
-                tracks.append(md.api.get_track(id))
-
-            # Playlist
-            elif mt['type'] == 'p':
-
-                # Make sure only tracks are in playlist items
-                playlistItems = md.api.get_playlist_items(id)['items']
-                for item in playlistItems:
-                    if item['type'] == 'track':
-                        tracks.append(item['item'])
-
-            # Album
-            else:
-                # Get album information
-                media_info = md.api.get_album(id)
-
-                # Get a list of the tracks from the album
-                tracks = md.api.get_album_tracks(id)['items']
-
-        except TidalError as e:
-            if 'not found. This might be region-locked.' in str(e) and (AUTOSELECT or BRUTEFORCEREGION):
-                print(e)
-
-                # Let the user know we cannot download this release and skip it
-                print('None of the available accounts were able to download release {}. Skipping..'.format(id))
-                if not BRUTEFORCEREGION:
-                    print('TIP: Try using the bruteforce option to test all available accounts')
-                continue
-
-        # Helpful unspecified API error is helpful /s
-        except Exception as e:
-            print('API Error, Skipping\n', end='\r')
-            print(e)
+            tracks, media_info = get_tracks(media=mt)
+        except StopIteration:
+            # Let the user know we cannot download this release and skip it
+            print('None of the available accounts were able to download release {}. Skipping..'.format(mt['id']))
+            if not BRUTEFORCEREGION:
+                print('TIP: Try using the bruteforce option to test all available accounts')
             continue
 
         total = len(tracks)

@@ -40,6 +40,7 @@ def main():
         print('  add:      login and store a new session')
         print('  remove:   permanently remove a stored session')
         print('  default:  set a session as default')
+        print('  reauth:   reauthenticate with Tidal to get new sessionId')
         print('\nUsage: redsea.py auth add\n')
         exit()
     elif args.urls[0] == 'auth' and len(args.urls) > 1:
@@ -54,6 +55,9 @@ def main():
             exit()
         elif args.urls[1] == 'default':
             RSF.set_default()
+            exit()
+        elif args.urls[1] == 'reauth':
+            RSF.reauth()
             exit()
 
     print(LOGO)

@@ -40,6 +40,7 @@ How to add accounts/sessions
             redsea.py auth add
             redsea.py auth remove
             redsea.py auth default
+            redsea.py auth reauth
 
     positional arguments:
 
@@ -54,6 +55,8 @@ How to add accounts/sessions
 
     default             Set a default account for redsea to use when the
                         -a flag has not been passed
+
+    reauth              Reauthenticates with server to get new sessionId
 
 How to use
 ----------
@@ -91,6 +94,8 @@ TODO
 
 Config reference
 ----------------
+
+`BRUTEFORCEREGION`: When True, redsea will iterate through every available account and attempt to download when the default or specified session fails to download the release
 
 ### `Stock Presets`
 

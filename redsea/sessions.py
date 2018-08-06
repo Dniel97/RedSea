@@ -144,3 +144,41 @@ class RedseaSessionFile(TidalSessionFile):
                 return
             else:
                 print('ERROR: Session "{}" not found in sessions store!'.format(name))
+
+    def reauth(self):
+        '''
+        Requests password from the user and then re-auths
+        with the Tidal server to get a new (valid) sessionId
+        '''
+
+        self.list_sessions()
+
+        while True:
+            name = input('Please provide the name of the session you would like to reauthenticate: ')
+            if name is not '' and name in self.sessions:
+                try:
+                    session = self.sessions[name]
+
+                    print('LOGIN: Enter your Tidal password for account {}:\n'.format(session.username))
+                    password = getpass.getpass('Password: ')
+                    session.auth(password)
+
+                    print('Session "{}" has been successfully reauthed.'.format(name))
+                    return
+
+                except TidalRequestError as e:
+                    if 'Username or password is wrong' in str(e):
+                        print('Error ' + str(e) + '. Please try again..')
+                        continue
+                    else:
+                        raise(e)
+                
+                except AssertionError as e:
+                    if 'invalid sessionId' in str(e):
+                        print('Reauthentication failed. SessionID is still invalid. Please try again.')
+                        print('Note: If this fails more than once, please check your account and subscription status.')
+                        continue
+                    else:
+                        raise(e)
+            else:
+                print('ERROR: Session "{}" not found in sessions store!'.format(name))

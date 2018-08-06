@@ -63,6 +63,7 @@ def main():
     print(LOGO)
 
     # Load config
+    BRUTEFORCE = args.bruteforce or BRUTEFORCEREGION
     preset = PRESETS[args.preset]
 
     # Parse options
@@ -123,7 +124,7 @@ def main():
 
                 # Catch region error
                 except TidalError as e:
-                    if 'not found. This might be region-locked.' in str(e) and BRUTEFORCEREGION:
+                    if 'not found. This might be region-locked.' in str(e) and BRUTEFORCE:
                         # Try again with a different session
                         try:
                             session, name = next(session_gen)
@@ -182,7 +183,7 @@ def main():
 
                 # Catch session audio stream privilege error
                 except AssertionError as e:
-                    if 'Unable to download track' in str(e) and BRUTEFORCEREGION:
+                    if 'Unable to download track' in str(e) and BRUTEFORCE:
 
                         # Try again with a different session
                         try:

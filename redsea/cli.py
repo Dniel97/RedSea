@@ -17,6 +17,13 @@ def get_args():
         help='Select a download preset. Defaults to Lossless only. See /config/settings.py for presets')
 
     parser.add_argument(
+        '-b',
+        '--bruteforce',
+        action='store_true',
+        default=False,
+        help='Brute force the download with all available accounts')
+
+    parser.add_argument(
         '-a',
         '--account',
         default='',
@@ -26,7 +33,7 @@ def get_args():
         '-s',
         '--skip',
         action='store_true',
-        default='False',
+        default=False,
         help='Pass this flag to skip track and continue when a track does not meet the requested quality')
 
     parser.add_argument(

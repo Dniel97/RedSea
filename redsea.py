@@ -6,12 +6,13 @@ import redsea.cli as cli
 
 from redsea.mediadownloader import MediaDownloader
 from redsea.tagger import Tagger
-from redsea.tidal_api import TidalApi, TidalError, TidalSessionStore
+from redsea.tidal_api import TidalApi, TidalRequestError, TidalError
+from redsea.sessions import RedseaSessionFile
 
-from config.settings import PRESETS
+from config.settings import PRESETS, BRUTEFORCEREGION
 
 
-logo = """
+LOGO = """
  /$$$$$$$                  /$$  /$$$$$$                     
 | $$__  $$                | $$ /$$__  $$                    
 | $$  \ $$  /$$$$$$   /$$$$$$$| $$  \__/  /$$$$$$   /$$$$$$ 
@@ -25,43 +26,45 @@ logo = """
                https://github.com/svbnet/RedSea
 \n"""
 
+MEDIA_TYPES = {'t': 'track', 'p': 'playlist', 'a': 'album', 'f':'album'}
 
 def main():
     # Get args
     args = cli.get_args()
 
     # Check for auth flag / session settings
-    sessions = TidalSessionStore('./config/sessions.pk')
+    RSF = RedseaSessionFile('./config/sessions.pk')
     if args.urls[0] == 'auth' and len(args.urls) == 1:
         print('\nThe "auth" command provides the following methods:')
         print('\n  list:     list the currently stored sessions')
         print('  add:      login and store a new session')
         print('  remove:   permanently remove a stored session')
         print('  default:  set a session as default')
+        print('  reauth:   reauthenticate with Tidal to get new sessionId')
         print('\nUsage: redsea.py auth add\n')
         exit()
     elif args.urls[0] == 'auth' and len(args.urls) > 1:
         if args.urls[1] == 'list':
-            sessions.list_accounts()
+            RSF.list_sessions()
             exit()
         elif args.urls[1] == 'add':
-            sessions.new_session()
-            sessions.save_session()
+            RSF.new_session()
             exit()
         elif args.urls[1] == 'remove':
-            sessions.remove_session()
+            RSF.remove_session()
             exit()
         elif args.urls[1] == 'default':
-            sessions.set_default()
+            RSF.set_default()
+            exit()
+        elif args.urls[1] == 'reauth':
+            RSF.reauth()
             exit()
 
-    # Load config
-    print(logo)
-    preset = PRESETS[args.preset]
-    session = sessions.load_session(args.account)
+    print(LOGO)
 
-    # Create a new API object
-    api = TidalApi(session['sessionId'], session['countryCode'])
+    # Load config
+    BRUTEFORCE = args.bruteforce or BRUTEFORCEREGION
+    preset = PRESETS[args.preset]
 
     # Parse options
     preset['quality'] = []
@@ -71,72 +74,147 @@ def main():
     preset['quality'].append('LOW') if preset['AAC_96'] else None
     media_to_download = cli.parse_media_option(args.urls)
 
-    # Create a media downloader
-    md = MediaDownloader(api, preset, Tagger(preset))
-
+    # Loop through media and download if possible
     cm = 0
     for mt in media_to_download:
-        cm += 1
-        id = mt['id']
-        tracks = []
 
-        # Single track
-        if mt['type'] == 't':
-            print('<<< Getting track info... >>>', end='\r')
-            track = api.get_track(id)
-
-            # Download and tag file
-            print('<<< Downloading single track... >>>')
-            try:
-                _, filepath = md.download_media(track, preset['quality'])
-            except ValueError as e:
-                print("\t" + str(e))
-                if args.skip is True:
-                    print('Skipping track "{} - {}" due to insufficient quality'.format(
-                        track['artist']['name'], track['title']))
-                else:
-                    print('Halting on track "{} - {}" due to insufficient quality'.format(
-                        track['artist']['name'], track['title']))
-                    quit()
-
-            print('=== 1/1 complete (100% done) ===\n')
-
-        # Collection
-        elif mt['type'] == 'p' or mt['type'] == 'a' or mt['type'] == 'f':
-            typename = 'playlist' if mt['type'] == 'p' else 'album'
-            print('<<< Getting {0} info... >>>'.format(typename), end='\r')
-            media_info = None
-            if mt['type'] == 'p':
-
-                # Make sure only tracks are in playlist items
-                playlistItems = api.get_playlist_items(id)['items']
-                for item in playlistItems:
-                    if item['type'] == 'track':
-                        tracks.append(item['item'])
-            else:
-                try:
-                    media_info = api.get_album(id)
-                except:
-                    print('api error, skipping\n', end='\r')
-                    continue
-                tracks = api.get_album_tracks(id)['items']
-
-            total = len(tracks)
-            print('<<< Downloading {0}: {1} track(s) in total >>>'.format(
-                typename, total))
-            cur = 0
-
-            for track in tracks:
-                md.download_media(track, preset['quality'],
-                                  media_info)
-                cur += 1
-                print('=== {0}/{1} complete ({2:.0f}% done) ===\n'.format(
-                    cur, total, (cur / total) * 100))
-        else:
+        # Is it an acceptable media type? (skip if not)
+        if not mt['type'] in MEDIA_TYPES:
             print('Unknown media type - ' + mt['type'])
+            continue
+
+        cm += 1
+        print('<<< Getting {0} info... >>>'.format(MEDIA_TYPES[mt['type']]), end='\r')
+        
+        # Create a new TidalApi and pass it to a new MediaDownloader
+        md = MediaDownloader(TidalApi(RSF.load_session(args.account)), preset, Tagger(preset))
+
+        # Create a new session generator in case we need to switch sessions
+        session_gen = RSF.get_session()
+
+        # Get media info
+        def get_tracks(media):
+            tracks = []
+            media_info = None
+
+            while True:
+                try:
+                    # Track
+                    if media['type'] == 't':
+                        tracks.append(md.api.get_track(media['id']))
+
+                    # Playlist
+                    elif media['type'] == 'p':
+
+                        # Make sure only tracks are in playlist items
+                        playlistItems = md.api.get_playlist_items(media['id'])['items']
+                        for item in playlistItems:
+                            if item['type'] == 'track':
+                                tracks.append(item['item'])
+
+                    # Album
+                    else:
+                        # Get album information
+                        media_info = md.api.get_album(media['id'])
+
+                        # Get a list of the tracks from the album
+                        tracks = md.api.get_album_tracks(media['id'])['items']
+
+                    return tracks, media_info
+
+                # Catch region error
+                except TidalError as e:
+                    if 'not found. This might be region-locked.' in str(e) and BRUTEFORCE:
+                        # Try again with a different session
+                        try:
+                            session, name = next(session_gen)
+                            md.api = TidalApi(session)
+                            print('Checking info fetch with session "{}" in region {}'.format(name, session.country_code))
+                            continue
+
+                        # Ran out of sessions
+                        except StopIteration as s:                    
+                            print(e)
+                            raise s
+
+                    # Skip or halt
+                    else:
+                        raise(e)
+
+        try:
+            tracks, media_info = get_tracks(media=mt)
+        except StopIteration:
+            # Let the user know we cannot download this release and skip it
+            print('None of the available accounts were able to get info for release {}. Skipping..'.format(mt['id']))
+            continue
+
+        total = len(tracks)
+
+        # Single
+        if total == 1:
+            print('<<< Downloading single track... >>>')
+
+        # Playlist or album
+        else:
+            print('<<< Downloading {0}: {1} track(s) in total >>>'.format(
+                MEDIA_TYPES[mt['type']], total))
+
+        cur = 0
+        for track in tracks:
+            first = True
+
+            # Actually download the track (finally)
+            while True:
+                try:
+                    md.download_media(track, preset['quality'], media_info)
+                    break
+
+                # Catch quality error
+                except ValueError as e:
+                    print("\t" + str(e))
+                    if args.skip is True:
+                        print('Skipping track "{} - {}" due to insufficient quality'.format(
+                            track['artist']['name'], track['title']))
+                        break
+                    else:
+                        print('Halting on track "{} - {}" due to insufficient quality'.format(
+                            track['artist']['name'], track['title']))
+                        quit()
+
+                # Catch session audio stream privilege error
+                except AssertionError as e:
+                    if 'Unable to download track' in str(e) and BRUTEFORCE:
+
+                        # Try again with a different session
+                        try:
+                            # Reset generator if this is the first attempt
+                            if first:
+                                session_gen = RSF.get_session()
+                                first = False
+                            session, name = next(session_gen)
+                            md.api = TidalApi(session)
+                            print('Attempting audio stream with session "{}" in region {}'.format(name, session.country_code))
+                            continue
+                        
+                        # Ran out of sessions, skip track
+                        except StopIteration:                    
+                            # Let the user know we cannot download this release and skip it
+                            print('None of the available accounts were able to download track {}. Skipping..'.format(track['id']))
+                            break
+
+                    # Skip
+                    else:
+                        print(str(e) + '. Skipping..')
+
+            # Progress of current track
+            cur += 1
+            print('=== {0}/{1} complete ({2:.0f}% done) ===\n'.format(
+                cur, total, (cur / total) * 100))
+        
+        # Progress of queue
         print('> Download queue: {0}/{1} items complete ({2:.0f}% done) <\n'.
-              format(cm, len(media_to_download),
-                     (cm / len(media_to_download)) * 100))
+            format(cm, len(media_to_download),
+                    (cm / len(media_to_download)) * 100))
 
     print('> All downloads completed. <')
 

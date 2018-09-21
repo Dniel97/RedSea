@@ -162,6 +162,7 @@ class RedseaSessionFile(TidalSessionFile):
                     print('LOGIN: Enter your Tidal password for account {}:\n'.format(session.username))
                     password = getpass.getpass('Password: ')
                     session.auth(password)
+                    self._save()
 
                     print('Session "{}" has been successfully reauthed.'.format(name))
                     return

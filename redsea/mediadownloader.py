@@ -140,6 +140,8 @@ class MediaDownloader(object):
                 **self._normalise_info(track_info, album_info, True)))
         track_file = self.opts['track_format'].format(
             **self._normalise_info(track_info, album_info))
+        if len(track_file) > 255: # trim filename to be under OS limit (and account for file extension)
+            track_file = track_file[:250 - len(track_file)]
         _mkdir_p(album_location)
         # Make multi disc directories
         if album_info['numberOfVolumes'] > 1:

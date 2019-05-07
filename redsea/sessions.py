@@ -17,39 +17,41 @@ class RedseaSessionFile(TidalSessionFile):
         Returns True if successful
         '''
         
-        print('LOGIN: Enter your Tidal username and password:\n')
-        username = input('Username: ')
-        password = getpass.getpass('Password: ')
+        while True:
+            print('LOGIN: Enter your Tidal username and password:\n')
+            username = input('Username: ')
+            password = getpass.getpass('Password: ')
 
-        name = ''
-        while name == '':
-            name = input('What would you like to call this new session? ')
-            if not name == '':
-                if name in self.sessions:
-                    confirm = input('A session with name "{}" already exists. Overwrite [y/N]? '.format(name))
+            name = ''
+            while name == '':
+                name = input('What would you like to call this new session? ')
+                if not name == '':
+                    if name in self.sessions:
+                        confirm = input('A session with name "{}" already exists. Overwrite [y/N]? '.format(name))
+                        if confirm.upper() == 'Y':
+                            super().remove(name)
+                        else:
+                            name = ''
+                            continue
+                else:
+                    confirm = input('Invalid entry! Would you like to cancel [y/N]? ')
                     if confirm.upper() == 'Y':
-                        super().remove(name)
-                    else:
-                        name = ''
+                        print('Operation cancelled.')
+                        return False
+            
+            try:
+                super().new_session(name, username, password)
+                break
+            except TidalRequestError as e:
+                if str(e).startswith('3001'):
+                    print('\nUSERNAME OR PASSWORD INCORRECT. Please try again.\n\n')
+                    continue
+            except AssertionError as e:
+                if 'invalid sessionId' in str(e):
+                    print(e)
+                    confirm = input('Would you like to try again [Y/n]? ')
+                    if not confirm.upper() == 'N':
                         continue
-            else:
-                confirm = input('Invalid entry! Would you like to cancel [y/N]? ')
-                if confirm.upper() == 'Y':
-                    print('Operation cancelled.')
-                    return False
-        
-        try:
-            super().new_session(name, username, password)
-        except TidalRequestError as e:
-            if str(e).startswith('3001'):
-                print('\nUSERNAME OR PASSWORD INCORRECT. Please try again.\n\n')
-                self.new_session()
-        except AssertionError as e:
-            if 'invalid sessionId' in str(e):
-                print(e)
-                confirm = input('Would you like to try again [Y/n]? ')
-                if not confirm.upper() == 'N':
-                    self.new_session()
 
         print('Session saved!')
         if not self.default == name:
@@ -102,6 +104,7 @@ class RedseaSessionFile(TidalSessionFile):
             name = input('Type the full name of the session you would like to remove: ')
             if not name == '':
                 super().remove(name)
+                print('Session "{}" has been removed.'.format(name))
             else:
                 confirm = input('Invalid entry! Would you like to cancel [y/N]? ')
                 if confirm.upper() == 'Y':
@@ -162,6 +165,7 @@ class RedseaSessionFile(TidalSessionFile):
                     print('LOGIN: Enter your Tidal password for account {}:\n'.format(session.username))
                     password = getpass.getpass('Password: ')
                     session.auth(password)
+                    self._save()
 
                     print('Session "{}" has been successfully reauthed.'.format(name))
                     return

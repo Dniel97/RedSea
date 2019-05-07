@@ -48,10 +48,27 @@ class TidalApi(object):
                          {'soundQuality': quality})
 
     def get_playlist_items(self, playlist_id):
-        return self._get('playlists/' + playlist_id + '/items', {
+        result = self._get('playlists/' + playlist_id + '/items', {
             'offset': 0,
             'limit': 100
         })
+
+        if (result['totalNumberOfItems'] <= 100):
+            return result
+
+        offset = len(result['items'])
+        while True:
+            buf = self._get('playlists/' + playlist_id + '/items', {
+                'offset': offset,
+                'limit': 100
+            })
+            offset += len(buf['items'])
+            result['items'] += buf['items']
+
+            if offset >= result['totalNumberOfItems']:
+                break
+
+        return result
 
     def get_album_tracks(self, album_id):
         return self._get('albums/' + str(album_id) + '/tracks')
@@ -141,8 +158,9 @@ class TidalSession(object):
         '''
         Checks if session is still valid and returns True/False
         '''
+
         r = requests.get(self.TIDAL_API_BASE + 'users/' + str(self.user_id),
-            params={'sessionId': self.session_id}).json()
+            headers={'X-Tidal-SessionId': self.session_id}).json()
 
         if 'status' in r and not r['status'] == 200:
             return False

@@ -159,7 +159,10 @@ class MediaDownloader(object):
         url = stream_data['url']
         if url.find('.flac?') == -1:
             if url.find('.m4a?') == -1:
-                ftype = ''
+                if url.find('.mp4?') == -1:
+                    ftype = ''
+                else:
+                    ftype = 'mp4'
             else:
                 ftype = 'm4a'
         else:

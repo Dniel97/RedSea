@@ -159,7 +159,10 @@ class MediaDownloader(object):
         url = stream_data['url']
         if url.find('.flac?') == -1:
             if url.find('.m4a?') == -1:
-                ftype = ''
+                if url.find('.mp4?') == -1:
+                    ftype = ''
+                else:
+                    ftype = 'mp4'
             else:
                 ftype = 'm4a'
         else:
@@ -188,7 +191,7 @@ class MediaDownloader(object):
 
         if ftype == 'flac':
             self.tm.tag_flac(temp_file, track_info, album_info, aa_location)
-        elif ftype == 'm4a':
+        elif ftype == 'm4a' or ftype == 'mp4':
             self.tm.tag_m4a(temp_file, track_info, album_info, aa_location)
         else:
             print('\tUnknown file type to tag!')

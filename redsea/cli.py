@@ -37,13 +37,31 @@ def get_args():
         help='Pass this flag to skip track and continue when a track does not meet the requested quality')
 
     parser.add_argument(
+        '-o',
+        '--overwrite',
+        action='store_true',
+        default=False,
+        help='Overwrite existing files [Default=skip]'
+    )
+
+    parser.add_argument(
+        '--resumeon',
+        type=int,
+        help='If ripping a single playlist, resume on the given track number.'
+    )
+
+    parser.add_argument(
         'urls',
         nargs='+',
         help=
         'The URLs to download. You may need to wrap the URLs in double quotes if you have issues downloading.'
     )
 
-    return parser.parse_args()
+    args = parser.parse_args()
+    if args.resumeon and args.resumeon <= 0:
+        parser.error('--resumeon must be a positive integer')
+
+    return args
 
 
 def parse_media_option(mo):
@@ -52,6 +70,7 @@ def parse_media_option(mo):
         if m.startswith('http'):
             m = re.sub(r'tidal.com\/.{2}\/store\/', 'tidal.com/', m)
             m = re.sub(r'tidal.com\/store\/', 'tidal.com/', m)
+            m = re.sub(r'tidal.com\/browse\/', 'tidal.com/', m)
             url = urlparse(m)
             components = url.path.split('/')
             if not components or len(components) <= 2:
@@ -65,6 +84,8 @@ def parse_media_option(mo):
                 type_ = 't'
             elif type_ == 'playlist':
                 type_ = 'p'
+            elif type_ == 'artist':
+                type_ = 'r'
             opts.append({'type': type_, 'id': id_})
             continue
         elif ':' in m and '#' in m:

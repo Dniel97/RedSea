@@ -1,8 +1,11 @@
 import pickle
 import uuid
 import os
+import json
 
 import requests
+from urllib3.util.retry import Retry
+from requests.adapters import HTTPAdapter
 
 
 class TidalRequestError(Exception):
@@ -24,24 +27,44 @@ class TidalApi(object):
 
     def __init__(self, session):
         self.session = session
+        self.s = requests.Session()
+        retries = Retry(total=5,
+                        backoff_factor=0.1,
+                        status_forcelist=[ 401, 429, 500, 502, 503, 504 ])
+
+        self.s.mount('http://', HTTPAdapter(max_retries=retries))
+        self.s.mount('https://', HTTPAdapter(max_retries=retries))
 
     def _get(self, url, params={}):
         params['countryCode'] = self.session.country_code
-        
-        resp = requests.get(
+        if not 'limit' in params:
+            params['limit'] = '9999'
+        resp = self.s.get(
             self.TIDAL_API_BASE + url,
             headers={
                 'X-Tidal-SessionId': self.session.session_id
             },
-            params=params).json()
+            params=params)
+
+        resp_json = None
+        try:
+            resp_json = resp.json()
+        except: # some tracks seem to return a JSON with leading whitespace
+            try:
+                resp_json = json.loads(resp.text.strip())
+            except: # if this doesn't work, the HTTP status probably isn't 200. Are we rate limited?
+                pass
+
+        if not resp_json:
+            raise TidalError('Response was not valid JSON. HTTP status {}. {}'.format(resp.status_code, resp.text))
+
+        if 'status' in resp_json and resp_json['status'] == 404 and resp_json['subStatus'] == 2001:
+            raise TidalError('Error: {}. This might be region-locked.'.format(resp_json['userMessage']))
         
-        if 'status' in resp and resp['status'] == 404 and resp['subStatus'] == 2001:
-            raise TidalError('Error: {}. This might be region-locked.'.format(resp['userMessage']))
+        if 'status' in resp_json and not resp_json['status'] == 200:
+            raise TidalRequestError(resp_json)
         
-        if 'status' in resp and not resp['status'] == 200:
-            raise TidalRequestError(resp)
-        
-        return resp
+        return resp_json
 
     def get_stream_url(self, track_id, quality):
         return self._get('tracks/' + str(track_id) + '/streamUrl',
@@ -83,14 +106,22 @@ class TidalApi(object):
         return self._get('videos/' + str(video_id))
 
     def get_favorite_tracks(self, user_id):
-        return self._get('users/' + str(user_id) + '/favorites/tracks',
-                         {'limit': 9999})
+        return self._get('users/' + str(user_id) + '/favorites/tracks')
 
     def get_track_contributors(self, track_id):
         return self._get('tracks/' + str(track_id) + '/contributors')
 
     def get_video_stream_url(self, video_id):
         return self._get('videos/' + str(video_id) + '/streamurl')
+
+    def get_artist(self, artist_id):
+        return self._get('artists/' + str(artist_id))
+
+    def get_artist_albums(self, artist_id):
+        return self._get('artists/' + str(artist_id) + '/albums')
+
+    def get_artist_albums_ep_singles(self, artist_id):
+        return self._get('artists/' + str(artist_id) + '/albums', params={'filter': 'EPSANDSINGLES'})
 
     @classmethod
     def get_album_artwork_url(cls, album_id, size=1280):

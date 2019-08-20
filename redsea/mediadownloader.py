@@ -4,8 +4,11 @@ import os
 import os.path as path
 import re
 import sys
+import pathlib
 
 import requests
+from urllib3.util.retry import Retry
+from requests.adapters import HTTPAdapter
 
 from .decryption import decrypt_file, decrypt_security_token
 from .tagger import FeaturingFormat
@@ -29,8 +32,17 @@ class MediaDownloader(object):
         self.opts = options
         self.tm = tagger
 
+        self.session = requests.Session()
+        retries = Retry(total=5,
+                        backoff_factor=0.1,
+                        status_forcelist=[ 401, 429, 500, 502, 503, 504 ])
+
+        self.session.mount('http://', HTTPAdapter(max_retries=retries))
+        self.session.mount('https://', HTTPAdapter(max_retries=retries))
+        
+
     def _dl_url(self, url, where):
-        r = requests.get(url, stream=True)
+        r = self.session.get(url, stream=True)
         try:
             total = int(r.headers['content-length'])
         except KeyError:
@@ -58,8 +70,8 @@ class MediaDownloader(object):
             return False
 
     def _sanitise_name(self, name):
-        name = re.sub('[\\\/*?"<>|]', '', name)
-        return re.sub('[:]', ' - ', name)
+        name = re.sub(r'[\\\/*?"<>|]', '', name)
+        return re.sub(r'[:]', ' - ', name)
 
     def _normalise_info(self, track_info, album_info, use_album_artists=False):
         info = {
@@ -128,27 +140,38 @@ class MediaDownloader(object):
         assert track_info['allowStreaming'], 'Unable to download track {0}: not allowed to stream/download'.format(track_id)
         
         print('=== Downloading track ID {0} ==='.format(track_id))
-        self.print_track_info(track_info, album_info)
 
         if album_info is None:
             print('\tGrabbing album info...')
-            album_info = self.api.get_album(track_info['album']['id'])
+            tries = self.opts['tries']
+            for i in range(tries):
+                try:
+                    album_info = self.api.get_album(track_info['album']['id'])
+                    break
+                except Exception as e:
+                    print(e)
+                    print('\tGrabbing album info failed, retrying... ({}/{})'.format(i + 1, tries))
+                    if i + 1 == tries:
+                        raise
+
 
         # Make locations
         album_location = path.join(
             self.opts['path'], self.opts['album_format'].format(
-                **self._normalise_info(track_info, album_info, True)))
+                **self._normalise_info(track_info, album_info, True))).strip()
+        album_location = re.sub(r'\.+$', '', album_location)
         track_file = self.opts['track_format'].format(
-            **self._normalise_info(track_info, album_info))
+            **self._normalise_info(track_info, album_info)).strip()
         if len(track_file) > 255: # trim filename to be under OS limit (and account for file extension)
             track_file = track_file[:250 - len(track_file)]
+        track_file = re.sub(r'\.+$', '', track_file)
         _mkdir_p(album_location)
         # Make multi disc directories
         if album_info['numberOfVolumes'] > 1:
             disc_location = path.join(
-                self.opts['path'],
                 album_location,
                 'CD{num}'.format(num=track_info['volumeNumber']))
+            disc_location = re.sub(r'\.+$', '', disc_location)
             _mkdir_p(disc_location)
 
         # Attempt to get stream URL
@@ -173,31 +196,49 @@ class MediaDownloader(object):
         else:
             track_path = path.join(album_location, track_file + '.' + ftype)
 
-        temp_file = self._dl_url(stream_data['url'], track_path)
+        
 
-        if not stream_data['encryptionKey'] == '':
-            print('\tLooks like file is encrypted. Decrypting...')
-            key, nonce = decrypt_security_token(stream_data['encryptionKey'])
-            decrypt_file(temp_file, key, nonce)
+        if path.isfile(track_path):
+            print('\tFile {} already exists, skipping.'.format(track_path))
+            return None
 
-        aa_location = path.join(album_location, 'Cover.jpg')
-        if not path.isfile(aa_location):
-            print('\tDownloading album art...')
-            if not self._dl_picture(track_info['album']['cover'], aa_location):
-                aa_location = None
+        
+        self.print_track_info(track_info, album_info)
 
-        #Tagging
-        print('\tTagging media file...')
+        try:
+            temp_file = self._dl_url(stream_data['url'], track_path)
 
-        if ftype == 'flac':
-            self.tm.tag_flac(temp_file, track_info, album_info, aa_location)
-        elif ftype == 'm4a' or ftype == 'mp4':
-            self.tm.tag_m4a(temp_file, track_info, album_info, aa_location)
-        else:
-            print('\tUnknown file type to tag!')
+            if not stream_data['encryptionKey'] == '':
+                print('\tLooks like file is encrypted. Decrypting...')
+                key, nonce = decrypt_security_token(stream_data['encryptionKey'])
+                decrypt_file(temp_file, key, nonce)
 
-        # Cleanup
-        if not self.opts['keep_cover_jpg']:
-            os.remove(aa_location)
+            aa_location = path.join(album_location, 'Cover.jpg')
+            if not path.isfile(aa_location):
+                print('\tDownloading album art...')
+                if not self._dl_picture(track_info['album']['cover'], aa_location):
+                    aa_location = None
 
-        return (album_location, temp_file)
+            # Tagging
+            print('\tTagging media file...')
+
+            if ftype == 'flac':
+                self.tm.tag_flac(temp_file, track_info, album_info, aa_location)
+            elif ftype == 'm4a' or ftype == 'mp4':
+                self.tm.tag_m4a(temp_file, track_info, album_info, aa_location)
+            else:
+                print('\tUnknown file type to tag!')
+
+            # Cleanup
+            if not self.opts['keep_cover_jpg'] and aa_location:
+                os.remove(aa_location)
+
+            return (album_location, temp_file)
+        
+        # Delete partially downloaded file on keyboard interrupt
+        except KeyboardInterrupt:
+            if path.isfile(track_path):
+                print('Deleting partially downloaded file ' + str(track_path))
+                os.remove(track_path)
+            raise
+                

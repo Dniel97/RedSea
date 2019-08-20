@@ -34,6 +34,8 @@ AAC_96: 96Kbps AAC
 # BRUTEFORCEREGION: Attempts to download the track/album with all available accounts if dl fails
 BRUTEFORCEREGION = True
 
+path = "./downloads/"
+
 PRESETS = {
 
     # Default settings / only download FLAC_16
@@ -42,7 +44,7 @@ PRESETS = {
         "embed_album_art": True,
         "save_album_json": False,
         "tries": 5,
-        "path": "./",
+        "path": path,
         "track_format": "{tracknumber} - {title}",
         "album_format": "{albumartist} - {album}",
         "MQA_FLAC_24": False,
@@ -53,11 +55,13 @@ PRESETS = {
 
     # This will download the highest available quality including MQA
     "best_available": {
-        "keep_cover_jpg": True,
+        "keep_cover_jpg": False,
         "embed_album_art": True,
         "save_album_json": False,
+        "aggressive_remix_filtering": True,
+        "skip_singles_when_possible": True,
         "tries": 5,
-        "path": "./",
+        "path": path,
         "track_format": "{tracknumber} - {title}",
         "album_format": "{albumartist} - {album}",
         "MQA_FLAC_24": True,

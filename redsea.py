@@ -134,9 +134,11 @@ def main():
                         eps_info = []
                         singles_info = []
                         for album in albums:
-                            if 'aggressive_remix_filtering' in preset and preset['aggressive_remix_filtering'] and 'remix' in album['title'].lower():
-                                print('\tSkipping ' + album['title'])
-                                continue
+                            if 'aggressive_remix_filtering' in preset and preset['aggressive_remix_filtering']:
+                                title = album['title'].lower()
+                                if 'remix' in title or 'commentary' in title or 'karaoke' in title:
+                                    print('\tSkipping ' + album['title'])
+                                    continue
 
                             # Get album information
                             media_info = md.api.get_album(album['id'])

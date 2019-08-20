@@ -1,3 +1,5 @@
+**This fork has a bunch of bugfixes and feature additions. Check the commit messages for detailed info about changes.**
+
 If you are a Windows user, you might want to check out [Athame](https://github.com/svbnet/Athame), a graphical music download client. It also seems to work well on Mono, if you use Linux or OS X.
 
 RedSea

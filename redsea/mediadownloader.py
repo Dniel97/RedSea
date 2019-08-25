@@ -33,8 +33,8 @@ class MediaDownloader(object):
         self.tm = tagger
 
         self.session = requests.Session()
-        retries = Retry(total=5,
-                        backoff_factor=0.1,
+        retries = Retry(total=10,
+                        backoff_factor=0.4,
                         status_forcelist=[ 401, 429, 500, 502, 503, 504 ])
 
         self.session.mount('http://', HTTPAdapter(max_retries=retries))

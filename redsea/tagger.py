@@ -71,8 +71,9 @@ class Tagger(object):
                 tagger['discnumber'] = str(
                     track_info['volumeNumber']) + '/' + str(
                         album_info['numberOfVolumes'])
-            # TODO: less hacky way of getting the year?
-            tagger['date'] = str(album_info['releaseDate'][:4])
+            if album_info['releaseDate']:
+                # TODO: less hacky way of getting the year?
+                tagger['date'] = str(album_info['releaseDate'][:4])
 
         if track_info['version'] is not None and track_info['version'] != '':
             fmt = ' ({})'.format(track_info['version'])

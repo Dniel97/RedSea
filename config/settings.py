@@ -77,7 +77,7 @@ PRESETS = {
         "aggressive_remix_filtering": True,
         "skip_singles_when_possible": True,
         "tries": 5,
-        "path": '/data/testing',
+        "path": '/downloads/',
         "track_format": "{tracknumber} - {title}",
         "album_format": "{albumartist} - {album}",
         "MQA_FLAC_24": True,

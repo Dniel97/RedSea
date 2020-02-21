@@ -3,6 +3,7 @@
 import json
 import traceback
 import sys
+import os
 
 import redsea.cli as cli
 
@@ -15,9 +16,9 @@ from config.settings import PRESETS, BRUTEFORCEREGION
 
 
 LOGO = """
- /$$$$$$$                  /$$  /$$$$$$                     
-| $$__  $$                | $$ /$$__  $$                    
-| $$  \ $$  /$$$$$$   /$$$$$$$| $$  \__/  /$$$$$$   /$$$$$$ 
+ /$$$$$$$                  /$$  /$$$$$$
+| $$__  $$                | $$ /$$__  $$
+| $$  \ $$  /$$$$$$   /$$$$$$$| $$  \__/  /$$$$$$   /$$$$$$
 | $$$$$$$/ /$$__  $$ /$$__  $$|  $$$$$$  /$$__  $$ |____  $$
 | $$__  $$| $$$$$$$$| $$  | $$ \____  $$| $$$$$$$$  /$$$$$$$
 | $$  \ $$| $$_____/| $$  | $$ /$$  \ $$| $$_____/ /$$__  $$
@@ -28,9 +29,10 @@ LOGO = """
                https://github.com/svbnet/RedSea
 \n"""
 
-MEDIA_TYPES = {'t': 'track', 'p': 'playlist', 'a': 'album', 'f':'album', 'r': 'artist'}
+MEDIA_TYPES = {'t': 'track', 'p': 'playlist', 'a': 'album', 'f':'album', 'r': 'artist', 'f': 'file'}
 
 def main():
+    os.chdir(sys.path[0])
     # Get args
     args = cli.get_args()
 
@@ -50,7 +52,10 @@ def main():
             RSF.list_sessions()
             exit()
         elif args.urls[1] == 'add':
-            RSF.new_session()
+            if len(args.urls) == 5:
+                RSF.create_session(args.urls[2], args.urls[3], args.urls[4])
+            else:
+                RSF.new_session()
             exit()
         elif args.urls[1] == 'remove':
             RSF.remove_session()
@@ -74,7 +79,7 @@ def main():
     preset['quality'].append('LOSSLESS') if preset['FLAC_16'] else None
     preset['quality'].append('HIGH') if preset['AAC_320'] else None
     preset['quality'].append('LOW') if preset['AAC_96'] else None
-    media_to_download = cli.parse_media_option(args.urls)
+    media_to_download = cli.parse_media_option(args.urls, args.file)
 
     # Loop through media and download if possible
     cm = 0
@@ -87,7 +92,7 @@ def main():
 
         cm += 1
         print('<<< Getting {0} info... >>>'.format(MEDIA_TYPES[mt['type']]))
-        
+
         # Create a new TidalApi and pass it to a new MediaDownloader
         md = MediaDownloader(TidalApi(RSF.load_session(args.account)), preset, Tagger(preset))
 
@@ -103,8 +108,16 @@ def main():
 
             while True:
                 try:
+                    if media['type'] == 'f':
+                        lines = media['content'].split('\n')
+                        for i, l in enumerate(lines):
+                            print('Getting info for track {}/{}'.format(i, len(lines)), end='\r')
+                            tracks.append(md.api.get_track(l))
+                        print()
+
+
                     # Track
-                    if media['type'] == 't':
+                    elif media['type'] == 't':
                         tracks.append(md.api.get_track(media['id']))
 
                     # Playlist
@@ -184,7 +197,7 @@ def main():
                             continue
 
                         # Ran out of sessions
-                        except StopIteration as s:                    
+                        except StopIteration as s:
                             print(e)
                             raise s
 
@@ -256,9 +269,9 @@ def main():
                                 md.api = TidalApi(session)
                                 print('Attempting audio stream with session "{}" in region {}'.format(name, session.country_code))
                                 continue
-                            
+
                             # Ran out of sessions, skip track
-                            except StopIteration:                    
+                            except StopIteration:
                                 # Let the user know we cannot download this release and skip it
                                 print('None of the available accounts were able to download track {}. Skipping..'.format(track['id']))
                                 break
@@ -271,7 +284,7 @@ def main():
                 cur += 1
                 print('=== {0}/{1} complete ({2:.0f}% done) ===\n'.format(
                     cur, total, (cur / total) * 100))
-            
+
         # Progress of queue
         print('> Download queue: {0}/{1} items complete ({2:.0f}% done) <\n'.
             format(cm, len(media_to_download),

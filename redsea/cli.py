@@ -57,6 +57,14 @@ def get_args():
         'The URLs to download. You may need to wrap the URLs in double quotes if you have issues downloading.'
     )
 
+    parser.add_argument(
+        '--file',
+        action='store_const',
+        const=True,
+        default=False,
+        help='Indicates that the url arguments are files containing lists of tracks'
+    )
+
     args = parser.parse_args()
     if args.resumeon and args.resumeon <= 0:
         parser.error('--resumeon must be a positive integer')
@@ -64,10 +72,12 @@ def get_args():
     return args
 
 
-def parse_media_option(mo):
+def parse_media_option(mo, is_file):
     opts = []
     for m in mo:
-        if m.startswith('http'):
+        if is_file:
+            opts.append({'type': 'f', 'content': open(m).read()})
+        elif m.startswith('http'):
             m = re.sub(r'tidal.com\/.{2}\/store\/', 'tidal.com/', m)
             m = re.sub(r'tidal.com\/store\/', 'tidal.com/', m)
             m = re.sub(r'tidal.com\/browse\/', 'tidal.com/', m)

@@ -10,13 +10,17 @@ class RedseaSessionFile(TidalSessionFile):
     TidalSessionFile class
     '''
 
+    def create_session(self, name, username, password):
+        super().new_session(name, username, password)
+
+
     def new_session(self):
         '''
         Authenticates with Tidal service
 
         Returns True if successful
         '''
-        
+
         while True:
             print('LOGIN: Enter your Tidal username and password:\n')
             username = input('Username: ')
@@ -38,7 +42,7 @@ class RedseaSessionFile(TidalSessionFile):
                     if confirm.upper() == 'Y':
                         print('Operation cancelled.')
                         return False
-            
+
             try:
                 super().new_session(name, username, password)
                 break
@@ -56,7 +60,7 @@ class RedseaSessionFile(TidalSessionFile):
         print('Session saved!')
         if not self.default == name:
             print('Session named "{}". Use the -a flag when running redsea to choose session'.format(name))
-            
+
         return True
 
     def load_session(self, session_name=None):
@@ -141,7 +145,7 @@ class RedseaSessionFile(TidalSessionFile):
 
         while True:
             name = input('Please provide the name of the session you would like to set as default: ')
-            if name is not '' and name in self.sessions:
+            if name != '' and name in self.sessions:
                 super().set_default(name)
                 print('Default session has successfully been set to "{}"'.format(name))
                 return
@@ -158,7 +162,7 @@ class RedseaSessionFile(TidalSessionFile):
 
         while True:
             name = input('Please provide the name of the session you would like to reauthenticate: ')
-            if name is not '' and name in self.sessions:
+            if name != '' and name in self.sessions:
                 try:
                     session = self.sessions[name]
 
@@ -176,7 +180,7 @@ class RedseaSessionFile(TidalSessionFile):
                         continue
                     else:
                         raise(e)
-                
+
                 except AssertionError as e:
                     if 'invalid sessionId' in str(e):
                         print('Reauthentication failed. SessionID is still invalid. Please try again.')

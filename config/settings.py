@@ -70,22 +70,6 @@ PRESETS = {
         "AAC_96": True
     },
 
-    "best_available_musicutil": {
-        "keep_cover_jpg": False,
-        "embed_album_art": True,
-        "save_album_json": False,
-        "aggressive_remix_filtering": True,
-        "skip_singles_when_possible": True,
-        "tries": 5,
-        "path": '/downloads/',
-        "track_format": "{tracknumber} - {title}",
-        "album_format": "{albumartist} - {album}",
-        "MQA_FLAC_24": True,
-        "FLAC_16": True,
-        "AAC_320": True,
-        "AAC_96": True
-    },
-
     # This preset will allow FLAC_16 and MQA files only
     "mqa_flac": {
         "keep_cover_jpg": True,

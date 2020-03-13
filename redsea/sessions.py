@@ -50,6 +50,9 @@ class RedseaSessionFile(TidalSessionFile):
                 if str(e).startswith('3001'):
                     print('\nUSERNAME OR PASSWORD INCORRECT. Please try again.\n\n')
                     continue
+                elif str(e).startswith('6004'):
+                    print('\nINVALID TOKEN. (HTTP 401)')
+                    continue
             except AssertionError as e:
                 if 'invalid sessionId' in str(e):
                     print(e)

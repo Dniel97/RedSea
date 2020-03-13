@@ -133,7 +133,7 @@ class TidalSession(object):
     Tidal session object which can be used to communicate with Tidal servers
     '''
 
-    def __init__(self, username, password, token='4zx46pyr9o8qZNRw'):
+    def __init__(self, username, password, token='u5qPNNYIbD0S0o36MrAiFZ56K6qMCrCmYPzZuTnV'):
         '''
         Initiate a new session
         '''
@@ -178,7 +178,7 @@ class TidalSession(object):
         '''
         Returns the type of token used to create the session
         '''
-        if self.token == '4zx46pyr9o8qZNRw':
+        if self.token == 'u5qPNNYIbD0S0o36MrAiFZ56K6qMCrCmYPzZuTnV':
             return 'Desktop'
         elif self.token == 'kgsOOmYk3zShYrNP':
             return 'Mobile'
@@ -240,7 +240,7 @@ class TidalSessionFile(object):
         with open(self.session_file, 'wb') as f:
             pickle.dump(self.session_store, f)
 
-    def new_session(self, session_name, username, password, token='4zx46pyr9o8qZNRw'):
+    def new_session(self, session_name, username, password, token='u5qPNNYIbD0S0o36MrAiFZ56K6qMCrCmYPzZuTnV'):
         '''
         Create a new TidalSession object and auth with Tidal server
         '''

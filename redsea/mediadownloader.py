@@ -5,6 +5,7 @@ import os.path as path
 import re
 import sys
 import pathlib
+import base64
 
 import requests
 from urllib3.util.retry import Retry
@@ -35,11 +36,11 @@ class MediaDownloader(object):
         self.session = requests.Session()
         retries = Retry(total=10,
                         backoff_factor=0.4,
-                        status_forcelist=[ 401, 429, 500, 502, 503, 504 ])
+                        status_forcelist=[ 429, 500, 502, 503, 504 ])
 
         self.session.mount('http://', HTTPAdapter(max_retries=retries))
         self.session.mount('https://', HTTPAdapter(max_retries=retries))
-        
+
 
     def _dl_url(self, url, where):
         r = self.session.get(url, stream=True)
@@ -90,31 +91,30 @@ class MediaDownloader(object):
         return info
 
     def get_stream_url(self, track_id, quality):
-        tries = self.opts['tries']
-
-        def try_get_url(ntries):
-            if ntries > tries:
-                print('\tExceeded maximum number of tries! Giving up...')
-                return
-            print('\tGrabbing stream URL...')
-            try:
-                return self.api.get_stream_url(track_id, quality)
-            except TidalRequestError as te:
-                if te.payload['status'] == 404:
-                    print('\tTrack does not exist.')
-                elif te.payload['subStatus'] == 4005:
+        stream_data = None
+        print('\tGrabbing stream URL...')
+        try:
+            stream_data = self.api.get_stream_url(track_id, quality)
+        except TidalRequestError as te:
+            if te.payload['status'] == 404:
+                print('\tTrack does not exist.')
+            # in this case, we need to use this workaround discovered by reverse engineering the mobile app, idk why
+            elif te.payload['subStatus'] == 4005:
+                try:
+                    print('\tStatus 4005 when getting stream URL, trying workaround...')
+                    playback_info = self.api.get_stream_url_workaround(track_id, quality)
+                    manifest = json.loads(base64.b64decode(playback_info['manifest']))
+                    stream_data = {
+                        'soundQuality': playback_info['audioQuality'],
+                        'codec': manifest['codecs'],
+                        'url': manifest['urls'][0],
+                        'encryptionKey': manifest['keyId']
+                    }
+                except TidalRequestError as te:
                     print('\t' + str(te))
-                else:
-                    print('\t' + str(te))
-                    if ntries == 0 and quality == 'LOSSLESS':
-                        print('\tTrying HIGH -> LOSSLESS workaround...')
-                        self.api.get_stream_url(track_id, 'HIGH')
-                    print('\tTrying download again...')
-                    ntries += 1
-                    return try_get_url(ntries)
-                return
+            else:
+                print('\t' + str(te))
 
-        stream_data = try_get_url(0)
         if stream_data is None:
             raise ValueError('Stream could not be acquired')
 
@@ -138,7 +138,7 @@ class MediaDownloader(object):
     def download_media(self, track_info, quality, album_info=None):
         track_id = track_info['id']
         assert track_info['allowStreaming'], 'Unable to download track {0}: not allowed to stream/download'.format(track_id)
-        
+
         print('=== Downloading track ID {0} ==='.format(track_id))
 
         if album_info is None:
@@ -196,13 +196,13 @@ class MediaDownloader(object):
         else:
             track_path = path.join(album_location, track_file + '.' + ftype)
 
-        
+
 
         if path.isfile(track_path):
             print('\tFile {} already exists, skipping.'.format(track_path))
             return None
 
-        
+
         self.print_track_info(track_info, album_info)
 
         try:
@@ -234,11 +234,11 @@ class MediaDownloader(object):
                 os.remove(aa_location)
 
             return (album_location, temp_file)
-        
+
         # Delete partially downloaded file on keyboard interrupt
         except KeyboardInterrupt:
             if path.isfile(track_path):
                 print('Deleting partially downloaded file ' + str(track_path))
                 os.remove(track_path)
             raise
-                
+

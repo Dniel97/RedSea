@@ -30,7 +30,7 @@ class TidalApi(object):
         self.s = requests.Session()
         retries = Retry(total=10,
                         backoff_factor=0.4,
-                        status_forcelist=[ 401, 429, 500, 502, 503, 504 ])
+                        status_forcelist=[ 429, 500, 502, 503, 504 ])
 
         self.s.mount('http://', HTTPAdapter(max_retries=retries))
         self.s.mount('https://', HTTPAdapter(max_retries=retries))
@@ -60,15 +60,19 @@ class TidalApi(object):
 
         if 'status' in resp_json and resp_json['status'] == 404 and resp_json['subStatus'] == 2001:
             raise TidalError('Error: {}. This might be region-locked.'.format(resp_json['userMessage']))
-        
+
         if 'status' in resp_json and not resp_json['status'] == 200:
             raise TidalRequestError(resp_json)
-        
+
         return resp_json
 
     def get_stream_url(self, track_id, quality):
         return self._get('tracks/' + str(track_id) + '/streamUrl',
                          {'soundQuality': quality})
+
+    def get_stream_url_workaround(self, track_id, quality):
+        return self._get('tracks/' + str(track_id) + '/playbackinfopostpaywall',
+                        { 'playbackmode': 'STREAM', 'assetpresentation': 'FULL', 'audioquality': 'HI_RES' })  # TODO: use highest quality from 'quality' arg instead of defaulting to HI_RES
 
     def get_playlist_items(self, playlist_id):
         result = self._get('playlists/' + playlist_id + '/items', {
@@ -278,7 +282,7 @@ class TidalSessionFile(object):
 
         if session_name is None:
             session_name = self.default
-        
+
         if session_name in self.sessions:
             assert self.sessions[session_name].valid(), '{} has an invalid sessionId. Please re-authenticate'.format(session_name)
             return self.sessions[session_name]
@@ -287,7 +291,7 @@ class TidalSessionFile(object):
 
     def set_default(self, session_name):
         '''
-        Set a default session to return when 
+        Set a default session to return when
         load() is called without a session name
         '''
 

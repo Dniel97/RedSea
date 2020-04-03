@@ -155,14 +155,15 @@ def main():
 
                             # remove sony 360 reality audio albums if there's another (duplicate) album that isn't 360 reality audio
                             if 'skip_360ra' in preset and preset['skip_360ra']:
-                                is_duplicate = False
-                                for a2 in albums:
-                                    if album['title'] == a2['title'] and album['numberOfTracks'] == a2['numberOfTracks']:
-                                        is_duplicate = True
-                                        break
-                                if is_duplicate and 'SONY_360RA' in album['audioModes']:
-                                    print('\tSkipping duplicate Sony 360 Reality Audio album - ' + album['title'])
-                                    continue
+                                if 'SONY_360RA' in album['audioModes']:
+                                    is_duplicate = False
+                                    for a2 in albums:
+                                        if album['title'] == a2['title'] and album['numberOfTracks'] == a2['numberOfTracks']:
+                                            is_duplicate = True
+                                            break
+                                    if is_duplicate:
+                                        print('\tSkipping duplicate Sony 360 Reality Audio album - ' + album['title'])
+                                        continue
 
                             # Get album information
                             media_info = md.api.get_album(album['id'])

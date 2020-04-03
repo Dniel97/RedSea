@@ -56,9 +56,9 @@ class TidalApi(object):
             params=params)
 
         # if the request 401s or 403s, try refreshing the session in case that helps
-        if not refresh and (resp.status_code == 401 or resp.status_code == 403) and instanceof(self.session, TidalMobileSession):
+        if not refresh and (resp.status_code == 401 or resp.status_code == 403) and isinstance(self.session, TidalMobileSession):
             self.session.refresh()
-            return _get(url, params, True)
+            return self._get(url, params, True)
 
         resp_json = None
         try:

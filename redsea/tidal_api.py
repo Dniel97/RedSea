@@ -86,8 +86,11 @@ class TidalApi(object):
 
     def get_stream_url_workaround(self, track_id, quality):
 
-        return self._get('tracks/' + str(track_id) + '/playbackinfopostpaywall',
-                        { 'playbackmode': 'STREAM', 'assetpresentation': 'FULL', 'audioquality': 'HI_RES', 'streamingsessionid': '0a5a3903-4e8f-4d2c-a275-a69403c15335', 'prefetch': 'false' })  # TODO: use highest quality from 'quality' arg instead of defaulting to HI_RES
+        return self._get('tracks/' + str(track_id) + '/playbackinfopostpaywall', {
+            'playbackmode': 'STREAM',
+            'assetpresentation': 'FULL',
+            'audioquality': 'HI_RES'  # TODO: use highest quality from 'quality' arg instead of defaulting to HI_RES
+        })
 
     def get_playlist_items(self, playlist_id):
         result = self._get('playlists/' + playlist_id + '/items', {

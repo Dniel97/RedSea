@@ -60,6 +60,7 @@ PRESETS = {
         "save_album_json": False,
         "aggressive_remix_filtering": True,
         "skip_singles_when_possible": True,
+        "skip_360ra": True,
         "tries": 5,
         "path": path,
         "track_format": "{tracknumber} - {title}",

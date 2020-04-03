@@ -41,7 +41,6 @@ class MediaDownloader(object):
         self.session.mount('http://', HTTPAdapter(max_retries=retries))
         self.session.mount('https://', HTTPAdapter(max_retries=retries))
 
-
     def _dl_url(self, url, where):
         r = self.session.get(url, stream=True)
         try:
@@ -135,7 +134,7 @@ class MediaDownloader(object):
             print(line)
         print('\t----')
 
-    def download_media(self, track_info, quality, album_info=None):
+    def download_media(self, track_info, quality, album_info=None, overwrite=False):
         track_id = track_info['id']
         assert track_info['allowStreaming'], 'Unable to download track {0}: not allowed to stream/download'.format(track_id)
 
@@ -197,8 +196,7 @@ class MediaDownloader(object):
             track_path = path.join(album_location, track_file + '.' + ftype)
 
 
-
-        if path.isfile(track_path):
+        if path.isfile(track_path) and not overwrite:
             print('\tFile {} already exists, skipping.'.format(track_path))
             return None
 
@@ -241,4 +239,3 @@ class MediaDownloader(object):
                 print('Deleting partially downloaded file ' + str(track_path))
                 os.remove(track_path)
             raise
-

@@ -239,7 +239,7 @@ def main():
                 # Actually download the track (finally)
                 while True:
                     try:
-                        md.download_media(track, preset['quality'], media_info)
+                        md.download_media(track, preset['quality'], media_info, overwrite=args.overwrite)
                         break
 
                     # Catch quality error
@@ -291,6 +291,9 @@ def main():
                     (cm / len(media_to_download)) * 100))
 
     print('> All downloads completed. <')
+
+    # since oauth sessions can change while downloads are happening if the token gets refreshed
+    RSF._save()
 
 
 # Run from CLI - catch Ctrl-C and handle it gracefully

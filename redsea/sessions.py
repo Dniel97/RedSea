@@ -1,6 +1,7 @@
 import getpass
 
-from redsea.tidal_api import TidalSessionFile, TidalRequestError
+from redsea.tidal_api import TidalSessionFile, TidalRequestError, TidalMobileSession
+
 
 class RedseaSessionFile(TidalSessionFile):
     '''
@@ -12,7 +13,6 @@ class RedseaSessionFile(TidalSessionFile):
 
     def create_session(self, name, username, password):
         super().new_session(name, username, password)
-
 
     def new_session(self):
         '''
@@ -132,7 +132,8 @@ class RedseaSessionFile(TidalSessionFile):
 
         print('\nSESSIONS:')
         for s in self.sessions:
-            print('   [{}] {} | {}'.format(self.sessions[s].country_code, self.sessions[s].username, s))
+            mobile = '[MOBILE]' if isinstance(self.sessions[s], TidalMobileSession) else ''
+            print('   [{}]{} {} | {}'.format(self.sessions[s].country_code, mobile, self.sessions[s].username, s))
 
         print('')
         if self.default is not None:

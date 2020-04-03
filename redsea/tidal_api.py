@@ -2,6 +2,12 @@ import pickle
 import uuid
 import os
 import json
+import urllib.parse as urlparse
+from urllib.parse import parse_qs
+import hashlib
+import base64
+import secrets
+from datetime import datetime, timedelta
 
 import requests
 from urllib3.util.retry import Retry
@@ -9,17 +15,22 @@ from requests.adapters import HTTPAdapter
 
 
 class TidalRequestError(Exception):
-
     def __init__(self, payload):
         sf = '{subStatus}: {userMessage} (HTTP {status})'.format(**payload)
         self.payload = payload
         super(TidalRequestError, self).__init__(sf)
 
-class TidalError(Exception):
 
+class TidalAuthError(Exception):
+    def __init__(self, message):
+        super(TidalAuthError, self).__init__(message)
+
+
+class TidalError(Exception):
     def __init__(self, message):
         self.message = message
         super(TidalError, self).__init__(message)
+
 
 class TidalApi(object):
     TIDAL_API_BASE = 'https://api.tidalhifi.com/v1/'
@@ -30,29 +41,32 @@ class TidalApi(object):
         self.s = requests.Session()
         retries = Retry(total=10,
                         backoff_factor=0.4,
-                        status_forcelist=[ 429, 500, 502, 503, 504 ])
+                        status_forcelist=[429, 500, 502, 503, 504])
 
         self.s.mount('http://', HTTPAdapter(max_retries=retries))
         self.s.mount('https://', HTTPAdapter(max_retries=retries))
 
-    def _get(self, url, params={}):
+    def _get(self, url, params={}, refresh=False):
         params['countryCode'] = self.session.country_code
-        if not 'limit' in params:
+        if 'limit' not in params:
             params['limit'] = '9999'
         resp = self.s.get(
             self.TIDAL_API_BASE + url,
-            headers={
-                'X-Tidal-SessionId': self.session.session_id
-            },
+            headers=self.session.auth_headers(),
             params=params)
+
+        # if the request 401s or 403s, try refreshing the session in case that helps
+        if not refresh and (resp.status_code == 401 or resp.status_code == 403) and instanceof(self.session, TidalMobileSession):
+            self.session.refresh()
+            return _get(url, params, True)
 
         resp_json = None
         try:
             resp_json = resp.json()
-        except: # some tracks seem to return a JSON with leading whitespace
+        except:  # some tracks seem to return a JSON with leading whitespace
             try:
                 resp_json = json.loads(resp.text.strip())
-            except: # if this doesn't work, the HTTP status probably isn't 200. Are we rate limited?
+            except:  # if this doesn't work, the HTTP status probably isn't 200. Are we rate limited?
                 pass
 
         if not resp_json:
@@ -71,8 +85,9 @@ class TidalApi(object):
                          {'soundQuality': quality})
 
     def get_stream_url_workaround(self, track_id, quality):
+
         return self._get('tracks/' + str(track_id) + '/playbackinfopostpaywall',
-                        { 'playbackmode': 'STREAM', 'assetpresentation': 'FULL', 'audioquality': 'HI_RES' })  # TODO: use highest quality from 'quality' arg instead of defaulting to HI_RES
+                        { 'playbackmode': 'STREAM', 'assetpresentation': 'FULL', 'audioquality': 'HI_RES', 'streamingsessionid': '0a5a3903-4e8f-4d2c-a275-a69403c15335', 'prefetch': 'false' })  # TODO: use highest quality from 'quality' arg instead of defaulting to HI_RES
 
     def get_playlist_items(self, playlist_id):
         result = self._get('playlists/' + playlist_id + '/items', {
@@ -131,6 +146,7 @@ class TidalApi(object):
     def get_album_artwork_url(cls, album_id, size=1280):
         return 'https://resources.tidal.com/images/{0}/{1}x{1}.jpg'.format(
             album_id.replace('-', '/'), size)
+
 
 class TidalSession(object):
     '''
@@ -194,13 +210,131 @@ class TidalSession(object):
         Checks if session is still valid and returns True/False
         '''
 
-        r = requests.get(self.TIDAL_API_BASE + 'users/' + str(self.user_id),
-            headers={'X-Tidal-SessionId': self.session_id}).json()
+        r = requests.get(self.TIDAL_API_BASE + 'users/' + str(self.user_id), headers=self.auth_headers()).json()
 
         if 'status' in r and not r['status'] == 200:
             return False
         else:
             return True
+
+    def auth_headers(self):
+        return {'X-Tidal-SessionId': self.session_id}
+
+
+class TidalMobileSession(TidalSession):
+    '''
+    Tidal session object based on the mobile Android oauth flow
+    '''
+    def __init__(self, username, password, client_id='ck3zaWMi8Ka_XdI0'):
+        self.TIDAL_LOGIN_BASE = 'https://login.tidal.com/'
+        self.TIDAL_AUTH_BASE = 'https://auth.tidal.com/v1/'
+
+        self.username = username
+        self.client_id = client_id
+        self.redirect_uri = 'https://tidal.com/android/login/auth'
+        self.code_verifier = base64.urlsafe_b64encode(secrets.token_bytes(32)).rstrip(b'=')
+        self.code_challenge = base64.urlsafe_b64encode(hashlib.sha256(self.code_verifier).digest()).rstrip(b'=')
+        self.client_unique_key = secrets.token_hex(16)
+
+        self.access_token = None
+        self.refresh_token = None
+        self.expires = None
+        self.user_id = None
+        self.country_code = None
+
+        self.auth(password)
+
+    def auth(self, password):
+        s = requests.Session()
+
+        params = {
+            'response_type': 'code',
+            'redirect_uri': self.redirect_uri,
+            'lang': 'en_US',
+            'appMode': 'android',
+            'client_id': self.client_id,
+            'client_unique_key': self.client_unique_key,
+            'code_challenge': self.code_challenge,
+            'code_challenge_method': 'S256'
+        }
+
+        # retrieve csrf token for subsequent request
+        r = s.get('https://login.tidal.com/authorize', params=params)
+
+        # enter email, verify email is valid
+        r = s.post('https://login.tidal.com/email', params=params, json={
+            '_csrf': s.cookies['token'],
+            'email': self.username,
+            'recaptchaResponse': ''
+        })
+        assert(r.status_code == 200)
+        if not r.json()['isValidEmail']:
+            raise TidalAuthError('Invalid email')
+        if r.json()['newUser']:
+            raise TidalAuthError('User does not exist')
+
+        # login with user credentials
+        r = s.post('https://login.tidal.com/email/user/existing', params=params, json={
+            '_csrf': s.cookies['token'],
+            'email': self.username,
+            'password': password
+        })
+        assert(r.status_code == 200)
+
+        # retrieve access code
+        r = s.get('https://login.tidal.com/success?lang=en', allow_redirects=False)
+        if r.status_code == 401:
+            raise TidalAuthError('Incorrect password')
+        assert(r.status_code == 302)
+        url = urlparse.urlparse(r.headers['location'])
+        oauth_code = parse_qs(url.query)['code'][0]
+
+        # exchange access code for oauth token
+        r = requests.post('https://auth.tidal.com/v1/oauth2/token', data={
+            'code': oauth_code,
+            'client_id': self.client_id,
+            'grant_type': 'authorization_code',
+            'redirect_uri': self.redirect_uri,
+            'scope': 'r_usr w_usr w_sub',
+            'code_verifier': self.code_verifier,
+            'client_unique_key': self.client_unique_key
+        })
+        assert(r.status_code == 200)
+
+        self.access_token = r.json()['access_token']
+        self.refresh_token = r.json()['refresh_token']
+        self.expires = datetime.now() + timedelta(seconds=r.json()['expires_in'])
+
+        r = requests.get('https://api.tidal.com/v1/sessions', headers=self.auth_headers())
+        assert(r.status_code == 200)
+        self.user_id = r.json()['userId']
+        self.country_code = r.json()['countryCode']
+
+    def valid(self):
+        if self.access_token is None or datetime.now() > self.expires:
+            return False
+        r = requests.get('https://api.tidal.com/v1/sessions', headers=self.auth_headers())
+        return r.status_code == 200
+
+    def refresh(self):
+        assert(self.refresh_token is not None)
+        r = requests.post('https://auth.tidal.com/v1/oauth2/token', data={
+            'refresh_token': self.refresh_token,
+            'client_id': self.client_id,
+            'grant_type': 'refresh_token'
+        })
+        if r.status_code == 200:
+            self.access_token = r.json()['access_token']
+            self.expires = datetime.now() + timedelta(seconds=r.json()['expires_in'])
+            if 'refresh_token' in r.json():
+                self.refresh_token = r.json()['refresh_token']
+        return r.status_code == 200
+
+    def session_type(self):
+        return 'Mobile'
+
+    def auth_headers(self):
+        return {'authorization': 'Bearer {}'.format(self.access_token)}
 
 
 class TidalSessionFile(object):
@@ -210,7 +344,7 @@ class TidalSessionFile(object):
 
     def __init__(self, session_file):
         self.VERSION = '1.0'
-        self.session_file = session_file # Session file path
+        self.session_file = session_file  # Session file path
         self.session_store = {}  # Will contain data from session file
         self.sessions = {}  # Will contain sessions from session_store['sessions']
         self.default = None  # Specifies the name of the default session to use
@@ -244,13 +378,17 @@ class TidalSessionFile(object):
         with open(self.session_file, 'wb') as f:
             pickle.dump(self.session_store, f)
 
-    def new_session(self, session_name, username, password, token='u5qPNNYIbD0S0o36MrAiFZ56K6qMCrCmYPzZuTnV'):
+    def new_session(self, session_name, username, password, mobileSession=True):
         '''
         Create a new TidalSession object and auth with Tidal server
         '''
 
         if session_name not in self.sessions:
-            self.sessions[session_name] = TidalSession(username, password, token=token)
+            if mobileSession:
+                session = TidalMobileSession(username, password)
+            else:
+                session = TidalSession(username, password)
+            self.sessions[session_name] = session
             password = None
 
             if len(self.sessions) == 1:
@@ -284,6 +422,8 @@ class TidalSessionFile(object):
             session_name = self.default
 
         if session_name in self.sessions:
+            if not self.sessions[session_name].valid() and isinstance(self.sessions[session_name], TidalMobileSession):
+                self.sessions[session_name].refresh()
             assert self.sessions[session_name].valid(), '{} has an invalid sessionId. Please re-authenticate'.format(session_name)
             return self.sessions[session_name]
 

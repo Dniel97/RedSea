@@ -107,7 +107,7 @@ class MediaDownloader(object):
                         'soundQuality': playback_info['audioQuality'],
                         'codec': manifest['codecs'],
                         'url': manifest['urls'][0],
-                        'encryptionKey': manifest['keyId']
+                        'encryptionKey': manifest['keyId'] if manifest['encryptionType'] != 'NONE' else ''
                     }
                 except TidalRequestError as te:
                     print('\t' + str(te))

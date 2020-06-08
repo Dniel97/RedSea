@@ -34,6 +34,12 @@ AAC_96: 96Kbps AAC
 # BRUTEFORCEREGION: Attempts to download the track/album with all available accounts if dl fails
 BRUTEFORCEREGION = True
 
+TIDALSESSION = ""
+
+# AUTHHEADER will look like "Bearer abcd......."
+AUTHHEADER = ""
+
+
 path = "./downloads/"
 
 PRESETS = {
@@ -48,9 +54,9 @@ PRESETS = {
         "track_format": "{tracknumber} - {title}",
         "album_format": "{albumartist} - {album}",
         "MQA_FLAC_24": False,
-        "FLAC_16": True,
+        "FLAC_16": False,
         "AAC_320": False,
-        "AAC_96": False
+        "AAC_96": True
     },
 
     # This will download the highest available quality including MQA

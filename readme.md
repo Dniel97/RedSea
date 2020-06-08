@@ -1,4 +1,6 @@
-**This fork has a bunch of bugfixes and feature additions. Check the commit messages for detailed info about changes.**
+**This fork is based on stephanlensky's fork of redsudo's fork of mreweilk's fork of svbnet's Redsea where I've disabled a bunch of features to allow for Dolby Atmos downloading.**
+
+To get this to work you MUST set your own auth header retrieved from MITM'ing a Tidal APK that has its target version changed, which is included. To do this you must install Fiddler-Everywhere on any computer and follow [this guide](https://www.telerik.com/blogs/how-to-capture-android-traffic-with-fiddler). Note that the guide is for the old version of Fiddler, so the placement of the options will be different, and so will the port. Once you have done that, play a song on tidal, select any api.tidal.com entry, and copy the text next to 'Authorization:' in the header tab on the right side, and copy it into the config file.
 
 If you are a Windows user, you might want to check out [Athame](https://github.com/svbnet/Athame), a graphical music download client. It also seems to work well on Mono, if you use Linux or OS X.
 

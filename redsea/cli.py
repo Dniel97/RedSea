@@ -86,8 +86,12 @@ def parse_media_option(mo, is_file):
             if not components or len(components) <= 2:
                 print('Invalid URL: ' + m)
                 exit()
-            type_ = components[1]
-            id_ = components[2]
+            if len(components) == 5:
+                type_ = components[3]
+                id_ = components[4]
+            else:
+                type_ = components[1]
+                id_ = components[2]
             if type_ == 'album':
                 type_ = 'a'
             elif type_ == 'track':

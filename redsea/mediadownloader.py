@@ -218,14 +218,14 @@ class MediaDownloader(object):
                     aa_location = None
 
             # Tagging
-            print('\tTagging media file...')
+            #print('\tTagging media file...')
 
-            if ftype == 'flac':
-                self.tm.tag_flac(temp_file, track_info, album_info, aa_location)
-            elif ftype == 'm4a' or ftype == 'mp4':
-                self.tm.tag_m4a(temp_file, track_info, album_info, aa_location)
-            else:
-                print('\tUnknown file type to tag!')
+            #if ftype == 'flac':
+            #    self.tm.tag_flac(temp_file, track_info, album_info, aa_location)
+            #elif ftype == 'm4a' or ftype == 'mp4':
+            #    self.tm.tag_m4a(temp_file, track_info, album_info, aa_location)
+            #else:
+            #    print('\tUnknown file type to tag!')
 
             # Cleanup
             if not self.opts['keep_cover_jpg'] and aa_location:

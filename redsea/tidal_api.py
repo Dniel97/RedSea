@@ -13,6 +13,8 @@ import requests
 from urllib3.util.retry import Retry
 from requests.adapters import HTTPAdapter
 
+from config.settings import TIDALSESSION, AUTHHEADER
+
 
 class TidalRequestError(Exception):
     def __init__(self, payload):
@@ -34,7 +36,7 @@ class TidalError(Exception):
 
 class TidalApi(object):
     TIDAL_API_BASE = 'https://api.tidalhifi.com/v1/'
-    TIDAL_CLIENT_VERSION = '1.9.1'
+    TIDAL_CLIENT_VERSION = '2.25.1'
 
     def __init__(self, session):
         self.session = session
@@ -47,12 +49,12 @@ class TidalApi(object):
         self.s.mount('https://', HTTPAdapter(max_retries=retries))
 
     def _get(self, url, params={}, refresh=False):
-        params['countryCode'] = self.session.country_code
+        params['countryCode'] = 'US'
         if 'limit' not in params:
             params['limit'] = '9999'
         resp = self.s.get(
             self.TIDAL_API_BASE + url,
-            headers=self.session.auth_headers(),
+            headers={'X-Tidal-SessionId': TIDALSESSION, 'User-Agent': 'TIDAL_ANDROID/992 okhttp/3.13.1', 'Authorization': AUTHHEADER},
             params=params)
 
         # if the request 401s or 403s, try refreshing the session in case that helps
@@ -87,9 +89,10 @@ class TidalApi(object):
     def get_stream_url_workaround(self, track_id, quality):
 
         return self._get('tracks/' + str(track_id) + '/playbackinfopostpaywall', {
+            'audioMode': 'DOLBY_ATMOS',
             'playbackmode': 'STREAM',
             'assetpresentation': 'FULL',
-            'audioquality': 'HI_RES'  # TODO: use highest quality from 'quality' arg instead of defaulting to HI_RES
+            'audioquality': 'LOW'  # TODO: use highest quality from 'quality' arg instead of defaulting to HI_RES
         })
 
     def get_playlist_items(self, playlist_id):
@@ -156,11 +159,11 @@ class TidalSession(object):
     Tidal session object which can be used to communicate with Tidal servers
     '''
 
-    def __init__(self, username, password, token='u5qPNNYIbD0S0o36MrAiFZ56K6qMCrCmYPzZuTnV'):
+    def __init__(self, username, password, token='wc8j_yBJd20zOmx0'):
         '''
         Initiate a new session
         '''
-        self.TIDAL_CLIENT_VERSION = '1.9.1'
+        self.TIDAL_CLIENT_VERSION = '2.25.1'
         self.TIDAL_API_BASE = 'https://api.tidalhifi.com/v1/'
 
         self.username = username
@@ -184,7 +187,7 @@ class TidalSession(object):
             'clientVersion': self.TIDAL_CLIENT_VERSION
         }
 
-        r = requests.post(self.TIDAL_API_BASE + 'login/username', data=postParams).json()
+        r = requests.post(self.TIDAL_API_BASE + 'login/username', data=postParams)
 
         password = None
 
@@ -201,9 +204,9 @@ class TidalSession(object):
         '''
         Returns the type of token used to create the session
         '''
-        if self.token == 'u5qPNNYIbD0S0o36MrAiFZ56K6qMCrCmYPzZuTnV':
+        if self.token == 'MbjR4DLXz1ghC4rV':
             return 'Desktop'
-        elif self.token == 'kgsOOmYk3zShYrNP':
+        elif self.token == 'wc8j_yBJd20zOmx0':
             return 'Mobile'
         else:
             return 'Other/Unknown'
@@ -337,7 +340,11 @@ class TidalMobileSession(TidalSession):
         return 'Mobile'
 
     def auth_headers(self):
-        return {'authorization': 'Bearer {}'.format(self.access_token)}
+        return {
+            'User-Agent': 'TIDAL_ANDROID/992 okhttp/3.13.1',
+            'authorization': 'Bearer {}'.
+            format(self.access_token),
+            }
 
 
 class TidalSessionFile(object):
@@ -418,8 +425,8 @@ class TidalSessionFile(object):
         Returns a session from the session store
         '''
 
-        if len(self.sessions) == 0:
-            raise ValueError('There are no sessions in session file!')
+        #if len(self.sessions) == 0:
+        #    raise ValueError('There are no sessions in session file!')
 
         if session_name is None:
             session_name = self.default
@@ -430,7 +437,7 @@ class TidalSessionFile(object):
             assert self.sessions[session_name].valid(), '{} has an invalid sessionId. Please re-authenticate'.format(session_name)
             return self.sessions[session_name]
 
-        raise ValueError('Session "{}" could not be found.'.format(session_name))
+        #raise ValueError('Session "{}" could not be found.'.format(session_name))
 
     def set_default(self, session_name):
         '''

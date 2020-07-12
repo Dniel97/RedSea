@@ -18,7 +18,8 @@ from .tidal_api import TidalApi, TidalRequestError
 
 def _mkdir_p(path):
     try:
-        os.makedirs(path)
+        if not os.path.isdir(path):
+            os.makedirs(path)
     except OSError as exc:
         if exc.errno == errno.EEXIST and os.path.isdir(path):
             pass
@@ -42,7 +43,7 @@ class MediaDownloader(object):
         self.session.mount('https://', HTTPAdapter(max_retries=retries))
 
     def _dl_url(self, url, where):
-        r = self.session.get(url, stream=True)
+        r = self.session.get(url, stream=True, verify=False)
         try:
             total = int(r.headers['content-length'])
         except KeyError:
@@ -95,13 +96,10 @@ class MediaDownloader(object):
         try:
             stream_data = self.api.get_stream_url(track_id, quality)
         except TidalRequestError as te:
-            if te.payload['status'] == 404:
-                print('\tTrack does not exist.')
-            # in this case, we need to use this workaround discovered by reverse engineering the mobile app, idk why
-            elif te.payload['subStatus'] == 4005:
+            if te.payload['subStatus'] == 4005:
                 try:
                     print('\tStatus 4005 when getting stream URL, trying workaround...')
-                    playback_info = self.api.get_stream_url_workaround(track_id, quality)
+                    playback_info = self.api.get_stream_url(track_id, quality)
                     manifest = json.loads(base64.b64decode(playback_info['manifest']))
                     stream_data = {
                         'soundQuality': playback_info['audioQuality'],
@@ -116,13 +114,6 @@ class MediaDownloader(object):
 
         if stream_data is None:
             raise ValueError('Stream could not be acquired')
-
-        if stream_data['soundQuality'] not in quality:
-            if not (stream_data['codec'] == 'MQA' and quality[0] == 'HI_RES'):
-                raise ValueError('ERROR: {} quality requested, but only {} quality available.'.
-                    format(quality, stream_data['soundQuality']))
-
-        return stream_data
 
     def print_track_info(self, track_info, album_info):
         line = '\tTrack: {tracknumber}\n\tTitle: {title}\n\tArtist: {artist}\n\tAlbum: {album}'.format(
@@ -174,11 +165,13 @@ class MediaDownloader(object):
             _mkdir_p(disc_location)
 
         # Attempt to get stream URL
-        stream_data = self.get_stream_url(track_id, quality)
+        #stream_data = self.get_stream_url(track_id, quality)
 
         # Hacky way to get extension of file from URL
-        ftype = None
-        url = stream_data['url']
+        #ftype = None
+        playback_info = self.api.get_stream_url(track_id, quality)
+        manifest = json.loads(base64.b64decode(playback_info['manifest']))
+        url = manifest['urls'][0]
         if url.find('.flac?') == -1:
             if url.find('.m4a?') == -1:
                 if url.find('.mp4?') == -1:
@@ -204,12 +197,12 @@ class MediaDownloader(object):
         self.print_track_info(track_info, album_info)
 
         try:
-            temp_file = self._dl_url(stream_data['url'], track_path)
+            temp_file = self._dl_url(url, track_path)
 
-            if not stream_data['encryptionKey'] == '':
-                print('\tLooks like file is encrypted. Decrypting...')
-                key, nonce = decrypt_security_token(stream_data['encryptionKey'])
-                decrypt_file(temp_file, key, nonce)
+            #if not stream_data['encryptionKey'] == '':
+            #    print('\tLooks like file is encrypted. Decrypting...')
+            #    key, nonce = decrypt_security_token(stream_data['encryptionKey'])
+            #    decrypt_file(temp_file, key, nonce)
 
             aa_location = path.join(album_location, 'Cover.jpg')
             if not path.isfile(aa_location):
@@ -218,14 +211,14 @@ class MediaDownloader(object):
                     aa_location = None
 
             # Tagging
-            #print('\tTagging media file...')
+            print('\tTagging media file...')
 
-            #if ftype == 'flac':
-            #    self.tm.tag_flac(temp_file, track_info, album_info, aa_location)
+            if ftype == 'flac':
+                self.tm.tag_flac(temp_file, track_info, album_info, aa_location)
             #elif ftype == 'm4a' or ftype == 'mp4':
             #    self.tm.tag_m4a(temp_file, track_info, album_info, aa_location)
-            #else:
-            #    print('\tUnknown file type to tag!')
+            else:
+                print('\tUnknown file type to tag!')
 
             # Cleanup
             if not self.opts['keep_cover_jpg'] and aa_location:

@@ -1,6 +1,10 @@
-**This fork is based on stephanlensky's fork of redsudo's fork of mreweilk's fork of svbnet's Redsea where I've disabled a bunch of features to allow for Dolby Atmos downloading and downloading other song types is untested but will probably still work (not including MQA, that will not work). Thank you to 112madgamer for doing the [research](https://github.com/evan-goode/mania/issues/5#issuecomment-629750935)!**
+**This fork is based on stephanlensky's fork of redsudo's fork of mreweilk's fork of svbnet's Redsea where I've disabled a bunch of features to allow for Dolby Atmos downloading. It can also download MQAs (Master quality). Now updated for Tidal 2.26.1 to make way for E-AC-3 downloading for when someone with a rooted NVIDIA Shield TV comes to help with this. This method is unlikely to be patched by Tidal, although there is a very easy way to patch it.**
 
-To get this to work you MUST set your own auth header retrieved from MITM'ing a Tidal APK that has its target version changed, which is included. To do this you must install Fiddler-Everywhere on any computer and follow [this guide](https://www.telerik.com/blogs/how-to-capture-android-traffic-with-fiddler). Note that the guide is for the old version of Fiddler, so the placement of the options will be different, and so will the port. Once you have done that, play a song on tidal, select any api.tidal.com entry, and copy the text next to 'X-Tidal-SessionId:' and 'Authorization:' in the header tab on the right side, and copy it into the config file.
+To get this to work you MUST set your own auth header retrieved from MITM'ing a Tidal (version 2.26.1) APK that has its target version changed (and also cloned with something like App Cloner for some reason, maybe some protection is bypassed by it), which you must get yourself, as it is copyrighted material. To use this downloader you must install Fiddler-Everywhere on any computer and follow [this guide](https://www.telerik.com/blogs/how-to-capture-android-traffic-with-fiddler). Note that the guide is for the old version of Fiddler, so the placement of the options will be different, and so will the port (Everywhere usually has port 8866). Once you have done that, play a song on tidal, select any api.tidal.com entry, and copy the text next to 'X-Tidal-Token:' and'Authorization:' in the header tab on the right side, and copy it into the config file.
+
+To download MQA, also add -p MQA to your command line arguments. For other types of files, look at stock presets below, as this downloader is set up to download Dolby Atmos by default. (Also, tagging is broken for AAC files, as nobody cares about them but it is an easy fix, just replace ftype in the tagging section of mediadownloader.py with the codec name provided by the metadata)
+
+If you are a Windows user, you might want to check out [Athame](https://github.com/svbnet/Athame), a graphical music download client. It also seems to work well on Mono, if you use Linux or OS X.
 
 RedSea
 ======
@@ -12,7 +16,8 @@ RedSea is currently being worked on by members of RED. Reach out to RedSudo for 
 
 Introduction
 ------------
-RedSea is a music downloader and tagger for the Tidal music streaming service. It is designed partially as a Tidal API example.
+RedSea is a music downloader and tagger for the Tidal music streaming service. It is designed partially as a Tidal API example ~~and partially as a proof-of-concept of the Tidal
+lossless download hack~~. Tidal seems to have fixed this hack, so you can't download FLACs on a normal subscription. :(. This repository also hosts a wildly incomplete Python Tidal
 API implementation - it is contained in `config/tidal_api.py` and only requires `requests` to be
 installed. Note that you will you have to implement the Tidal lossless download hack yourself -- you can find this in `mediadownloader.py`.
 
@@ -34,6 +39,30 @@ Setting up (with Pipenv)
 1. Run `pipenv install --three` to install dependencies in a virtual env using Pipenv
 2. Run `pipenv run python redsea.py -h` to view the help file
 3. Run `pipenv run python redsea.py urls` to download lossless files from urls
+
+How to add accounts/sessions
+----------------------------
+    usage:  redsea.py auth list
+            redsea.py auth add
+            redsea.py auth remove
+            redsea.py auth default
+            redsea.py auth reauth
+
+    positional arguments:
+
+    list                Lists stored sessions if any exist
+
+    add                 Prompts for a Tidal username and password and
+                        authorizes a session which then gets stored in
+                        the sessions file
+
+    remove              Removes a stored session from the sessions file
+                        by name
+
+    default             Set a default account for redsea to use when the
+                        -a flag has not been passed
+
+    reauth              Reauthenticates with server to get new sessionId
 
 How to use
 ----------

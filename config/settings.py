@@ -34,11 +34,11 @@ AAC_96: 96Kbps AAC
 # BRUTEFORCEREGION: Attempts to download the track/album with all available accounts if dl fails
 BRUTEFORCEREGION = True
 
-TIDALSESSION = ""
+# This usually comes along with the authorization header
+TOKEN = "dN2N95wCyEBTllu4"
 
 # AUTHHEADER will look like "Bearer abcd......."
-AUTHHEADER = ""
-
+AUTHHEADER = "Bearer "
 
 path = "./downloads/"
 

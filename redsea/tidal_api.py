@@ -8,12 +8,13 @@ import hashlib
 import base64
 import secrets
 from datetime import datetime, timedelta
+import urllib3
 
 import requests
 from urllib3.util.retry import Retry
 from requests.adapters import HTTPAdapter
 
-from config.settings import TIDALSESSION, AUTHHEADER
+from config.settings import TOKEN, AUTHHEADER
 
 
 class TidalRequestError(Exception):
@@ -35,8 +36,8 @@ class TidalError(Exception):
 
 
 class TidalApi(object):
-    TIDAL_API_BASE = 'https://api.tidalhifi.com/v1/'
-    TIDAL_CLIENT_VERSION = '2.25.1'
+    TIDAL_API_BASE = 'https://api.tidal.com/v1/'
+    TIDAL_CLIENT_VERSION = '2.26.1'
 
     def __init__(self, session):
         self.session = session
@@ -49,13 +50,21 @@ class TidalApi(object):
         self.s.mount('https://', HTTPAdapter(max_retries=retries))
 
     def _get(self, url, params={}, refresh=False):
+        urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
         params['countryCode'] = 'US'
         if 'limit' not in params:
             params['limit'] = '9999'
         resp = self.s.get(
             self.TIDAL_API_BASE + url,
-            headers={'X-Tidal-SessionId': TIDALSESSION, 'User-Agent': 'TIDAL_ANDROID/992 okhttp/3.13.1', 'Authorization': AUTHHEADER},
-            params=params)
+            headers={
+                'X-Tidal-Token': TOKEN,
+                'Authorization': AUTHHEADER,
+                'Host': 'api.tidal.com',
+                'Connection': 'Keep-Alive',
+                'Accept-Encoding': 'gzip',
+                'User-Agent': 'TIDAL_ANDROID/995 okhttp/3.13.1'
+            },
+            params=params, verify=False)
 
         # if the request 401s or 403s, try refreshing the session in case that helps
         if not refresh and (resp.status_code == 401 or resp.status_code == 403) and isinstance(self.session, TidalMobileSession):
@@ -83,17 +92,15 @@ class TidalApi(object):
         return resp_json
 
     def get_stream_url(self, track_id, quality):
-        return self._get('tracks/' + str(track_id) + '/streamUrl',
-                         {'soundQuality': quality})
-
-    def get_stream_url_workaround(self, track_id, quality):
 
         return self._get('tracks/' + str(track_id) + '/playbackinfopostpaywall', {
-            'audioMode': 'DOLBY_ATMOS',
             'playbackmode': 'STREAM',
             'assetpresentation': 'FULL',
-            'audioquality': 'LOW'  # TODO: use highest quality from 'quality' arg instead of defaulting to HI_RES
+            'audioquality': 'HI_RES',
+            'prefetch': 'false',
+            'countryCode': 'US'
         })
+#            'streamingsessionid': '8cf605fe-cc77-4ee4-9291-370cbcbf9a5a',
 
     def get_playlist_items(self, playlist_id):
         result = self._get('playlists/' + playlist_id + '/items', {
@@ -159,12 +166,12 @@ class TidalSession(object):
     Tidal session object which can be used to communicate with Tidal servers
     '''
 
-    def __init__(self, username, password, token='wc8j_yBJd20zOmx0'):
+    def __init__(self, username, password, token=TOKEN):
         '''
         Initiate a new session
         '''
-        self.TIDAL_CLIENT_VERSION = '2.25.1'
-        self.TIDAL_API_BASE = 'https://api.tidalhifi.com/v1/'
+        self.TIDAL_CLIENT_VERSION = '2.26.1'
+        self.TIDAL_API_BASE = 'https://api.tidal.com/v1/'
 
         self.username = username
         self.token = token
@@ -204,12 +211,7 @@ class TidalSession(object):
         '''
         Returns the type of token used to create the session
         '''
-        if self.token == 'MbjR4DLXz1ghC4rV':
-            return 'Desktop'
-        elif self.token == 'wc8j_yBJd20zOmx0':
-            return 'Mobile'
-        else:
-            return 'Other/Unknown'
+        return 'Mobile'
 
     def valid(self):
         '''
@@ -224,7 +226,14 @@ class TidalSession(object):
             return True
 
     def auth_headers(self):
-        return {'X-Tidal-SessionId': self.session_id}
+        return {
+            'Host': 'api.tidal.com',
+            'X-Tidal-Token': TOKEN,
+            'Authorization': AUTHHEADER,
+            'Connection': 'Keep-Alive',
+            'Accept-Encoding': 'gzip',
+            'User-Agent': 'TIDAL_ANDROID/995 okhttp/3.13.1'
+        }
 
 
 class TidalMobileSession(TidalSession):
@@ -341,9 +350,12 @@ class TidalMobileSession(TidalSession):
 
     def auth_headers(self):
         return {
-            'User-Agent': 'TIDAL_ANDROID/992 okhttp/3.13.1',
-            'authorization': 'Bearer {}'.
-            format(self.access_token),
+            'Host': 'api.tidal.com',
+            'X-Tidal-Token': TOKEN,
+            'Authorization': AUTHHEADER,
+            'Connection': 'Keep-Alive',
+            'Accept-Encoding': 'gzip',
+            'User-Agent': 'TIDAL_ANDROID/995 okhttp/3.13.1'
             }
 
 

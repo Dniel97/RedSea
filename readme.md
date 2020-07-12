@@ -16,8 +16,7 @@ RedSea is currently being worked on by members of RED. Reach out to RedSudo for 
 
 Introduction
 ------------
-RedSea is a music downloader and tagger for the Tidal music streaming service. It is designed partially as a Tidal API example ~~and partially as a proof-of-concept of the Tidal
-lossless download hack~~. Tidal seems to have fixed this hack, so you can't download FLACs on a normal subscription. :(. This repository also hosts a wildly incomplete Python Tidal
+RedSea is a music downloader and tagger for the Tidal music streaming service. It is designed partially as a Tidal API example. This repository also hosts a wildly incomplete Python Tidal
 API implementation - it is contained in `config/tidal_api.py` and only requires `requests` to be
 installed. Note that you will you have to implement the Tidal lossless download hack yourself -- you can find this in `mediadownloader.py`.
 
@@ -39,30 +38,6 @@ Setting up (with Pipenv)
 1. Run `pipenv install --three` to install dependencies in a virtual env using Pipenv
 2. Run `pipenv run python redsea.py -h` to view the help file
 3. Run `pipenv run python redsea.py urls` to download lossless files from urls
-
-How to add accounts/sessions
-----------------------------
-    usage:  redsea.py auth list
-            redsea.py auth add
-            redsea.py auth remove
-            redsea.py auth default
-            redsea.py auth reauth
-
-    positional arguments:
-
-    list                Lists stored sessions if any exist
-
-    add                 Prompts for a Tidal username and password and
-                        authorizes a session which then gets stored in
-                        the sessions file
-
-    remove              Removes a stored session from the sessions file
-                        by name
-
-    default             Set a default account for redsea to use when the
-                        -a flag has not been passed
-
-    reauth              Reauthenticates with server to get new sessionId
 
 How to use
 ----------

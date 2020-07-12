@@ -96,7 +96,10 @@ class MediaDownloader(object):
         try:
             stream_data = self.api.get_stream_url(track_id, quality)
         except TidalRequestError as te:
-            if te.payload['subStatus'] == 4005:
+            if te.payload['status'] == 404:
+                print('\tTrack does not exist.')
+            # in this case, we need to use this workaround discovered by reverse engineering the mobile app, idk why
+            elif te.payload['subStatus'] == 4005:
                 try:
                     print('\tStatus 4005 when getting stream URL, trying workaround...')
                     playback_info = self.api.get_stream_url(track_id, quality)
@@ -198,11 +201,6 @@ class MediaDownloader(object):
 
         try:
             temp_file = self._dl_url(url, track_path)
-
-            #if not stream_data['encryptionKey'] == '':
-            #    print('\tLooks like file is encrypted. Decrypting...')
-            #    key, nonce = decrypt_security_token(stream_data['encryptionKey'])
-            #    decrypt_file(temp_file, key, nonce)
 
             aa_location = path.join(album_location, 'Cover.jpg')
             if not path.isfile(aa_location):

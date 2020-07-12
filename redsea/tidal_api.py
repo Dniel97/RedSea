@@ -100,7 +100,6 @@ class TidalApi(object):
             'prefetch': 'false',
             'countryCode': 'US'
         })
-#            'streamingsessionid': '8cf605fe-cc77-4ee4-9291-370cbcbf9a5a',
 
     def get_playlist_items(self, playlist_id):
         result = self._get('playlists/' + playlist_id + '/items', {

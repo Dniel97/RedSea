@@ -79,6 +79,8 @@ class Tagger(object):
             fmt = ' ({})'.format(track_info['version'])
             title += fmt
         tagger['title'] = title
+        if track_info['copyright'] is not None:
+            tagger['copyright'] = track_info['copyright']
         return tagger
 
     def _meta_tag(self, tagger, track_info, album_info, track_type):

@@ -4,3 +4,4 @@ __pycache__/
 sessions.pk
 downloads/
 .DS_Store
+.idea/

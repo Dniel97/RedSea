@@ -35,7 +35,7 @@ AAC_96: 96Kbps AAC
 BRUTEFORCEREGION = True
 
 # This usually comes along with the authorization header
-TOKEN = "dN2N95wCyEBTllu4"
+TOKEN = "4ywnjRfroi84hz7i"
 
 # AUTHHEADER will look like "Bearer abcd......."
 AUTHHEADER = "Bearer "

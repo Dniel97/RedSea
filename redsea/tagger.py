@@ -1,13 +1,18 @@
 from mutagen.flac import FLAC, Picture
 from mutagen.mp4 import MP4Cover
 from mutagen.easymp4 import EasyMP4
+from mutagen.mp4 import MP4Tags
 from mutagen.id3 import PictureType
+import pickle
+
+MP4Tags._padding = 0
 
 
 class FeaturingFormat():
     '''
     Formatter for featuring artist tags
     '''
+
     def _format(self, featuredArtists, andStr):
         artists = ''
         if len(featuredArtists) == 1:
@@ -24,10 +29,8 @@ class FeaturingFormat():
                     artists += andStr + ' '
         return artists
 
-
     def get_artist_format(self, mainArtists):
         return self._format(mainArtists, '&')
-
 
     def get_feature_format(self, featuredArtists):
         return '(feat. {})'.format(self._format(featuredArtists, 'and'))
@@ -70,7 +73,7 @@ class Tagger(object):
             else:
                 tagger['discnumber'] = str(
                     track_info['volumeNumber']) + '/' + str(
-                        album_info['numberOfVolumes'])
+                    album_info['numberOfVolumes'])
             if album_info['releaseDate']:
                 # TODO: less hacky way of getting the year?
                 tagger['date'] = str(album_info['releaseDate'][:4])
@@ -105,15 +108,16 @@ class Tagger(object):
         tagger.save(file_path)
 
     def tag_m4a(self, file_path, track_info, album_info, album_art_path=None):
-        tagger = EasyMP4(file_path)
+        try:
+            tagger = EasyMP4(file_path)
 
-        self._meta_tag(tagger, track_info, album_info, 'm4a')
-        if self.fmtopts['embed_album_art'] and album_art_path is not None:
-            pic = None
-            with open(album_art_path, 'rb') as f:
-                pic = MP4Cover(f.read())
-            tagger.RegisterTextKey('covr', 'covr')
-            tagger['covr'] = [pic]
-        tagger.save(file_path)
-
-
+            self._meta_tag(tagger, track_info, album_info, 'm4a')
+            if self.fmtopts['embed_album_art'] and album_art_path is not None:
+                pic = None
+                with open(album_art_path, 'rb') as f:
+                    pic = MP4Cover(f.read())
+                tagger.RegisterTextKey('covr', 'covr')
+                tagger['covr'] = [pic]
+            tagger.save(file_path)
+        except AttributeError:
+            pickle.dump(track_info, open(file_path + ".p", "wb"))

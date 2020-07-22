@@ -191,11 +191,9 @@ class MediaDownloader(object):
         else:
             track_path = path.join(album_location, track_file + '.' + ftype)
 
-
         if path.isfile(track_path) and not overwrite:
             print('\tFile {} already exists, skipping.'.format(track_path))
             return None
-
 
         self.print_track_info(track_info, album_info)
 
@@ -222,7 +220,7 @@ class MediaDownloader(object):
             if not self.opts['keep_cover_jpg'] and aa_location:
                 os.remove(aa_location)
 
-            return (album_location, temp_file)
+            return album_location, temp_file
 
         # Delete partially downloaded file on keyboard interrupt
         except KeyboardInterrupt:

@@ -267,6 +267,14 @@ def main():
                                 track['artist']['name'], track['title']))
                             quit()
 
+                    # Catch file name errors
+                    except OSError as e:
+                        print("\tFile name too long or contains apostrophes")
+                        file = open('failed_tracks.txt', 'a')
+                        file.write(str(track['url']) + "\n")
+                        file.close()
+                        break
+
                     # Catch session audio stream privilege error
                     except AssertionError as e:
                         if 'Unable to download track' in str(e) and BRUTEFORCE:

@@ -29,7 +29,7 @@ LOGO = """
                https://github.com/svbnet/RedSea
 \n"""
 
-MEDIA_TYPES = {'t': 'track', 'p': 'playlist', 'a': 'album', 'f':'album', 'r': 'artist', 'f': 'file'}
+MEDIA_TYPES = {'t': 'track', 'p': 'playlist', 'a': 'album', 'r': 'artist'}
 
 def main():
     os.chdir(sys.path[0])

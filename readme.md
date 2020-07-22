@@ -32,6 +32,7 @@ Setting up (with pip)
 1. Run `pip install -r requirements.txt` to install dependencies
 2. Run `python redsea.py -h` to view the help file
 3. Run `python redsea.py urls` to download lossless files from urls
+4. Run `python redsea.py --file links.txt` to download tracks/albums/artists/ from a file where each line is a link
 
 Setting up (with Pipenv)
 ------------------------
@@ -41,7 +42,7 @@ Setting up (with Pipenv)
 
 How to use
 ----------
-    usage: redsea.py [-h] [-p PRESET] [-a ACCOUNT] [-s] urls [urls ...]
+    usage: redsea.py [-h] [-p PRESET] [-a ACCOUNT] [-s] [--file] urls [urls ...]
 
     A music downloader for Tidal.
 
@@ -60,6 +61,8 @@ How to use
                             will be prompted to create one
     -s, --skip            Pass this flag to skip track and continue when a track
                             does not meet the requested quality
+    --file                The URLs to download inside a .txt file with a single 
+                            track/album/artist each line.
 
 Tidal issues
 ------------

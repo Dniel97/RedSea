@@ -62,7 +62,7 @@ def get_args():
         action='store_const',
         const=True,
         default=False,
-        help='Indicates that the url arguments are files containing lists of tracks'
+        help='The URLs to download inside a .txt file with a single track/album/artist each line.'
     )
 
     args = parser.parse_args()
@@ -74,10 +74,14 @@ def get_args():
 
 def parse_media_option(mo, is_file):
     opts = []
+    if is_file:
+        file = open(str(mo[0]), 'r')
+        lines = file.readlines()
+        mo = []
+        for line in lines:
+            mo.append(line.strip())
     for m in mo:
-        if is_file:
-            opts.append({'type': 'f', 'content': open(m).read()})
-        elif m.startswith('http'):
+        if m.startswith('http'):
             m = re.sub(r'tidal.com\/.{2}\/store\/', 'tidal.com/', m)
             m = re.sub(r'tidal.com\/store\/', 'tidal.com/', m)
             m = re.sub(r'tidal.com\/browse\/', 'tidal.com/', m)

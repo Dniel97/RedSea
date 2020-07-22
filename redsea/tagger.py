@@ -3,9 +3,11 @@ from mutagen.mp4 import MP4Cover
 from mutagen.easymp4 import EasyMP4
 from mutagen.mp4 import MP4Tags
 from mutagen.id3 import PictureType
-import pickle
 
 MP4Tags._padding = 0
+EasyMP4.RegisterTextKey('isrc', 'ISRC')
+# EasyMP4.RegisterTextKey('explicit', 'ITUNESADVISORY')
+# EasyMP4Tags.RegisterIntKey('explicit', 'ITUNESADVISORY', 0, 1)
 
 
 class FeaturingFormat():
@@ -84,6 +86,9 @@ class Tagger(object):
         tagger['title'] = title
         if track_info['copyright'] is not None:
             tagger['copyright'] = track_info['copyright']
+        if track_info['isrc'] is not None:
+            tagger['isrc'] = track_info['isrc']
+        # tagger['explicit'] = track_info['explicit']
         return tagger
 
     def _meta_tag(self, tagger, track_info, album_info, track_type):
@@ -108,7 +113,6 @@ class Tagger(object):
         tagger.save(file_path)
 
     def tag_m4a(self, file_path, track_info, album_info, album_art_path=None):
-        try:
             tagger = EasyMP4(file_path)
 
             self._meta_tag(tagger, track_info, album_info, 'm4a')
@@ -119,5 +123,3 @@ class Tagger(object):
                 tagger.RegisterTextKey('covr', 'covr')
                 tagger['covr'] = [pic]
             tagger.save(file_path)
-        except AttributeError:
-            pickle.dump(track_info, open(file_path + ".p", "wb"))

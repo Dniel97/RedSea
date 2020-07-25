@@ -10,6 +10,7 @@ import base64
 import requests
 from urllib3.util.retry import Retry
 from requests.adapters import HTTPAdapter
+from subprocess import Popen, PIPE
 
 from .decryption import decrypt_file, decrypt_security_token
 from .tagger import FeaturingFormat
@@ -205,6 +206,24 @@ class MediaDownloader(object):
                 print('\tDownloading album art...')
                 if not self._dl_picture(track_info['album']['cover'], aa_location):
                     aa_location = None
+
+            # Converting FLAC to ALAC
+            if self.opts['convert_to_alac'] and ftype == 'flac':
+                pipe = Popen('ffmpeg -version', shell=True, stdout=PIPE).stdout
+                output = pipe.read()
+                if output.find(b'ffmpeg version?') == -1:
+                    print("\tConverting FLAC to ALAC...")
+                    conv_file = temp_file[:-5] + ".m4a"
+                    command = 'ffmpeg -i "{0}" -vn -c:a alac "{1}"'.format(temp_file, conv_file)
+                    pipe = Popen(command, shell=True, stdout=PIPE)
+                    pipe.wait()
+                    if path.isfile(conv_file) and not overwrite:
+                        print("\tConversion successful")
+                        os.remove(temp_file)
+                        temp_file = conv_file
+                        ftype = "m4a"
+                else:
+                    print("\tFfmpeg couldn't be found")
 
             # Tagging
             print('\tTagging media file...')

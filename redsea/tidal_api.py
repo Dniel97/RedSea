@@ -96,7 +96,7 @@ class TidalApi(object):
         return self._get('tracks/' + str(track_id) + '/playbackinfopostpaywall', {
             'playbackmode': 'STREAM',
             'assetpresentation': 'FULL',
-            'audioquality': 'HI_RES',
+            'audioquality': quality[0],
             'prefetch': 'false',
             'countryCode': 'US'
         })

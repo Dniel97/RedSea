@@ -4,7 +4,7 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-mutagen = "==1.31"
+mutagen = "==1.37"
 requests = "==2.9.1"
 pycryptodome = "*"
 

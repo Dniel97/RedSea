@@ -22,9 +22,9 @@ installed. Note that you will you have to implement the Tidal lossless download 
 
 Requirements
 ------------
-* Python 3.5
+* Python (3.5 or higher)
 * requests
-* mutagen
+* mutagen (1.36 or higher)
 * pycrypto
 
 Setting up (with pip)

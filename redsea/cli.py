@@ -1,6 +1,7 @@
 import argparse
 import re
 from urllib.parse import urlparse
+from os import path
 
 
 def get_args():
@@ -75,11 +76,15 @@ def get_args():
 def parse_media_option(mo, is_file):
     opts = []
     if is_file:
-        file = open(str(mo[0]), 'r')
-        lines = file.readlines()
+        file_name = str(mo[0])
         mo = []
-        for line in lines:
-            mo.append(line.strip())
+        if path.exists(file_name) is True:
+            file = open(file_name, 'r')
+            lines = file.readlines()
+            for line in lines:
+                mo.append(line.strip())
+        else:
+            print("\t File " + file_name + " doesn't exist")
     for m in mo:
         if m.startswith('http'):
             m = re.sub(r'tidal.com\/.{2}\/store\/', 'tidal.com/', m)

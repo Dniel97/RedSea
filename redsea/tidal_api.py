@@ -14,7 +14,7 @@ import requests
 from urllib3.util.retry import Retry
 from requests.adapters import HTTPAdapter
 
-from config.settings import TOKEN, AUTHHEADER
+from config.settings import TOKEN, AUTHHEADER, COUNTRYCODE
 
 
 class TidalRequestError(Exception):
@@ -51,7 +51,7 @@ class TidalApi(object):
 
     def _get(self, url, params={}, refresh=False):
         urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-        params['countryCode'] = 'US'
+        params['countryCode'] = COUNTRYCODE
         if 'limit' not in params:
             params['limit'] = '9999'
         resp = self.s.get(
@@ -98,7 +98,7 @@ class TidalApi(object):
             'assetpresentation': 'FULL',
             'audioquality': quality[0],
             'prefetch': 'false',
-            'countryCode': 'US'
+            'countryCode': COUNTRYCODE
         })
 
     def get_playlist_items(self, playlist_id):

@@ -71,7 +71,7 @@ class MediaDownloader(object):
             return False
 
     def _sanitise_name(self, name):
-        name = re.sub(r'[\\\/*?"<>|]', '', name)
+        name = re.sub(r'[\\\/*?"<>|]', '', str(name))
         return re.sub(r'[:]', ' - ', name)
 
     def _normalise_info(self, track_info, album_info, use_album_artists=False):
@@ -154,7 +154,7 @@ class MediaDownloader(object):
                 **self._normalise_info(track_info, album_info, True))).strip()
         album_location = re.sub(r'\.+$', '', album_location)
         track_file = self.opts['track_format'].format(
-            **self._normalise_info(track_info, album_info)).strip()
+            **self._normalise_info(track_info, album_info))
         if len(track_file) > 255: # trim filename to be under OS limit (and account for file extension)
             track_file = track_file[:250 - len(track_file)]
         track_file = re.sub(r'\.+$', '', track_file)

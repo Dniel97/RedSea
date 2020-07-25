@@ -24,7 +24,7 @@ Requirements
 ------------
 * Python (3.5 or higher)
 * requests
-* mutagen (1.36 or higher)
+* mutagen (1.37 or higher)
 * pycrypto
 
 Optional
@@ -46,7 +46,7 @@ Setting up (with Pipenv)
 
 How to use
 ----------
-    usage: redsea.py [-h] [-p PRESET] [-a ACCOUNT] [-s] [--file] urls [urls ...]
+    usage: redsea.py [-h] [-p PRESET] [-a ACCOUNT] [-s] [--file FILE] urls [urls ...]
 
     A music downloader for Tidal.
 

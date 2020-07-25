@@ -54,11 +54,11 @@ def get_args():
     parser.add_argument(
         'urls',
         nargs='+',
-        help=
-        'The URLs to download. You may need to wrap the URLs in double quotes if you have issues downloading.'
+        help='The URLs to download. You may need to wrap the URLs in double quotes if you have issues downloading.'
     )
 
     parser.add_argument(
+        '-f',
         '--file',
         action='store_const',
         const=True,
@@ -69,6 +69,10 @@ def get_args():
     args = parser.parse_args()
     if args.resumeon and args.resumeon <= 0:
         parser.error('--resumeon must be a positive integer')
+
+    # Check if only URLs or a file exists
+    if len(args.urls) > 1 and args.file:
+        parser.error('URLs and -f (--file) cannot be used at the same time')
 
     return args
 

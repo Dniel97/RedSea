@@ -67,9 +67,11 @@ class Tagger(object):
             # TODO: find a way to get numberOfTracks relative to the volume
             if track_type == 'm4a':
                 tagger['tracknumber'] = str(track_info['trackNumber']).zfill(2) + '/' + str(album_info['numberOfTracks'])
-            if track_type == 'flac':
+            elif track_type == 'flac':
                 tagger['discnumber'] = str(track_info['volumeNumber'])
                 tagger['totaldiscs'] = str(album_info['numberOfVolumes'])
+                tagger['tracknumber'] = str(track_info['trackNumber'])
+                tagger['totaltracks'] = str(album_info['numberOfTracks'])
             else:
                 tagger['discnumber'] = str(
                     track_info['volumeNumber']) + '/' + str(
@@ -77,7 +79,7 @@ class Tagger(object):
             if album_info['releaseDate']:
                 # TODO: less hacky way of getting the year?
                 tagger['date'] = str(album_info['releaseDate'][:4])
-            if album_info['upc']:
+            if album_info['upc'] and track_type == 'm4a':
                 tagger['upc'] = bytes(album_info['upc'], encoding="ascii")
 
         if track_info['version'] is not None and track_info['version'] != '':
@@ -87,13 +89,17 @@ class Tagger(object):
         if track_info['copyright'] is not None:
             tagger['copyright'] = track_info['copyright']
         if track_info['isrc'] is not None:
-            tagger['isrc'] = bytes(track_info['isrc'], encoding="ascii")
+            if track_type == 'm4a':
+                tagger['isrc'] = bytes(track_info['isrc'], encoding="ascii")
+            elif track_type == "flac":
+                tagger['isrc'] = track_info['isrc']
         # Stupid library won't accept int so it is needed to cast it to a byte with hex value 01
         if track_info['explicit'] is not None:
-            if track_info['explicit'] is True:
-                tagger['explicit'] = b'\x01'
-            else:
-                tagger['explicit'] = b'\x02'
+            if track_type == 'm4a':
+                if track_info['explicit']:
+                    tagger['explicit'] = b'\x01'
+                else:
+                    tagger['explicit'] = b'\x02'
         return tagger
 
     def _meta_tag(self, tagger, track_info, album_info, track_type):

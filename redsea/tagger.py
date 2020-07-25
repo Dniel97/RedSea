@@ -67,7 +67,7 @@ class Tagger(object):
             # TODO: find a way to get numberOfTracks relative to the volume
             if track_type == 'm4a':
                 tagger['tracknumber'] = str(track_info['trackNumber']).zfill(2) + '/' + str(album_info['numberOfTracks'])
-            elif track_type == 'flac':
+            if track_type == 'flac':
                 tagger['discnumber'] = str(track_info['volumeNumber'])
                 tagger['totaldiscs'] = str(album_info['numberOfVolumes'])
                 tagger['tracknumber'] = str(track_info['trackNumber'])

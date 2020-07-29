@@ -44,6 +44,30 @@ Setting up (with Pipenv)
 2. Run `pipenv run python redsea.py -h` to view the help file
 3. Run `pipenv run python redsea.py urls` to download lossless files from urls
 
+How to add accounts/sessions
+----------------------------
+    usage:  redsea.py auth list
+            redsea.py auth add
+            redsea.py auth remove
+            redsea.py auth default
+            redsea.py auth reauth
+
+    positional arguments:
+
+    list                Lists stored sessions if any exist
+
+    add                 Prompts for a Tidal username and password and
+                        authorizes a session which then gets stored in
+                        the sessions file
+
+    remove              Removes a stored session from the sessions file
+                        by name
+
+    default             Set a default account for redsea to use when the
+                        -a flag has not been passed
+
+    reauth              Reauthenticates with server to get new sessionId
+
 How to use
 ----------
     usage: redsea.py [-h] [-p PRESET] [-a ACCOUNT] [-s] [--file FILE] urls [urls ...]

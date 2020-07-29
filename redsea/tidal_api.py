@@ -14,7 +14,7 @@ import requests
 from urllib3.util.retry import Retry
 from requests.adapters import HTTPAdapter
 
-from config.settings import TOKEN, AUTHHEADER, COUNTRYCODE
+from config.settings import TOKEN, COUNTRYCODE
 
 
 class TidalRequestError(Exception):
@@ -56,14 +56,7 @@ class TidalApi(object):
             params['limit'] = '9999'
         resp = self.s.get(
             self.TIDAL_API_BASE + url,
-            headers={
-                'X-Tidal-Token': TOKEN,
-                'Authorization': AUTHHEADER,
-                'Host': 'api.tidal.com',
-                'Connection': 'Keep-Alive',
-                'Accept-Encoding': 'gzip',
-                'User-Agent': 'TIDAL_ANDROID/995 okhttp/3.13.1'
-            },
+            headers=self.session.auth_headers(),
             params=params, verify=False)
 
         # if the request 401s or 403s, try refreshing the session in case that helps
@@ -239,12 +232,12 @@ class TidalMobileSession(TidalSession):
     '''
     Tidal session object based on the mobile Android oauth flow
     '''
-    def __init__(self, username, password, client_id='ck3zaWMi8Ka_XdI0'):
+    def __init__(self, username, password):
         self.TIDAL_LOGIN_BASE = 'https://login.tidal.com/'
         self.TIDAL_AUTH_BASE = 'https://auth.tidal.com/v1/'
 
         self.username = username
-        self.client_id = client_id
+        self.client_id = TOKEN
         self.redirect_uri = 'https://tidal.com/android/login/auth'
         self.code_verifier = base64.urlsafe_b64encode(secrets.token_bytes(32)).rstrip(b'=')
         self.code_challenge = base64.urlsafe_b64encode(hashlib.sha256(self.code_verifier).digest()).rstrip(b'=')
@@ -274,6 +267,11 @@ class TidalMobileSession(TidalSession):
 
         # retrieve csrf token for subsequent request
         r = s.get('https://login.tidal.com/authorize', params=params)
+
+        if r.status_code == 400:
+            TidalAuthError("Login failed! Is the clientid/token up to date?")
+
+        print(s.cookies['token'])
 
         # enter email, verify email is valid
         r = s.post('https://login.tidal.com/email', params=params, json={
@@ -324,6 +322,20 @@ class TidalMobileSession(TidalSession):
         self.user_id = r.json()['userId']
         self.country_code = r.json()['countryCode']
 
+        assert(self.check_subscription() is True)
+
+    def check_subscription(self):
+        if self.access_token is not None:
+            r = requests.get('https://api.tidal.com/v1/users/' + str(self.user_id) + '/subscription',
+                             headers=self.auth_headers())
+            assert (r.status_code == 200)
+            if r.json()['highestSoundQuality'] == 'HI_RES':
+                print('Your subscription supports Hi-Res Audio')
+                return True
+            else:
+                TidalAuthError('Your subscription do not supports Hi-Res Audio')
+                return False
+
     def valid(self):
         if self.access_token is None or datetime.now() > self.expires:
             return False
@@ -350,11 +362,11 @@ class TidalMobileSession(TidalSession):
     def auth_headers(self):
         return {
             'Host': 'api.tidal.com',
-            'X-Tidal-Token': TOKEN,
-            'Authorization': AUTHHEADER,
+            'X-Tidal-Token': self.client_id,
+            'Authorization': 'Bearer ' + self.access_token,
             'Connection': 'Keep-Alive',
             'Accept-Encoding': 'gzip',
-            'User-Agent': 'TIDAL_ANDROID/995 okhttp/3.13.1'
+            'User-Agent': 'TIDAL_ANDROID/1000 okhttp/3.13.1'
             }
 
 

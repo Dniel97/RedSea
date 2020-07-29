@@ -38,10 +38,10 @@ BRUTEFORCEREGION = True
 COUNTRYCODE = "US"
 
 # This usually comes along with the authorization header
-TOKEN = "4ywnjRfroi84hz7i"
+TOKEN = "WAU9gXp3tHhK4Nns"
 
 # AUTHHEADER will look like "Bearer abcd......."
-AUTHHEADER = "Bearer "
+# AUTHHEADER = "Bearer "
 
 path = "./downloads/"
 
@@ -124,7 +124,7 @@ PRESETS = {
         "path": path,
         "track_format": "{tracknumber} - {title}",
         "album_format": "{albumartist} - {album}",
-        "convert_to_alac": True,
+        "convert_to_alac": False,
         "MQA_FLAC_24": False,
         "FLAC_16": True,
         "AAC_320": False,

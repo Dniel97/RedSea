@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-import json
 import traceback
 import sys
 import os
@@ -9,7 +8,7 @@ import redsea.cli as cli
 
 from redsea.mediadownloader import MediaDownloader
 from redsea.tagger import Tagger
-from redsea.tidal_api import TidalApi, TidalRequestError, TidalError
+from redsea.tidal_api import TidalApi, TidalError
 from redsea.sessions import RedseaSessionFile
 
 from config.settings import PRESETS, BRUTEFORCEREGION

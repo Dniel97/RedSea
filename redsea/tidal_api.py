@@ -269,7 +269,7 @@ class TidalMobileSession(TidalSession):
         r = s.get('https://login.tidal.com/authorize', params=params)
 
         if r.status_code == 400:
-            TidalAuthError("Login failed! Is the clientid/token up to date?")
+            raise TidalAuthError("Authorization failed! Is the clientid/token up to date?")
 
         print(s.cookies['token'])
 

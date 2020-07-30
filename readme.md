@@ -50,7 +50,8 @@ How to add accounts/sessions
     list                Lists stored sessions if any exist
 
     add                 Prompts for a TV or Mobile session. The TV option
-                        displays a 6 digit key for linking. The Mobile option
+                        displays a 6 digit key which should be entered inside 
+                        link.tidal.com where the user can login. The Mobile option
                         prompts for a Tidal username and password. Both options
                         authorize a session which then gets stored in
                         the sessions file

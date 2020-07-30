@@ -6,6 +6,7 @@ from mutagen.id3 import PictureType
 import lyricsgenius
 
 GENIUSKEY = '7liCuTa0gYINVmpdiGid9gYQ7bqiaPrmttbcZrA6KZwKsOgIdleUYGzP-m2XBqJU'
+genius = lyricsgenius.Genius(GENIUSKEY)
 
 # Needed for Windows tagging support
 MP4Tags._padding = 0
@@ -126,7 +127,6 @@ class Tagger(object):
             tagger.add_picture(pic)
 
         if lyrics:
-            genius = lyricsgenius.Genius(GENIUSKEY)
             print('\t', end='')
             song = genius.search_song(track_info['title'], track_info['artist']['name'])
             tagger['lyrics'] = song.lyrics
@@ -151,7 +151,6 @@ class Tagger(object):
                 tagger['covr'] = [pic]
 
             if lyrics:
-                genius = lyricsgenius.Genius(GENIUSKEY)
                 print('\t', end='')
                 song = genius.search_song(tagger['title'], tagger['artist'])
                 tagger['lyrics'] = song.lyrics

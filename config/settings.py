@@ -43,9 +43,6 @@ TOKEN = "dN2N95wCyEBTllu4"  # Dolby Atmos AC-4 Token
 # TV_TOKEN = "4ywnjRfroi84hz7i"    # Shield TV
 TV_TOKEN = "LXujKdmnc6QtydvY"  # FireTV
 
-# AUTHHEADER will look like "Bearer abcd......."
-# AUTHHEADER = "Bearer "
-
 path = "./downloads/"
 
 PRESETS = {
@@ -60,6 +57,7 @@ PRESETS = {
         "track_format": "{tracknumber} - {title}",
         "album_format": "{albumartist} - {album}",
         "convert_to_alac": False,
+        "lyrics": True,
         "MQA_FLAC_24": True,
         "FLAC_16": True,
         "AAC_320": False,
@@ -79,6 +77,7 @@ PRESETS = {
         "track_format": "{tracknumber} - {title}",
         "album_format": "{albumartist} - {album}",
         "convert_to_alac": True,
+        "lyrics": True,
         "MQA_FLAC_24": True,
         "FLAC_16": True,
         "AAC_320": True,
@@ -95,6 +94,7 @@ PRESETS = {
         "track_format": "{tracknumber} - {title}",
         "album_format": "{albumartist} - {album}",
         "convert_to_alac": False,
+        "lyrics": True,
         "MQA_FLAC_24": True,
         "FLAC_16": True,
         "AAC_320": False,
@@ -111,6 +111,7 @@ PRESETS = {
         "track_format": "{tracknumber} - {title}",
         "album_format": "{albumartist} - {album}",
         "convert_to_alac": False,
+        "lyrics": True,
         "MQA_FLAC_24": True,
         "FLAC_16": False,
         "AAC_320": False,
@@ -128,6 +129,7 @@ PRESETS = {
         "track_format": "{tracknumber} - {title}",
         "album_format": "{albumartist} - {album}",
         "convert_to_alac": False,
+        "lyrics": True,
         "MQA_FLAC_24": False,
         "FLAC_16": True,
         "AAC_320": False,
@@ -145,6 +147,7 @@ PRESETS = {
         "track_format": "{tracknumber} - {title}",
         "album_format": "{albumartist} - {album}",
         "convert_to_alac": False,
+        "lyrics": True,
         "MQA_FLAC_24": False,
         "FLAC_16": False,
         "AAC_320": True,
@@ -162,6 +165,7 @@ PRESETS = {
         "track_format": "{tracknumber} - {title}",
         "album_format": "{albumartist} - {album}",
         "convert_to_alac": False,
+        "lyrics": True,
         "MQA_FLAC_24": False,
         "FLAC_16": False,
         "AAC_320": False,

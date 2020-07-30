@@ -3,6 +3,9 @@ from mutagen.flac import FLAC, Picture
 from mutagen.mp4 import MP4Cover
 from mutagen.mp4 import MP4Tags
 from mutagen.id3 import PictureType
+import lyricsgenius
+
+GENIUSKEY = '7liCuTa0gYINVmpdiGid9gYQ7bqiaPrmttbcZrA6KZwKsOgIdleUYGzP-m2XBqJU'
 
 # Needed for Windows tagging support
 MP4Tags._padding = 0
@@ -105,7 +108,7 @@ class Tagger(object):
     def _meta_tag(self, tagger, track_info, album_info, track_type):
         self.tags(track_info, track_type, album_info, tagger)
 
-    def tag_flac(self, file_path, track_info, album_info, album_art_path=None):
+    def tag_flac(self, file_path, track_info, album_info, lyrics, album_art_path=None):
         tagger = FLAC(file_path)
 
         self._meta_tag(tagger, track_info, album_info, 'flac')
@@ -121,15 +124,23 @@ class Tagger(object):
             pic.height = 1280
             pic.depth = 24
             tagger.add_picture(pic)
+
+        if lyrics:
+            genius = lyricsgenius.Genius(GENIUSKEY)
+            print('\t', end='')
+            song = genius.search_song(track_info['title'], track_info['artist']['name'])
+            tagger['lyrics'] = song.lyrics
+
         tagger.save(file_path)
 
-    def tag_m4a(self, file_path, track_info, album_info, album_art_path=None):
+    def tag_m4a(self, file_path, track_info, album_info, lyrics, album_art_path=None):
             tagger = EasyMP4(file_path)
 
-            # Register ISRC, UPC and explicit tags
+            # Register ISRC, UPC, lyrics and explicit tags
             tagger.RegisterTextKey('isrc', '----:com.apple.itunes:ISRC')
             tagger.RegisterTextKey('upc', '----:com.apple.itunes:UPC')
             tagger.RegisterTextKey('explicit', 'rtng')
+            tagger.RegisterTextKey('lyrics', '\xa9lyr')
 
             self._meta_tag(tagger, track_info, album_info, 'm4a')
             if self.fmtopts['embed_album_art'] and album_art_path is not None:
@@ -138,4 +149,11 @@ class Tagger(object):
                     pic = MP4Cover(f.read())
                 tagger.RegisterTextKey('covr', 'covr')
                 tagger['covr'] = [pic]
+
+            if lyrics:
+                genius = lyricsgenius.Genius(GENIUSKEY)
+                print('\t', end='')
+                song = genius.search_song(tagger['title'], tagger['artist'])
+                tagger['lyrics'] = song.lyrics
+
             tagger.save(file_path)

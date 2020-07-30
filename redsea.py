@@ -234,13 +234,11 @@ def main():
             print('<<< Downloading {0}: {1} track(s) in total >>>'.format(
                 MEDIA_TYPES[mt['type']] + (' ' + media_name if media_name else ''), total))
 
-
         if args.resumeon and len(media_to_download) == 1 and mt['type'] == 'p':
             print('<<< Resuming on track {} >>>'.format(args.resumeon))
             args.resumeon -= 1
         else:
             args.resumeon = 0
-
 
         cur = args.resumeon
         for tracks, media_info in track_info:
@@ -250,7 +248,7 @@ def main():
                 # Actually download the track (finally)
                 while True:
                     try:
-                        md.download_media(track, preset['quality'], media_info, overwrite=args.overwrite)
+                        md.download_media(track, preset, media_info, overwrite=args.overwrite)
                         break
 
                     # Catch quality error

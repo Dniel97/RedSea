@@ -18,6 +18,7 @@ Requirements
 * requests
 * mutagen (1.37 or higher)
 * pycrypto
+* lyricsgenius (only 1.8.6 tested)
 
 Optional
 --------
@@ -133,6 +134,8 @@ Config reference
 `path`: Base download directory
 
 `convert_to_alac`: Converts a .flac file to an ALAC .m4a file (requires ffmpeg)
+
+`lyrics`: Enable lyrics tagging using the Genius API (takes longer)
 
 Format variables are `{title}`, `{artist}`, `{album}`, `{tracknumber}`.
 

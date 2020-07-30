@@ -3,8 +3,6 @@ import json
 import os
 import os.path as path
 import re
-import sys
-import pathlib
 import base64
 
 import requests
@@ -129,7 +127,7 @@ class MediaDownloader(object):
             print(line)
         print('\t----')
 
-    def download_media(self, track_info, quality, album_info=None, overwrite=False):
+    def download_media(self, track_info, preset, album_info=None, overwrite=False):
         track_id = track_info['id']
         assert track_info['allowStreaming'], 'Unable to download track {0}: not allowed to stream/download'.format(track_id)
 
@@ -173,7 +171,7 @@ class MediaDownloader(object):
 
         # Hacky way to get extension of file from URL
         #ftype = None
-        playback_info = self.api.get_stream_url(track_id, quality)
+        playback_info = self.api.get_stream_url(track_id, preset['quality'])
         manifest = json.loads(base64.b64decode(playback_info['manifest']))
         url = manifest['urls'][0]
         if url.find('.flac?') == -1:
@@ -229,9 +227,9 @@ class MediaDownloader(object):
             print('\tTagging media file...')
 
             if ftype == 'flac':
-                self.tm.tag_flac(temp_file, track_info, album_info, aa_location)
+                self.tm.tag_flac(temp_file, track_info, album_info, preset['lyrics'], aa_location)
             elif ftype == 'm4a' or ftype == 'mp4':
-                self.tm.tag_m4a(temp_file, track_info, album_info, aa_location)
+                self.tm.tag_m4a(temp_file, track_info, album_info, preset['lyrics'], aa_location)
             else:
                 print('\tUnknown file type to tag!')
 

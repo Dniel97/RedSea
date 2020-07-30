@@ -1,6 +1,6 @@
 import getpass
 
-from redsea.tidal_api import TidalSessionFile, TidalRequestError, TidalMobileSession
+from redsea.tidal_api import TidalSessionFile, TidalRequestError, TidalMobileSession, TidalTvSession
 
 
 class RedseaSessionFile(TidalSessionFile):
@@ -20,11 +20,25 @@ class RedseaSessionFile(TidalSessionFile):
 
         Returns True if successful
         '''
+        while True:
+            answer = input('Do you want to use the new (buggy) TV authorization? [y/n]: ')
+            if answer == 'y':
+                device = 'tv'
+                break
+            elif answer == 'n':
+                device = 'mobile'
+                break
+            else:
+                print('Try again')
 
         while True:
-            print('LOGIN: Enter your Tidal username and password:\n')
-            username = input('Username: ')
-            password = getpass.getpass('Password: ')
+            if device == 'mobile':
+                print('LOGIN: Enter your Tidal username and password:\n')
+                username = input('Username: ')
+                password = getpass.getpass('Password: ')
+            else:
+                username = ''
+                password = ''
 
             name = ''
             while name == '':
@@ -44,7 +58,7 @@ class RedseaSessionFile(TidalSessionFile):
                         return False
 
             try:
-                super().new_session(name, username, password)
+                super().new_session(name, username, password, device=device)
                 break
             except TidalRequestError as e:
                 if str(e).startswith('3001'):
@@ -132,8 +146,13 @@ class RedseaSessionFile(TidalSessionFile):
 
         print('\nSESSIONS:')
         for s in self.sessions:
-            mobile = '[MOBILE]' if isinstance(self.sessions[s], TidalMobileSession) else ''
-            print('   [{}]{} {} | {}'.format(self.sessions[s].country_code, mobile, self.sessions[s].username, s))
+            if isinstance(self.sessions[s], TidalMobileSession):
+                device = '[MOBILE]'
+            elif isinstance(self.sessions[s], TidalTvSession):
+                device = '[TV]'
+            else:
+                device = ''
+            print('   [{}]{} {} | {}'.format(self.sessions[s].country_code, device, self.sessions[s].username, s))
 
         print('')
         if self.default is not None:

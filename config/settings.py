@@ -38,7 +38,10 @@ BRUTEFORCEREGION = True
 COUNTRYCODE = "US"
 
 # This usually comes along with the authorization header
-TOKEN = "WAU9gXp3tHhK4Nns"
+# TOKEN = "WAU9gXp3tHhK4Nns"    # MQA Token
+TOKEN = "dN2N95wCyEBTllu4"  # Dolby Atmos AC-4 Token
+# TV_TOKEN = "4ywnjRfroi84hz7i"    # Shield TV
+TV_TOKEN = "LXujKdmnc6QtydvY"  # FireTV
 
 # AUTHHEADER will look like "Bearer abcd......."
 # AUTHHEADER = "Bearer "

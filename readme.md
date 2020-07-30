@@ -1,18 +1,10 @@
-**This fork is based on zpoo32's fork of stephanlensky's fork of redsudo's fork of mreweilk's fork of svbnet's Redsea where I've disabled a bunch of features to allow for Dolby Atmos downloading. It can also download MQAs (Master quality). Now updated for Tidal 2.26.1 to make way for E-AC-3 downloading for when someone with a rooted NVIDIA Shield TV comes to help with this. This method is unlikely to be patched by Tidal, although there is a very easy way to patch it.**
-
-To get this to work you MUST set your own auth header retrieved from MITM'ing a Tidal (version 2.26.1) APK that has its target version changed (and also cloned with something like App Cloner for some reason, maybe some protection is bypassed by it), which you must get yourself, as it is copyrighted material. To use this downloader you must install Fiddler-Everywhere on any computer and follow [this guide](https://www.telerik.com/blogs/how-to-capture-android-traffic-with-fiddler). Note that the guide is for the old version of Fiddler, so the placement of the options will be different, and so will the port (Everywhere usually has port 8866). Once you have done that, play a song on tidal, select any api.tidal.com entry, and copy the text next to 'X-Tidal-Token:' and'Authorization:' in the header tab on the right side, and copy it into the config file.
-
-To download MQA, also add -p MQA to your command line arguments. For other types of files, look at stock presets below, as this downloader is set up to download Dolby Atmos by default. (Also, tagging is broken for AAC files, as nobody cares about them but it is an easy fix, just replace ftype in the tagging section of mediadownloader.py with the codec name provided by the metadata)
-
-If you are a Windows user, you might want to check out [Athame](https://github.com/svbnet/Athame), a graphical music download client. It also seems to work well on Mono, if you use Linux or OS X.
-
 RedSea
 ======
 Music downloader and tagger for Tidal. For educational use only, and may break in the future.
 
 Current state
 -------------
-RedSea is currently being worked on by members of RED. Reach out to RedSudo for more info
+This fork is currently maintained by me ([Dniel97](https://github.com/Dniel97))
 
 Introduction
 ------------
@@ -56,8 +48,10 @@ How to add accounts/sessions
 
     list                Lists stored sessions if any exist
 
-    add                 Prompts for a Tidal username and password and
-                        authorizes a session which then gets stored in
+    add                 Prompts for a TV or Mobile session. The TV option
+                        displays a 6 digit key for linking. The Mobile option
+                        prompts for a Tidal username and password. Both options
+                        authorize a session which then gets stored in
                         the sessions file
 
     remove              Removes a stored session from the sessions file

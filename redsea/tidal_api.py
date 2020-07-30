@@ -9,12 +9,14 @@ import base64
 import secrets
 from datetime import datetime, timedelta
 import urllib3
+import time
+import sys
 
 import requests
 from urllib3.util.retry import Retry
 from requests.adapters import HTTPAdapter
 
-from config.settings import TOKEN, COUNTRYCODE
+from config.settings import TOKEN, TV_TOKEN, COUNTRYCODE
 
 
 class TidalRequestError(Exception):
@@ -221,7 +223,7 @@ class TidalSession(object):
         return {
             'Host': 'api.tidal.com',
             'X-Tidal-Token': TOKEN,
-            'Authorization': AUTHHEADER,
+            'Authorization': 'Bearer {}'.format(self.access_token),
             'Connection': 'Keep-Alive',
             'Accept-Encoding': 'gzip',
             'User-Agent': 'TIDAL_ANDROID/995 okhttp/3.13.1'
@@ -271,8 +273,6 @@ class TidalMobileSession(TidalSession):
         if r.status_code == 400:
             raise TidalAuthError("Authorization failed! Is the clientid/token up to date?")
 
-        print(s.cookies['token'])
-
         # enter email, verify email is valid
         r = s.post('https://login.tidal.com/email', params=params, json={
             '_csrf': s.cookies['token'],
@@ -317,6 +317,8 @@ class TidalMobileSession(TidalSession):
         self.refresh_token = r.json()['refresh_token']
         self.expires = datetime.now() + timedelta(seconds=r.json()['expires_in'])
 
+        print('Your Authorization token: ' + self.access_token)
+
         r = requests.get('https://api.tidal.com/v1/sessions', headers=self.auth_headers())
         assert(r.status_code == 200)
         self.user_id = r.json()['userId']
@@ -333,7 +335,7 @@ class TidalMobileSession(TidalSession):
                 print('Your subscription supports Hi-Res Audio')
                 return True
             else:
-                TidalAuthError('Your subscription do not supports Hi-Res Audio')
+                TidalAuthError('Your subscription does not support Hi-Res Audio')
                 return False
 
     def valid(self):
@@ -363,7 +365,144 @@ class TidalMobileSession(TidalSession):
         return {
             'Host': 'api.tidal.com',
             'X-Tidal-Token': self.client_id,
-            'Authorization': 'Bearer ' + self.access_token,
+            'Authorization': 'Bearer {}'.format(self.access_token),
+            'Connection': 'Keep-Alive',
+            'Accept-Encoding': 'gzip',
+            'User-Agent': 'TIDAL_ANDROID/1000 okhttp/3.13.1'
+            }
+
+
+class TidalTvSession(TidalSession):
+    '''
+    Tidal session object based on the mobile Android oauth flow
+    '''
+    def __init__(self):
+        self.TIDAL_AUTH_BASE = 'https://auth.tidal.com/v1/'
+
+        self.username = None
+        self.client_id = TV_TOKEN
+        self.client_secret = '7iM9rMsPlM2xDY5AiToS7XgVVnG28bjsMhJlhzjCcSA='
+        # self.code_verifier = base64.urlsafe_b64encode(secrets.token_bytes(32)).rstrip(b'=')
+        # self.code_challenge = base64.urlsafe_b64encode(hashlib.sha256(self.code_verifier).digest()).rstrip(b'=')
+
+        self.device_code = None
+        self.user_code = None
+
+        self.access_token = None
+        self.refresh_token = None
+        self.expires = None
+        self.user_id = None
+        self.country_code = None
+
+        self.auth()
+
+    def auth(self):
+        s = requests.Session()
+
+        # retrieve csrf token for subsequent request
+        r = s.post(self.TIDAL_AUTH_BASE + 'oauth2/device_authorization', data={
+            'client_id': self.client_id,
+            'scope': 'r_usr w_usr'
+        })
+
+        if r.status_code == 400:
+            raise TidalAuthError("Authorization failed! Is the clientid/token up to date?")
+        elif r.status_code == 200:
+            self.device_code = r.json()['deviceCode']
+            self.user_code = r.json()['userCode']
+            print('Go to https://link.tidal.com/{} and log in or sign up to TIDAL.'.format(self.user_code))
+
+        data = {
+            'client_id': self.client_id,
+            'device_code': self.device_code,
+            'client_secret': self.client_secret,
+            'grant_type': 'urn:ietf:params:oauth:grant-type:device_code',
+            'scope': 'r_usr w_usr'
+        }
+
+        status_code = 400
+        print('Check linking ', end='')
+
+        while status_code == 400:
+            for index, char in enumerate("." * 5):
+                sys.stdout.write(char)
+                sys.stdout.flush()
+                # exchange access code for oauth token
+                time.sleep(0.2)
+            r = requests.post(self.TIDAL_AUTH_BASE + 'oauth2/token', data=data)
+            status_code = r.status_code
+            index += 1  # lists are zero indexed, we need to increase by one for the accurate count
+            # backtrack the written characters, overwrite them with space, backtrack again:
+            sys.stdout.write("\b" * index + " " * index + "\b" * index)
+            sys.stdout.flush()
+
+        if r.status_code == 200:
+            print('\nSuccessfully linked!')
+        elif r.status_code == 401:
+            print('\nAuth Error: ' + r.json()['error'])
+            raise TidalAuthError('Auth Error')
+
+        self.access_token = r.json()['access_token']
+        self.refresh_token = r.json()['refresh_token']
+        self.expires = datetime.now() + timedelta(seconds=r.json()['expires_in'])
+
+        print('Your Authorization token: ' + self.access_token)
+
+        r = requests.get('https://api.tidal.com/v1/sessions', headers=self.auth_headers())
+        assert(r.status_code == 200)
+        self.user_id = r.json()['userId']
+        self.country_code = r.json()['countryCode']
+
+        r = requests.get('https://api.tidal.com/v1/users/{}?countryCode={}'.format(self.user_id, COUNTRYCODE),
+                         headers=self.auth_headers())
+        assert (r.status_code == 200)
+        self.username = r.json()['username']
+
+        assert(self.check_subscription() is True)
+
+    def check_subscription(self):
+        if self.access_token is not None:
+            r = requests.get('https://api.tidal.com/v1/users/' + str(self.user_id) + '/subscription',
+                             headers=self.auth_headers())
+            assert (r.status_code == 200)
+            if r.json()['highestSoundQuality'] == 'HI_RES':
+                print('Your subscription supports Hi-Res Audio')
+                return True
+            elif r.json()['highestSoundQuality'] == 'LOSSLESS':
+                print('Your subscription supports lossless Audio')
+                return True
+            else:
+                TidalAuthError('Your subscription does not support Hi-Res Audio')
+                return False
+
+    def valid(self):
+        if self.access_token is None or datetime.now() > self.expires:
+            return False
+        r = requests.get('https://api.tidal.com/v1/sessions', headers=self.auth_headers())
+        return r.status_code == 200
+
+    def refresh(self):
+        assert(self.refresh_token is not None)
+        r = requests.post('https://auth.tidal.com/v1/oauth2/token', data={
+            'refresh_token': self.refresh_token,
+            'client_id': self.client_id,
+            'grant_type': 'refresh_token'
+        })
+        if r.status_code == 200:
+            self.access_token = r.json()['access_token']
+            self.expires = datetime.now() + timedelta(seconds=r.json()['expires_in'])
+            if 'refresh_token' in r.json():
+                self.refresh_token = r.json()['refresh_token']
+        return r.status_code == 200
+
+    def session_type(self):
+        return 'Tv'
+
+    def auth_headers(self):
+        return {
+            'Host': 'api.tidal.com',
+            'X-Tidal-Token': self.client_id,
+            'Authorization': 'Bearer {}'.format(self.access_token),
             'Connection': 'Keep-Alive',
             'Accept-Encoding': 'gzip',
             'User-Agent': 'TIDAL_ANDROID/1000 okhttp/3.13.1'
@@ -411,14 +550,16 @@ class TidalSessionFile(object):
         with open(self.session_file, 'wb') as f:
             pickle.dump(self.session_store, f)
 
-    def new_session(self, session_name, username, password, mobileSession=True):
+    def new_session(self, session_name, username, password, device):
         '''
         Create a new TidalSession object and auth with Tidal server
         '''
 
         if session_name not in self.sessions:
-            if mobileSession:
+            if device == 'mobile':
                 session = TidalMobileSession(username, password)
+            elif device == 'tv':
+                session = TidalTvSession()
             else:
                 session = TidalSession(username, password)
             self.sessions[session_name] = session

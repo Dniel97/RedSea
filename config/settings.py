@@ -37,6 +37,12 @@ BRUTEFORCEREGION = True
 # Allows switching the country
 COUNTRYCODE = "US"
 
+# AUTHHEADER will look like "Bearer eyJhbGciOiJIUzI1NiJ9..." (leave empty if you want to use the [-a --account ] login)
+AUTHHEADER = ""
+
+# Shows the Access JWT after every refresh and creation
+SHOWAUTH = True
+
 # This usually comes along with the authorization header
 # TOKEN = "WAU9gXp3tHhK4Nns"    # MQA Token
 TOKEN = "dN2N95wCyEBTllu4"  # Dolby Atmos AC-4 Token

@@ -16,7 +16,7 @@ import requests
 from urllib3.util.retry import Retry
 from requests.adapters import HTTPAdapter
 
-from config.settings import TOKEN, TV_TOKEN, COUNTRYCODE
+from config.settings import TOKEN, TV_TOKEN, COUNTRYCODE, AUTHHEADER, SHOWAUTH
 
 
 class TidalRequestError(Exception):
@@ -56,10 +56,23 @@ class TidalApi(object):
         params['countryCode'] = COUNTRYCODE
         if 'limit' not in params:
             params['limit'] = '9999'
-        resp = self.s.get(
-            self.TIDAL_API_BASE + url,
-            headers=self.session.auth_headers(),
-            params=params, verify=False)
+
+        if AUTHHEADER == "":
+            resp = self.s.get(
+                self.TIDAL_API_BASE + url,
+                headers=self.session.auth_headers(),
+                params=params)
+        else:
+            resp = self.s.get(
+                self.TIDAL_API_BASE + url,
+                headers={
+                    'Authorization': AUTHHEADER,
+                    'Host': 'api.tidal.com',
+                    'Connection': 'Keep-Alive',
+                    'Accept-Encoding': 'gzip',
+                    'User-Agent': 'TIDAL_ANDROID/1000 okhttp/3.13.1'
+                },
+                params=params)
 
         # if the request 401s or 403s, try refreshing the session in case that helps
         if not refresh and (resp.status_code == 401 or resp.status_code == 403) and isinstance(self.session, TidalMobileSession):
@@ -317,7 +330,8 @@ class TidalMobileSession(TidalSession):
         self.refresh_token = r.json()['refresh_token']
         self.expires = datetime.now() + timedelta(seconds=r.json()['expires_in'])
 
-        print('Your Authorization token: ' + self.access_token)
+        if SHOWAUTH:
+            print('Your Authorization token: ' + self.access_token)
 
         r = requests.get('https://api.tidal.com/v1/sessions', headers=self.auth_headers())
         assert(r.status_code == 200)
@@ -354,6 +368,10 @@ class TidalMobileSession(TidalSession):
         if r.status_code == 200:
             self.access_token = r.json()['access_token']
             self.expires = datetime.now() + timedelta(seconds=r.json()['expires_in'])
+
+            if SHOWAUTH:
+                print('Your Authorization token: ' + self.access_token)
+
             if 'refresh_token' in r.json():
                 self.refresh_token = r.json()['refresh_token']
         return r.status_code == 200
@@ -446,7 +464,8 @@ class TidalTvSession(TidalSession):
         self.refresh_token = r.json()['refresh_token']
         self.expires = datetime.now() + timedelta(seconds=r.json()['expires_in'])
 
-        print('Your Authorization token: ' + self.access_token)
+        if SHOWAUTH:
+            print('Your Authorization token: ' + self.access_token)
 
         r = requests.get('https://api.tidal.com/v1/sessions', headers=self.auth_headers())
         assert(r.status_code == 200)
@@ -491,6 +510,10 @@ class TidalTvSession(TidalSession):
         if r.status_code == 200:
             self.access_token = r.json()['access_token']
             self.expires = datetime.now() + timedelta(seconds=r.json()['expires_in'])
+
+            if SHOWAUTH:
+                print('Your Authorization token: ' + self.access_token)
+
             if 'refresh_token' in r.json():
                 self.refresh_token = r.json()['refresh_token']
         return r.status_code == 200

@@ -89,14 +89,18 @@ class Tagger(object):
         if track_info['version'] is not None and track_info['version'] != '':
             fmt = ' ({})'.format(track_info['version'])
             title += fmt
+
         tagger['title'] = title
+
         if track_info['copyright'] is not None:
             tagger['copyright'] = track_info['copyright']
+
         if track_info['isrc'] is not None:
             if track_type == 'm4a':
                 tagger['isrc'] = bytes(track_info['isrc'], encoding="ascii")
             elif track_type == "flac":
                 tagger['isrc'] = track_info['isrc']
+
         # Stupid library won't accept int so it is needed to cast it to a byte with hex value 01
         if track_info['explicit'] is not None:
             if track_type == 'm4a':
@@ -104,6 +108,7 @@ class Tagger(object):
                     tagger['explicit'] = b'\x01'
                 else:
                     tagger['explicit'] = b'\x02'
+
         return tagger
 
     def _meta_tag(self, tagger, track_info, album_info, track_type):

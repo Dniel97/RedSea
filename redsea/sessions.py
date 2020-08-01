@@ -20,16 +20,12 @@ class RedseaSessionFile(TidalSessionFile):
 
         Returns True if successful
         '''
-        while True:
-            answer = input('Do you want to use the new (buggy) TV authorization? [y/n]: ')
-            if answer == 'y':
-                device = 'tv'
-                break
-            elif answer == 'n':
-                device = 'mobile'
-                break
-            else:
-                print('Try again')
+        confirm = input('Do you want to use the new (buggy) TV authorization? [Y/n]? ')
+
+        if confirm.upper() == 'Y':
+            device = 'tv'
+        else:
+            device = 'mobile'
 
         while True:
             if device == 'mobile':

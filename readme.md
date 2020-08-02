@@ -9,8 +9,12 @@ This fork is currently maintained by me ([Dniel97](https://github.com/Dniel97))
 Introduction
 ------------
 RedSea is a music downloader and tagger for the Tidal music streaming service. It is designed partially as a Tidal API example. This repository also hosts a wildly incomplete Python Tidal
-API implementation - it is contained in `config/tidal_api.py` and only requires `requests` to be
+API implementation - it is contained in `redsea/tidal_api.py` and only requires `requests` to be
 installed. Note that you will you have to implement the Tidal lossless download hack yourself -- you can find this in `mediadownloader.py`.
+
+First setup
+-----------
+After downloading RedSea, copy `config/settings.example.py` and rename it to `config/settings.py`, now you can set all your preferences inside `settings.py`.
 
 Requirements
 ------------

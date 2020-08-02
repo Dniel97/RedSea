@@ -5,3 +5,4 @@ sessions.pk
 downloads/
 .DS_Store
 .idea/
+settings.py

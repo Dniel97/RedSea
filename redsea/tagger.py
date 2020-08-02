@@ -134,7 +134,8 @@ class Tagger(object):
         if lyrics:
             print('\t', end='')
             song = genius.search_song(track_info['title'], track_info['artist']['name'])
-            tagger['lyrics'] = song.lyrics
+            if song is not None:
+                tagger['lyrics'] = song.lyrics
 
         tagger.save(file_path)
 
@@ -158,6 +159,7 @@ class Tagger(object):
             if lyrics:
                 print('\t', end='')
                 song = genius.search_song(tagger['title'], tagger['artist'])
-                tagger['lyrics'] = song.lyrics
+                if song is not None:
+                    tagger['lyrics'] = song.lyrics
 
             tagger.save(file_path)

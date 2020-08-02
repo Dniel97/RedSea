@@ -16,7 +16,7 @@ import requests
 from urllib3.util.retry import Retry
 from requests.adapters import HTTPAdapter
 
-from config.settings import TOKEN, TV_TOKEN, COUNTRYCODE, AUTHHEADER, SHOWAUTH
+from config.settings import TOKEN, TV_TOKEN, TV_SECRET, COUNTRYCODE, AUTHHEADER, SHOWAUTH
 
 
 class TidalRequestError(Exception):
@@ -399,7 +399,7 @@ class TidalTvSession(TidalSession):
 
         self.username = None
         self.client_id = TV_TOKEN
-        self.client_secret = '7iM9rMsPlM2xDY5AiToS7XgVVnG28bjsMhJlhzjCcSA='
+        self.client_secret = TV_SECRET
         # self.code_verifier = base64.urlsafe_b64encode(secrets.token_bytes(32)).rstrip(b'=')
         # self.code_challenge = base64.urlsafe_b64encode(hashlib.sha256(self.code_verifier).digest()).rstrip(b'=')
 
@@ -457,8 +457,7 @@ class TidalTvSession(TidalSession):
         if r.status_code == 200:
             print('\nSuccessfully linked!')
         elif r.status_code == 401:
-            print('\nAuth Error: ' + r.json()['error'])
-            raise TidalAuthError('Auth Error')
+            raise TidalAuthError('Auth Error: ' + r.json()['error'])
 
         self.access_token = r.json()['access_token']
         self.refresh_token = r.json()['refresh_token']

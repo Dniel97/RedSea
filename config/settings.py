@@ -46,8 +46,10 @@ SHOWAUTH = True
 # This usually comes along with the authorization header
 # TOKEN = "WAU9gXp3tHhK4Nns"    # MQA Token
 TOKEN = "dN2N95wCyEBTllu4"  # Dolby Atmos AC-4 Token
-# TV_TOKEN = "4ywnjRfroi84hz7i"    # Shield TV
+
+# The TV_TOKEN and the line below (TV_SECRET) are tied together, so un-/comment both.
 TV_TOKEN = "LXujKdmnc6QtydvY"  # FireTV
+TV_SECRET = "7iM9rMsPlM2xDY5AiToS7XgVVnG28bjsMhJlhzjCcSA="
 
 path = "./downloads/"
 

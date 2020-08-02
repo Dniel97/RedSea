@@ -39,11 +39,13 @@ def main():
     RSF = RedseaSessionFile('./config/sessions.pk')
     if args.urls[0] == 'auth' and len(args.urls) == 1:
         print('\nThe "auth" command provides the following methods:')
-        print('\n  list:     list the currently stored sessions')
-        print('  add:      login and store a new session')
-        print('  remove:   permanently remove a stored session')
-        print('  default:  set a session as default')
-        print('  reauth:   reauthenticate with Tidal to get new sessionId')
+        print('\n  list:     Lists stored sessions if any exist')
+        print('  add:      Prompts for a TV or Mobile session. The TV option displays a 6 digit key which should be '
+              'entered inside link.tidal.com where the user can login. The Mobile option prompts for a Tidal username '
+              'and password. Both options authorize a session which then gets stored in the sessions file')
+        print('  remove:   Removes a stored session from the sessions file by name')
+        print('  default:  Set a default account for redsea to use when the -a flag has not been passed')
+        print('  reauth:   Reauthenticates with server to get new sessionId')
         print('\nUsage: redsea.py auth add\n')
         exit()
     elif args.urls[0] == 'auth' and len(args.urls) > 1:

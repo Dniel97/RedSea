@@ -173,6 +173,27 @@ class MediaDownloader(object):
         #ftype = None
         playback_info = self.api.get_stream_url(track_id, preset['quality'])
         manifest = json.loads(base64.b64decode(playback_info['manifest']))
+
+        # Detect codec
+        print('\tCodec: ', end='')
+        if manifest['codecs'] == 'eac3':
+            print('E-AC-3 JOC (Dolby Digital Plus with Dolby Atmos metadata)')
+        elif manifest['codecs'] == 'ac4':
+            print('AC-4 (Dolby AC-4 with Dolby Atmos immersive stereo)')
+        elif manifest['codecs'] == 'mqa' and manifest['mimeType'] == 'audio/flac':
+            print('FLAC (Free Lossless Audio Codec) with folded MQA (Master Quality Authenticated) metadata')
+        elif manifest['codecs'] == 'flac':
+            print('FLAC (Free Lossless Audio Codec)')
+        elif manifest['codecs'] == 'alac':
+            print('ALAC (Apple Lossless Audio Codec)')
+        elif manifest['codecs'] == 'mp4a.40.2':
+            print('AAC (Advanced Audio Coding) with a bitrate of 320kb/s')
+        elif manifest['codecs'] == 'mp4a.40.5':
+            print('AAC (Advanced Audio Coding) with a bitrate of 96kb/s')
+        else:
+            print('Unknown')
+
+
         url = manifest['urls'][0]
         if url.find('.flac?') == -1:
             if url.find('.m4a?') == -1:

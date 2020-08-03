@@ -100,6 +100,9 @@ class RedseaSessionFile(TidalSessionFile):
                         return self.sessions[self.default]
                     else:
                         return self.sessions[session_name]
+            else:
+                print('No session was created!')
+                exit(0)
 
     def get_session(self):
         '''

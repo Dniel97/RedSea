@@ -75,7 +75,8 @@ class TidalApi(object):
                 params=params)
 
         # if the request 401s or 403s, try refreshing the session in case that helps
-        if not refresh and (resp.status_code == 401 or resp.status_code == 403) and isinstance(self.session, TidalMobileSession):
+        if not refresh and (resp.status_code == 401 or resp.status_code == 403) and isinstance(self.session,
+                                                                                               TidalMobileSession):
             self.session.refresh()
             return self._get(url, params, True)
 
@@ -247,6 +248,7 @@ class TidalMobileSession(TidalSession):
     '''
     Tidal session object based on the mobile Android oauth flow
     '''
+
     def __init__(self, username, password):
         self.TIDAL_LOGIN_BASE = 'https://login.tidal.com/'
         self.TIDAL_AUTH_BASE = 'https://auth.tidal.com/v1/'
@@ -292,7 +294,7 @@ class TidalMobileSession(TidalSession):
             'email': self.username,
             'recaptchaResponse': ''
         })
-        assert(r.status_code == 200)
+        assert (r.status_code == 200)
         if not r.json()['isValidEmail']:
             raise TidalAuthError('Invalid email')
         if r.json()['newUser']:
@@ -304,13 +306,13 @@ class TidalMobileSession(TidalSession):
             'email': self.username,
             'password': password
         })
-        assert(r.status_code == 200)
+        assert (r.status_code == 200)
 
         # retrieve access code
         r = s.get('https://login.tidal.com/success?lang=en', allow_redirects=False)
         if r.status_code == 401:
             raise TidalAuthError('Incorrect password')
-        assert(r.status_code == 302)
+        assert (r.status_code == 302)
         url = urlparse.urlparse(r.headers['location'])
         oauth_code = parse_qs(url.query)['code'][0]
 
@@ -324,7 +326,7 @@ class TidalMobileSession(TidalSession):
             'code_verifier': self.code_verifier,
             'client_unique_key': self.client_unique_key
         })
-        assert(r.status_code == 200)
+        assert (r.status_code == 200)
 
         self.access_token = r.json()['access_token']
         self.refresh_token = r.json()['refresh_token']
@@ -334,11 +336,11 @@ class TidalMobileSession(TidalSession):
             print('Your Authorization token: ' + self.access_token)
 
         r = requests.get('https://api.tidal.com/v1/sessions', headers=self.auth_headers())
-        assert(r.status_code == 200)
+        assert (r.status_code == 200)
         self.user_id = r.json()['userId']
         self.country_code = r.json()['countryCode']
 
-        assert(self.check_subscription() is True)
+        assert (self.check_subscription() is True)
 
     def check_subscription(self):
         if self.access_token is not None:
@@ -359,7 +361,7 @@ class TidalMobileSession(TidalSession):
         return r.status_code == 200
 
     def refresh(self):
-        assert(self.refresh_token is not None)
+        assert (self.refresh_token is not None)
         r = requests.post('https://auth.tidal.com/v1/oauth2/token', data={
             'refresh_token': self.refresh_token,
             'client_id': self.client_id,
@@ -387,21 +389,20 @@ class TidalMobileSession(TidalSession):
             'Connection': 'Keep-Alive',
             'Accept-Encoding': 'gzip',
             'User-Agent': 'TIDAL_ANDROID/1000 okhttp/3.13.1'
-            }
+        }
 
 
 class TidalTvSession(TidalSession):
     '''
     Tidal session object based on the mobile Android oauth flow
     '''
+
     def __init__(self):
         self.TIDAL_AUTH_BASE = 'https://auth.tidal.com/v1/'
 
         self.username = None
         self.client_id = TV_TOKEN
         self.client_secret = TV_SECRET
-        # self.code_verifier = base64.urlsafe_b64encode(secrets.token_bytes(32)).rstrip(b'=')
-        # self.code_challenge = base64.urlsafe_b64encode(hashlib.sha256(self.code_verifier).digest()).rstrip(b'=')
 
         self.device_code = None
         self.user_code = None
@@ -467,7 +468,7 @@ class TidalTvSession(TidalSession):
             print('Your Authorization token: ' + self.access_token)
 
         r = requests.get('https://api.tidal.com/v1/sessions', headers=self.auth_headers())
-        assert(r.status_code == 200)
+        assert (r.status_code == 200)
         self.user_id = r.json()['userId']
         self.country_code = r.json()['countryCode']
 
@@ -476,21 +477,18 @@ class TidalTvSession(TidalSession):
         assert (r.status_code == 200)
         self.username = r.json()['username']
 
-        assert(self.check_subscription() is True)
+        assert (self.check_subscription() is True)
 
     def check_subscription(self):
         if self.access_token is not None:
             r = requests.get('https://api.tidal.com/v1/users/' + str(self.user_id) + '/subscription',
                              headers=self.auth_headers())
             assert (r.status_code == 200)
-            if r.json()['highestSoundQuality'] == 'HI_RES':
-                print('Your subscription supports Hi-Res Audio')
-                return True
-            elif r.json()['highestSoundQuality'] == 'LOSSLESS':
+            if r.json()['highestSoundQuality'] == 'LOSSLESS':
                 print('Your subscription supports lossless Audio')
                 return True
             else:
-                TidalAuthError('Your subscription does not support Hi-Res Audio')
+                TidalAuthError('Your subscription does not support lossless Audio')
                 return False
 
     def valid(self):
@@ -500,7 +498,7 @@ class TidalTvSession(TidalSession):
         return r.status_code == 200
 
     def refresh(self):
-        assert(self.refresh_token is not None)
+        assert (self.refresh_token is not None)
         r = requests.post('https://auth.tidal.com/v1/oauth2/token', data={
             'refresh_token': self.refresh_token,
             'client_id': self.client_id,
@@ -528,7 +526,7 @@ class TidalTvSession(TidalSession):
             'Connection': 'Keep-Alive',
             'Accept-Encoding': 'gzip',
             'User-Agent': 'TIDAL_ANDROID/1000 okhttp/3.13.1'
-            }
+        }
 
 
 class TidalSessionFile(object):
@@ -552,7 +550,7 @@ class TidalSessionFile(object):
                 elif 'version' in self.session_store:
                     raise ValueError(
                         'Session file is version {} while redsea expects version {}'.
-                        format(self.session_store['version'], self.VERSION))
+                            format(self.session_store['version'], self.VERSION))
                 else:
                     raise ValueError('Existing session file is malformed. Please delete/rebuild session file.')
                 f.close()
@@ -611,8 +609,14 @@ class TidalSessionFile(object):
         Returns a session from the session store
         '''
 
-        #if len(self.sessions) == 0:
-        #    raise ValueError('There are no sessions in session file!')
+        if AUTHHEADER != '':
+            if 'Bearer ' in AUTHHEADER:
+                return
+            else:
+                raise ValueError('AUTHHEADER seems invalid. Enter a correct AUTHHEADER.')
+
+        if len(self.sessions) == 0:
+            raise ValueError('There are no sessions in session file and no valid AUTHHEADER was provided!')
 
         if session_name is None:
             session_name = self.default
@@ -620,10 +624,11 @@ class TidalSessionFile(object):
         if session_name in self.sessions:
             if not self.sessions[session_name].valid() and isinstance(self.sessions[session_name], TidalMobileSession):
                 self.sessions[session_name].refresh()
-            assert self.sessions[session_name].valid(), '{} has an invalid sessionId. Please re-authenticate'.format(session_name)
+            assert self.sessions[session_name].valid(), '{} has an invalid sessionId. Please re-authenticate'.format(
+                session_name)
             return self.sessions[session_name]
 
-        #raise ValueError('Session "{}" could not be found.'.format(session_name))
+        raise ValueError('Session "{}" could not be found.'.format(session_name))
 
     def set_default(self, session_name):
         '''
@@ -632,6 +637,7 @@ class TidalSessionFile(object):
         '''
 
         if session_name in self.sessions:
-            assert self.sessions[session_name].valid(), '{} has an invalid sessionId. Please re-authenticate'.format(session_name)
+            assert self.sessions[session_name].valid(), '{} has an invalid sessionId. Please re-authenticate'.format(
+                session_name)
             self.default = session_name
             self._save()

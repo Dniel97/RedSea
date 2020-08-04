@@ -440,7 +440,7 @@ class TidalTvSession(TidalSession):
         }
 
         status_code = 400
-        print('Check linking ', end='')
+        print('Checking link ', end='')
 
         while status_code == 400:
             for index, char in enumerate("." * 5):

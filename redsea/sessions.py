@@ -20,7 +20,7 @@ class RedseaSessionFile(TidalSessionFile):
 
         Returns True if successful
         '''
-        confirm = input('Do you want to use the new (buggy) TV authorization? [Y/n]? ')
+        confirm = input('Do you want to use the new TV authorization (needed for E-AC-3 JOC)? [Y/n]? ')
 
         if confirm.upper() == 'Y':
             device = 'tv'

@@ -51,7 +51,9 @@ class TidalApi(object):
         self.s.mount('http://', HTTPAdapter(max_retries=retries))
         self.s.mount('https://', HTTPAdapter(max_retries=retries))
 
-    def _get(self, url, params={}, refresh=False):
+    def _get(self, url, params=None, refresh=False):
+        if params is None:
+            params = {}
         urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
         params['countryCode'] = COUNTRYCODE
         if 'limit' not in params:
@@ -74,11 +76,11 @@ class TidalApi(object):
                 },
                 params=params)
 
-        # if the request 401s or 403s, try refreshing the session in case that helps
-        if not refresh and (resp.status_code == 401 or resp.status_code == 403) and isinstance(self.session,
-                                                                                               TidalMobileSession):
-            self.session.refresh()
-            return self._get(url, params, True)
+        # if the request 401s or 403s, try refreshing the TV/Mobile session in case that helps
+        if not refresh and (resp.status_code == 401 or resp.status_code == 403):
+            if isinstance(self.session, TidalMobileSession) or isinstance(self.session, TidalTvSession):
+                self.session.refresh()
+                return self._get(url, params, True)
 
         resp_json = None
         try:
@@ -106,8 +108,7 @@ class TidalApi(object):
             'playbackmode': 'STREAM',
             'assetpresentation': 'FULL',
             'audioquality': quality[0],
-            'prefetch': 'false',
-            'countryCode': COUNTRYCODE
+            'prefetch': 'false'
         })
 
     def get_playlist_items(self, playlist_id):
@@ -283,7 +284,7 @@ class TidalMobileSession(TidalSession):
         }
 
         # retrieve csrf token for subsequent request
-        r = s.get('https://login.tidal.com/authorize', params=params)
+        r = s.get(self.TIDAL_LOGIN_BASE + 'authorize', params=params)
 
         if r.status_code == 400:
             raise TidalAuthError("Authorization failed! Is the clientid/token up to date?")
@@ -301,7 +302,7 @@ class TidalMobileSession(TidalSession):
             raise TidalAuthError('User does not exist')
 
         # login with user credentials
-        r = s.post('https://login.tidal.com/email/user/existing', params=params, json={
+        r = s.post(self.TIDAL_LOGIN_BASE + 'email/user/existing', params=params, json={
             '_csrf': s.cookies['token'],
             'email': self.username,
             'password': password
@@ -309,7 +310,7 @@ class TidalMobileSession(TidalSession):
         assert (r.status_code == 200)
 
         # retrieve access code
-        r = s.get('https://login.tidal.com/success?lang=en', allow_redirects=False)
+        r = s.get(self.TIDAL_LOGIN_BASE + 'success?lang=en', allow_redirects=False)
         if r.status_code == 401:
             raise TidalAuthError('Incorrect password')
         assert (r.status_code == 302)
@@ -317,7 +318,7 @@ class TidalMobileSession(TidalSession):
         oauth_code = parse_qs(url.query)['code'][0]
 
         # exchange access code for oauth token
-        r = requests.post('https://auth.tidal.com/v1/oauth2/token', data={
+        r = requests.post(self.TIDAL_AUTH_BASE + 'oauth2/token', data={
             'code': oauth_code,
             'client_id': self.client_id,
             'grant_type': 'authorization_code',
@@ -362,7 +363,7 @@ class TidalMobileSession(TidalSession):
 
     def refresh(self):
         assert (self.refresh_token is not None)
-        r = requests.post('https://auth.tidal.com/v1/oauth2/token', data={
+        r = requests.post(self.TIDAL_AUTH_BASE + 'oauth2/token', data={
             'refresh_token': self.refresh_token,
             'client_id': self.client_id,
             'grant_type': 'refresh_token'
@@ -499,7 +500,7 @@ class TidalTvSession(TidalSession):
 
     def refresh(self):
         assert (self.refresh_token is not None)
-        r = requests.post('https://auth.tidal.com/v1/oauth2/token', data={
+        r = requests.post(self.TIDAL_AUTH_BASE + 'oauth2/token', data={
             'refresh_token': self.refresh_token,
             'client_id': self.client_id,
             'grant_type': 'refresh_token'

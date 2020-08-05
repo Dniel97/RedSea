@@ -138,7 +138,7 @@ class Tagger(object):
                 if track_info['title'] in song.title and track_info['artist']['name'] in song.artist:
                     tagger['lyrics'] = song.lyrics
                 else:
-                    print('\tLyrics found but seems to be wrong.')
+                    print('\tLyrics found but seems to be wrong, ignoring.')
 
         tagger.save(file_path)
 
@@ -166,6 +166,6 @@ class Tagger(object):
                     if track_info['title'] in song.title and track_info['artist']['name'] in song.artist:
                         tagger['lyrics'] = song.lyrics
                     else:
-                        print('\tLyrics found but seems to be wrong.')
+                        print('\tLyrics found but seems to be wrong, ignoring.')
 
             tagger.save(file_path)

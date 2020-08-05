@@ -137,9 +137,8 @@ class RedseaSessionFile(TidalSessionFile):
 
         if len(self.sessions) == 0:
             confirm = input('No sessions found. Would you like to add one [Y/n]? ')
-            if confirm.upper() == '' or confirm.upper() == 'Y':
-                if self.new_session():
-                    self.list_sessions()
+            if confirm.upper() == 'Y':
+                self.new_session()
             else:
                 exit()
 

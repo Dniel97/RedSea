@@ -18,11 +18,11 @@ After downloading RedSea, copy `config/settings.example.py` and rename it to `co
 
 Requirements
 ------------
-* Python (3.5 or higher)
+* Python (3.6 or higher)
 * requests
 * mutagen (1.37 or higher)
-* pycrypto
-* lyricsgenius (only 1.8.6 tested)
+* pycryptodomex
+* deezerapi (already included from [deemix](https://codeberg.org/RemixDev/deemix))
 
 Optional
 --------
@@ -140,7 +140,7 @@ Config reference
 
 `convert_to_alac`: Converts a .flac file to an ALAC .m4a file (requires ffmpeg)
 
-`lyrics`: Enable lyrics tagging using the Genius API (takes longer)
+`lyrics`: Enable lyrics tagging and synced lyrics as .lrc download using the Deezer API (from [deemix](https://codeberg.org/RemixDev/deemix))
 
 Format variables are `{title}`, `{artist}`, `{album}`, `{tracknumber}`.
 

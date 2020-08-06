@@ -13,6 +13,10 @@ from subprocess import Popen, PIPE
 from .decryption import decrypt_file, decrypt_security_token
 from .tagger import FeaturingFormat
 from .tidal_api import TidalApi, TidalRequestError
+from deezer.deezer import Deezer, APIError
+
+# Deezer API
+dz = Deezer()
 
 
 def _mkdir_p(path):
@@ -244,13 +248,49 @@ class MediaDownloader(object):
                 else:
                     print("\tFfmpeg couldn't be found")
 
+            # Get lyrics from Deezer using deemix (https://codeberg.org/RemixDev/deemix)
+            lyrics = None
+            if preset['lyrics']:
+                print('\tGetting lyrics from Deezer...')
+                track_lyrics = {}
+                try:
+                    song = dz.get_track_by_ISRC(track_info['isrc'])
+                    track_lyrics = dz.get_lyrics_gw(song['id'])
+                except APIError:
+                    print('\tLyrics could not be found using ISRC. Searching for lyrics using the title, artist and '
+                          'album...')
+                    try:
+                        id = dz.get_track_from_metadata(track_info['artist']['name'], track_info['title'],
+                                                      track_info['album']['title'])
+                        track_lyrics = dz.get_lyrics_gw(id)
+                    except APIError:
+                        print('\tNo lyrics could be found!')
+                track = {}
+                if "LYRICS_TEXT" in track_lyrics:
+                    lyrics = track_lyrics["LYRICS_TEXT"]
+                if "LYRICS_SYNC_JSON" in track_lyrics:
+                    track['sync'] = ""
+                    lastTimestamp = ""
+                    for i in range(len(track_lyrics["LYRICS_SYNC_JSON"])):
+                        if "lrc_timestamp" in track_lyrics["LYRICS_SYNC_JSON"][i]:
+                            track['sync'] += track_lyrics["LYRICS_SYNC_JSON"][i]["lrc_timestamp"]
+                            lastTimestamp = track_lyrics["LYRICS_SYNC_JSON"][i]["lrc_timestamp"]
+                        else:
+                            track['sync'] += lastTimestamp
+                        track['sync'] += track_lyrics["LYRICS_SYNC_JSON"][i]["line"] + "\r\n"
+
+                if 'sync' in track:
+                    if not os.path.isfile(os.path.join(album_location, track_file + '.lrc')):
+                        with open(os.path.join(album_location, track_file + '.lrc'), 'wb') as f:
+                            f.write(track['sync'].encode('utf-8'))
+
             # Tagging
             print('\tTagging media file...')
 
             if ftype == 'flac':
-                self.tm.tag_flac(temp_file, track_info, album_info, preset['lyrics'], aa_location)
+                self.tm.tag_flac(temp_file, track_info, album_info, lyrics, aa_location)
             elif ftype == 'm4a' or ftype == 'mp4':
-                self.tm.tag_m4a(temp_file, track_info, album_info, preset['lyrics'], aa_location)
+                self.tm.tag_m4a(temp_file, track_info, album_info, lyrics, aa_location)
             else:
                 print('\tUnknown file type to tag!')
 

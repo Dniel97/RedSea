@@ -3,10 +3,6 @@ from mutagen.flac import FLAC, Picture
 from mutagen.mp4 import MP4Cover
 from mutagen.mp4 import MP4Tags
 from mutagen.id3 import PictureType
-import lyricsgenius
-
-GENIUSKEY = '7liCuTa0gYINVmpdiGid9gYQ7bqiaPrmttbcZrA6KZwKsOgIdleUYGzP-m2XBqJU'
-genius = lyricsgenius.Genius(GENIUSKEY)
 
 # Needed for Windows tagging support
 MP4Tags._padding = 0
@@ -45,7 +41,9 @@ class Tagger(object):
     def __init__(self, format_options):
         self.fmtopts = format_options
 
-    def tags(self, track_info, track_type, album_info=None, tagger={}):
+    def tags(self, track_info, track_type, album_info=None, tagger=None):
+        if tagger is None:
+            tagger = {}
         title = track_info['title']
         if len(track_info['artists']) == 1:
             tagger['artist'] = track_info['artist']['name']
@@ -104,10 +102,9 @@ class Tagger(object):
         # Stupid library won't accept int so it is needed to cast it to a byte with hex value 01
         if track_info['explicit'] is not None:
             if track_type == 'm4a':
-                if track_info['explicit']:
-                    tagger['explicit'] = b'\x01'
-                else:
-                    tagger['explicit'] = b'\x02'
+                tagger['explicit'] = b'\x01' if track_info['explicit'] else b'\x02'
+            elif track_type == 'flac':
+                tagger['ITUNESADVISORY'] = '1' if track_info['explicit'] else '2'
 
         return tagger
 
@@ -131,14 +128,9 @@ class Tagger(object):
             pic.depth = 24
             tagger.add_picture(pic)
 
+        # Set lyrics from Deezer
         if lyrics:
-            print('\t', end='')
-            song = genius.search_song(track_info['title'], track_info['artist']['name'])
-            if song is not None:
-                if track_info['title'] in song.title and track_info['artist']['name'] in song.artist:
-                    tagger['lyrics'] = song.lyrics
-                else:
-                    print('\tLyrics found but seems to be wrong, ignoring.')
+            tagger['lyrics'] = lyrics
 
         tagger.save(file_path)
 
@@ -159,13 +151,8 @@ class Tagger(object):
                 tagger.RegisterTextKey('covr', 'covr')
                 tagger['covr'] = [pic]
 
+            # Set lyrics from Deezer
             if lyrics:
-                print('\t', end='')
-                song = genius.search_song(track_info['title'], track_info['artist']['name'])
-                if song is not None:
-                    if track_info['title'] in song.title and track_info['artist']['name'] in song.artist:
-                        tagger['lyrics'] = song.lyrics
-                    else:
-                        print('\tLyrics found but seems to be wrong, ignoring.')
+                tagger['lyrics'] = lyrics
 
             tagger.save(file_path)

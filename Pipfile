@@ -1,18 +1,15 @@
 [[source]]
-url = "https://pypi.python.org/simple"
-verify_ssl = true
 name = "pypi"
-
-[packages]
-mutagen = "==1.37"
-requests = "==2.9.1"
-pycryptodome = "*"
-lyricsgenius = "*"
+url = "https://pypi.org/simple"
+verify_ssl = true
 
 [dev-packages]
-pylint = "*"
-yapf = "*"
-rope = "*"
+
+[packages]
+mutagen = "*"
+pycryptodomex = "*"
+requests = "*"
+urllib3 = "*"
 
 [requires]
 python_version = "3.6"

@@ -1,7 +1,7 @@
 import base64
 
-from Crypto.Cipher import AES
-from Crypto.Util import Counter
+from Cryptodome.Cipher import AES
+from Cryptodome.Util import Counter
 
 
 def decrypt_security_token(security_token):

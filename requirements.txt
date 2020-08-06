@@ -1,5 +1,4 @@
 mutagen
-pycryptodome
+pycryptodomex
 requests
 urllib3
-lyricsgenius

@@ -15,13 +15,17 @@ FLAC:               FLAC 44.1k / 16bit only
 96:                 AAC ~96 VBR only
 
 === Options ===
-keep_cover_jpg: save the cover art to the album directory
-embed_album_art: embed the album art into each audio file
+keep_cover_jpg: Whether to keep the cover.jpg file in the album directory
+embed_album_art: Whether to embed album art or not into the file.
 save_album_json: save the album metadata as a json file
-tries: number of attempts before giving up on the download
-path: where to store downloaded files
-track_format: naming mask for tracks
-album_format: naming mask for abum directories
+tries: How many times to attempt to get a valid stream URL.
+path: Base download directory
+convert_to_alac: Converts a .flac file to an ALAC .m4a file (requires ffmpeg)
+lyrics: Enable lyrics tagging and synced lyrics as .lrc download using the Deezer API (from https://codeberg.org/RemixDev/deemix)
+Format variables are {title}, {artist}, {album}, {tracknumber}.
+track_format: How tracks are formatted. The relevant extension is appended to the end.
+album_format: Base album directory - tracks and cover art are stored here. May have slashes in it, for instance {artist}/{album}.
+
 
 === Formats ===
 MQA_FLAC_24: MQA Format / 24bit FLAC with high-frequency "folded" data
@@ -37,7 +41,7 @@ BRUTEFORCEREGION = True
 # Allows switching the country
 COUNTRYCODE = "US"
 
-# AUTHHEADER will look like "Bearer eyJhbGciOiJIUzI1NiJ9..." (leave empty if you want to use the [-a --account ] login)
+# AUTHHEADER will look like "Bearer eyJhbGciOiJIUzI1NiJ9..." (leave empty if you want to use the [-a --account ACCOUNT] login)
 AUTHHEADER = ""
 
 # Shows the Access JWT after every refresh and creation

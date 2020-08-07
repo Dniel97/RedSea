@@ -226,9 +226,32 @@ class MediaDownloader(object):
 
             aa_location = path.join(album_location, 'Cover.jpg')
             if not path.isfile(aa_location):
-                print('\tDownloading album art...')
-                if not self._dl_picture(track_info['album']['cover'], aa_location):
-                    aa_location = None
+                try:
+                    print('\tDownloading album art from iTunes...')
+                    s = requests.Session()
+
+                    params = {
+                        'country': 'US',
+                        'entity': 'album',
+                        'term': track_info['artist']['name'] + ' ' + track_info['title']
+                    }
+
+                    r = s.get('https://itunes.apple.com/search', params=params)
+                    # Get first album cover result
+                    album_cover = r.json()['results'][0]['artworkUrl100']
+                    # Get high resolution album cover
+
+                    if 'artwork_size' in preset:
+                        artwork_size = preset['artwork_size']
+                    else:
+                        artwork_size = 1200
+                        
+                    album_cover = album_cover.replace('100x100bb.jpg', '{}x{}bb.jpg'.format(artwork_size, artwork_size))
+                    self._dl_url(album_cover, aa_location)
+                except:
+                    print('\tDownloading album art from Tidal...')
+                    if not self._dl_picture(track_info['album']['cover'], aa_location):
+                        aa_location = None
 
             # Converting FLAC to ALAC
             if self.opts['convert_to_alac'] and ftype == 'flac':
@@ -253,18 +276,20 @@ class MediaDownloader(object):
             if preset['lyrics']:
                 print('\tGetting lyrics from Deezer...')
                 track_lyrics = {}
+                song = None
                 try:
                     song = dz.get_track_by_ISRC(track_info['isrc'])
-                    track_lyrics = dz.get_lyrics_gw(song['id'])
                 except APIError:
                     print('\tLyrics could not be found using ISRC. Searching for lyrics using the title, artist and '
                           'album...')
                     try:
-                        id = dz.get_track_from_metadata(track_info['artist']['name'], track_info['title'],
-                                                      track_info['album']['title'])
-                        track_lyrics = dz.get_lyrics_gw(id)
+                        song = dz.get_track(dz.get_track_from_metadata(track_info['artist']['name'], track_info['title'],
+                                                      track_info['album']['title']))
                     except APIError:
                         print('\tNo lyrics could be found!')
+                if song:
+                    track_lyrics = dz.get_lyrics_gw(song['id'])
+
                 track = {}
                 if "LYRICS_TEXT" in track_lyrics:
                     lyrics = track_lyrics["LYRICS_TEXT"]

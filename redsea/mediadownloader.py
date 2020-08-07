@@ -233,7 +233,7 @@ class MediaDownloader(object):
                     params = {
                         'country': 'US',
                         'entity': 'album',
-                        'term': track_info['artist']['name'] + ' ' + track_info['title']
+                        'term': track_info['artist']['name'] + ' ' + track_info['album']['title']
                     }
 
                     r = s.get('https://itunes.apple.com/search', params=params)
@@ -245,7 +245,6 @@ class MediaDownloader(object):
                         artwork_size = preset['artwork_size']
                     else:
                         artwork_size = 1200
-                        
                     album_cover = album_cover.replace('100x100bb.jpg', '{}x{}bb.jpg'.format(artwork_size, artwork_size))
                     self._dl_url(album_cover, aa_location)
                 except:
@@ -288,6 +287,12 @@ class MediaDownloader(object):
                     except APIError:
                         print('\tNo lyrics could be found!')
                 if song:
+                    # Get album genres from Deezer
+                    genres = dz.get_album(song['album']['id'])['genres']
+                    if 'data' in genres and len(genres['data']) > 0:
+                        track_info['genre'] = []
+                        for genre in genres['data']:
+                            track_info['genre'].append(genre['name'])
                     track_lyrics = dz.get_lyrics_gw(song['id'])
 
                 track = {}

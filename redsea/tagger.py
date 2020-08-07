@@ -106,6 +106,10 @@ class Tagger(object):
             elif track_type == 'flac':
                 tagger['ITUNESADVISORY'] = '1' if track_info['explicit'] else '2'
 
+        # Set genre from Deezer
+        if 'genre' in track_info:
+            tagger['genre'] = track_info['genre']
+
         return tagger
 
     def _meta_tag(self, tagger, track_info, album_info, track_type):

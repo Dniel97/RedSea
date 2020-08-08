@@ -279,13 +279,13 @@ class MediaDownloader(object):
                 try:
                     song = dz.get_track_by_ISRC(track_info['isrc'])
                 except APIError:
-                    print('\tLyrics could not be found using ISRC. Searching for lyrics using the title, artist and '
+                    print('\tTrack could not be found using ISRC. Searching for track using the title, artist and '
                           'album...')
                     try:
                         song = dz.get_track(dz.get_track_from_metadata(track_info['artist']['name'], track_info['title'],
                                                       track_info['album']['title']))
                     except APIError:
-                        print('\tNo lyrics could be found!')
+                        print('\tNo Track could be found!')
                 if song:
                     # Get album genres from Deezer
                     genres = dz.get_album(song['album']['id'])['genres']
@@ -293,7 +293,10 @@ class MediaDownloader(object):
                         track_info['genre'] = []
                         for genre in genres['data']:
                             track_info['genre'].append(genre['name'])
-                    track_lyrics = dz.get_lyrics_gw(song['id'])
+                    try:
+                        track_lyrics = dz.get_lyrics_gw(song['id'])
+                    except APIError:
+                        print('\tNo lyrics for the given track could be found!')
 
                 track = {}
                 if "LYRICS_TEXT" in track_lyrics:

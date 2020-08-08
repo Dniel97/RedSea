@@ -2,6 +2,10 @@ RedSea
 ======
 Music downloader and tagger for Tidal. For educational use only, and may break in the future.
 
+Lyrics Support
+--------------
+Redsea supports retrieving synchronized lyrics from the services LyricFind via Deezer, and Musixmatch, automatically falling back if one doesn't have lyrics, depending on the configuration
+
 Current state
 -------------
 This fork is currently maintained by me ([Dniel97](https://github.com/Dniel97))

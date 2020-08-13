@@ -369,6 +369,7 @@ class TidalMobileSession(TidalSession):
             'grant_type': 'refresh_token'
         })
         if r.status_code == 200:
+            print('\tRefreshing token successful')
             self.access_token = r.json()['access_token']
             self.expires = datetime.now() + timedelta(seconds=r.json()['expires_in'])
 
@@ -503,9 +504,11 @@ class TidalTvSession(TidalSession):
         r = requests.post(self.TIDAL_AUTH_BASE + 'oauth2/token', data={
             'refresh_token': self.refresh_token,
             'client_id': self.client_id,
+            'client_secret': self.client_secret,
             'grant_type': 'refresh_token'
         })
         if r.status_code == 200:
+            print('\tRefreshing token successful')
             self.access_token = r.json()['access_token']
             self.expires = datetime.now() + timedelta(seconds=r.json()['expires_in'])
 
@@ -624,6 +627,8 @@ class TidalSessionFile(object):
 
         if session_name in self.sessions:
             if not self.sessions[session_name].valid() and isinstance(self.sessions[session_name], TidalMobileSession):
+                self.sessions[session_name].refresh()
+            if not self.sessions[session_name].valid() and isinstance(self.sessions[session_name], TidalTvSession):
                 self.sessions[session_name].refresh()
             assert self.sessions[session_name].valid(), '{} has an invalid sessionId. Please re-authenticate'.format(
                 session_name)

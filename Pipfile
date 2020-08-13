@@ -6,10 +6,10 @@ verify_ssl = true
 [dev-packages]
 
 [packages]
-mutagen = "*"
-pycryptodomex = "*"
-requests = "*"
-urllib3 = "*"
+mutagen = ">=1.37"
+pycryptodomex = ">=3.6.1"
+requests = ">=2.22.0"
+urllib3 = ">=1.25.3"
 
 [requires]
 python_version = "3.6"

@@ -35,6 +35,17 @@ def main():
     # Get args
     args = cli.get_args()
 
+    # Load config
+    BRUTEFORCE = args.bruteforce or BRUTEFORCEREGION
+    preset = PRESETS[args.preset]
+
+    # Parse options
+    preset['quality'] = []
+    preset['quality'].append('HI_RES') if preset['MQA_FLAC_24'] else None
+    preset['quality'].append('LOSSLESS') if preset['FLAC_16'] else None
+    preset['quality'].append('HIGH') if preset['AAC_320'] else None
+    preset['quality'].append('LOW') if preset['AAC_96'] else None
+
     # Check for auth flag / session settings
     RSF = RedseaSessionFile('./config/sessions.pk')
     if args.urls[0] == 'auth' and len(args.urls) == 1:
@@ -68,19 +79,39 @@ def main():
             RSF.reauth()
             exit()
 
+    elif args.urls[0] == 'search':
+        md = MediaDownloader(TidalApi(RSF.load_session(args.account)), preset, Tagger(preset))
+        searchresult = md.search_for_id(args.urls[2:])
+        if args.urls[1] == 'track':
+            searchtype = 'tracks'
+        elif args.urls[1] == 'album':
+            searchtype = 'albums'
+        else:
+            print("Example usage of search: python redsea.py search [track/album] Darkside Alan Walker")
+            exit()
+        #elif args.urls[1] == 'playlist':
+        #    searchtype = 'playlists'
+        
+        numberofsongs = int(searchresult[searchtype]['totalNumberOfItems'])
+        if numberofsongs > 10:
+            numberofsongs = 10
+        for i in range(numberofsongs):
+            song = searchresult[searchtype]['items'][i]
+            print(str(i+1) + ") " + str(song['title']) + " by " + str(song['artists'][0]['name']))
+        chosen = int(input("Song Selection: " )) - 1
+        print()
+
+        if searchtype == 'tracks':
+            media_to_download = [{'id': str(searchresult[searchtype]['items'][chosen]['id']), 'type': 't'}]
+        elif searchtype == 'albums':
+            media_to_download = [{'id': str(searchresult[searchtype]['items'][chosen]['id']), 'type': 'a'}]
+        #elif searchtype == 'playlists':
+        #    media_to_download = [{'id': str(searchresult[searchtype]['items'][chosen]['id']), 'type': 'p'}]
+
+    else:
+        media_to_download = cli.parse_media_option(args.urls, args.file)
+
     print(LOGO)
-
-    # Load config
-    BRUTEFORCE = args.bruteforce or BRUTEFORCEREGION
-    preset = PRESETS[args.preset]
-
-    # Parse options
-    preset['quality'] = []
-    preset['quality'].append('HI_RES') if preset['MQA_FLAC_24'] else None
-    preset['quality'].append('LOSSLESS') if preset['FLAC_16'] else None
-    preset['quality'].append('HIGH') if preset['AAC_320'] else None
-    preset['quality'].append('LOW') if preset['AAC_96'] else None
-    media_to_download = cli.parse_media_option(args.urls, args.file)
 
     # Loop through media and download if possible
     cm = 0

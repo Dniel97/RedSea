@@ -111,6 +111,9 @@ class TidalApi(object):
             'prefetch': 'false'
         })
 
+    def get_search_data(self, searchterm):
+        return self._get('search', params={'query': str(searchterm), 'offset': 0, 'limit': 10, 'includeContributors': 'true'})
+
     def get_playlist_items(self, playlist_id):
         result = self._get('playlists/' + playlist_id + '/items', {
             'offset': 0,

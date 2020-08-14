@@ -131,6 +131,9 @@ class MediaDownloader(object):
             print(line)
         print('\t----')
 
+    def search_for_id(self, term):
+        return self.api.get_search_data(term)
+
     def download_media(self, track_info, preset, album_info=None, overwrite=False):
         track_id = track_info['id']
         assert track_info['allowStreaming'], 'Unable to download track {0}: not allowed to stream/download'.format(track_id)

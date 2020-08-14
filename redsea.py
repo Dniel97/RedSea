@@ -97,13 +97,21 @@ def main():
             numberofsongs = 10
         for i in range(numberofsongs):
             song = searchresult[searchtype]['items'][i]
+
             if song['audioModes'] == ['DOLBY_ATMOS']:
-                specialtag = "[Dolby Atmos] "
+                specialtag = " [Dolby Atmos]"
             elif song['audioQuality'] == 'HI_RES':
-                specialtag = "[MQA] "
+                specialtag = " [MQA]"
             else:
                 specialtag = ""
-            print(str(i+1) + ") " + specialtag + str(song['title']) + " - " + str(song['artists'][0]['name']))
+
+            if song['explicit'] == True:
+                explicittag = " [E]"
+            else:
+                explicittag = ""
+                
+
+            print(str(i+1) + ") " + str(song['title']) + " - " + str(song['artists'][0]['name']) + explicittag + specialtag)
         if numberofsongs > 0:
             chosen = int(input("Song Selection: ")) - 1
             print()

@@ -30,8 +30,9 @@ Requirements
 
 Searching
 ---------
-Searching for tracks and albums is now supported. To use, just use 'python redsea.py search [track/album] [name of song, spaces are allowed]'
-For example, 'python redsea.py track Darkside Alan Walker'
+Searching for tracks and albums is now supported.
+Usage:      `python redsea.py search [track/album] [name of song, spaces are allowed]`
+Example:    `python redsea.py track Darkside Alan Walker`
 
 Optional
 --------

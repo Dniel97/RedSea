@@ -89,7 +89,7 @@ def main():
         else:
             print("Example usage of search: python redsea.py search [track/album] Darkside Alan Walker")
             exit()
-        #elif args.urls[1] == 'playlist':
+        # elif args.urls[1] == 'playlist':
         #    searchtype = 'playlists'
         
         numberofsongs = int(searchresult[searchtype]['totalNumberOfItems'])
@@ -98,24 +98,24 @@ def main():
         for i in range(numberofsongs):
             song = searchresult[searchtype]['items'][i]
             if song['audioModes'] == ['DOLBY_ATMOS']:
-                specialtag = " (Dolby Atmos)"
+                specialtag = "[Dolby Atmos] "
             elif song['audioQuality'] == 'HI_RES':
-                specialtag = " (MQA)"
+                specialtag = "[MQA] "
             else:
                 specialtag = ""
-            print(str(i+1) + ") " + str(song['title']) + " - " + str(song['artists'][0]['name']) + specialtag)
-        if (numberofsongs > 0):
-            chosen = int(input("Song Selection: " )) - 1
+            print(str(i+1) + ") " + specialtag + str(song['title']) + " - " + str(song['artists'][0]['name']))
+        if numberofsongs > 0:
+            chosen = int(input("Song Selection: ")) - 1
             print()
         else:
-            print("No results found, quitting.")
+            print("No results found for '" + ' '.join(args.urls[2:]) + "', quitting.")
             exit()
         
         if searchtype == 'tracks':
             media_to_download = [{'id': str(searchresult[searchtype]['items'][chosen]['id']), 'type': 't'}]
         elif searchtype == 'albums':
             media_to_download = [{'id': str(searchresult[searchtype]['items'][chosen]['id']), 'type': 'a'}]
-        #elif searchtype == 'playlists':
+        # elif searchtype == 'playlists':
         #    media_to_download = [{'id': str(searchresult[searchtype]['items'][chosen]['id']), 'type': 'p'}]
 
     else:

@@ -28,6 +28,11 @@ Requirements
 * pycryptodomex
 * deezerapi (already included from [deemix](https://codeberg.org/RemixDev/deemix))
 
+Searching
+---------
+Searching for tracks and albums is now supported. To use, just use 'python redsea.py search [track/album] [name of song, spaces are allowed]'
+For example, 'python redsea.py track Darkside Alan Walker'
+
 Optional
 --------
 * ffmpeg - only needed if `convert_to_alac` is enabled inside a preset

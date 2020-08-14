@@ -97,10 +97,20 @@ def main():
             numberofsongs = 10
         for i in range(numberofsongs):
             song = searchresult[searchtype]['items'][i]
-            print(str(i+1) + ") " + str(song['title']) + " by " + str(song['artists'][0]['name']))
-        chosen = int(input("Song Selection: " )) - 1
-        print()
-
+            if song['audioModes'] == ['DOLBY_ATMOS']:
+                specialtag = " (Dolby Atmos)"
+            elif song['audioQuality'] == 'HI_RES':
+                specialtag = " (MQA)"
+            else:
+                specialtag = ""
+            print(str(i+1) + ") " + str(song['title']) + " - " + str(song['artists'][0]['name']) + specialtag)
+        if (numberofsongs > 0):
+            chosen = int(input("Song Selection: " )) - 1
+            print()
+        else:
+            print("No results found, quitting.")
+            exit()
+        
         if searchtype == 'tracks':
             media_to_download = [{'id': str(searchresult[searchtype]['items'][chosen]['id']), 'type': 't'}]
         elif searchtype == 'albums':

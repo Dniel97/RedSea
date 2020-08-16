@@ -28,7 +28,7 @@ LOGO = """
                https://github.com/svbnet/RedSea
 \n"""
 
-MEDIA_TYPES = {'t': 'track', 'p': 'playlist', 'a': 'album', 'r': 'artist'}
+MEDIA_TYPES = {'t': 'track', 'p': 'playlist', 'a': 'album', 'r': 'artist', 'v': 'video'}
 
 def main():
     os.chdir(sys.path[0])
@@ -109,7 +109,6 @@ def main():
                 explicittag = " [E]"
             else:
                 explicittag = ""
-                
 
             print(str(i+1) + ") " + str(song['title']) + " - " + str(song['artists'][0]['name']) + explicittag + specialtag)
         if numberofsongs > 0:
@@ -165,7 +164,6 @@ def main():
                             tracks.append(md.api.get_track(l))
                         print()
 
-
                     # Track
                     elif media['type'] == 't':
                         tracks.append(md.api.get_track(media['id']))
@@ -186,6 +184,11 @@ def main():
 
                         # Get a list of the tracks from the album
                         tracks = md.api.get_album_tracks(media['id'])['items']
+
+                    # Video
+                    elif media['type'] == 'v':
+                        # Get video information
+                        tracks.append(md.api.get_video(media['id']))
 
                     # Artist
                     else:

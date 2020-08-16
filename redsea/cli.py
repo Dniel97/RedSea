@@ -113,6 +113,8 @@ def parse_media_option(mo, is_file):
                 type_ = 'p'
             elif type_ == 'artist':
                 type_ = 'r'
+            elif type_ == 'video':
+                type_ = 'v'
             opts.append({'type': type_, 'id': id_})
             continue
         elif ':' in m and '#' in m:

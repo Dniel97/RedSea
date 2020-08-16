@@ -16,7 +16,7 @@ import requests
 from urllib3.util.retry import Retry
 from requests.adapters import HTTPAdapter
 
-from config.settings import TOKEN, TV_TOKEN, TV_SECRET, COUNTRYCODE, AUTHHEADER, SHOWAUTH
+from config.settings import TOKEN, TV_TOKEN, TV_SECRET, COUNTRYCODE, SHOWAUTH
 
 
 class TidalRequestError(Exception):
@@ -39,6 +39,7 @@ class TidalError(Exception):
 
 class TidalApi(object):
     TIDAL_API_BASE = 'https://api.tidal.com/v1/'
+    TIDAL_VIDEO_BASE = 'https://api.tidalhifi.com/v1/'
     TIDAL_CLIENT_VERSION = '2.26.1'
 
     def __init__(self, session):
@@ -59,22 +60,18 @@ class TidalApi(object):
         if 'limit' not in params:
             params['limit'] = '9999'
 
-        if AUTHHEADER == "":
+        # Catch video for different base
+        if url[:5] == 'video':
             resp = self.s.get(
-                self.TIDAL_API_BASE + url,
+                self.TIDAL_VIDEO_BASE + url,
                 headers=self.session.auth_headers(),
                 params=params)
         else:
             resp = self.s.get(
                 self.TIDAL_API_BASE + url,
-                headers={
-                    'Authorization': AUTHHEADER,
-                    'Host': 'api.tidal.com',
-                    'Connection': 'Keep-Alive',
-                    'Accept-Encoding': 'gzip',
-                    'User-Agent': 'TIDAL_ANDROID/1000 okhttp/3.13.1'
-                },
+                headers=self.session.auth_headers(),
                 params=params)
+
 
         # if the request 401s or 403s, try refreshing the TV/Mobile session in case that helps
         if not refresh and (resp.status_code == 401 or resp.status_code == 403):
@@ -274,6 +271,7 @@ class TidalMobileSession(TidalSession):
 
     def auth(self, password):
         s = requests.Session()
+        s.verify = False
 
         params = {
             'response_type': 'code',
@@ -615,12 +613,6 @@ class TidalSessionFile(object):
         '''
         Returns a session from the session store
         '''
-
-        if AUTHHEADER != '':
-            if 'Bearer ' in AUTHHEADER:
-                return
-            else:
-                raise ValueError('AUTHHEADER seems invalid. Enter a correct AUTHHEADER.')
 
         if len(self.sessions) == 0:
             raise ValueError('There are no sessions in session file and no valid AUTHHEADER was provided!')

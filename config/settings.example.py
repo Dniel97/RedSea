@@ -41,9 +41,6 @@ BRUTEFORCEREGION = True
 # Allows switching the country
 COUNTRYCODE = "US"
 
-# AUTHHEADER will look like "Bearer eyJhbGciOiJIUzI1NiJ9..." (leave empty if you want to use the [-a --account ACCOUNT] login)
-AUTHHEADER = ""
-
 # Shows the Access JWT after every refresh and creation
 SHOWAUTH = True
 
@@ -72,6 +69,7 @@ PRESETS = {
         "lyrics": True,
         "lyrics_provider_order": ["Deezer", "musiXmatch"],
         "artwork_size": 3000,
+        "resolution": 1080,
         "MQA_FLAC_24": True,
         "FLAC_16": True,
         "AAC_320": False,
@@ -94,6 +92,7 @@ PRESETS = {
         "lyrics": True,
         "lyrics_provider_order": ["Deezer", "musiXmatch"],
         "artwork_size": 3000,
+        "resolution": 1080,
         "MQA_FLAC_24": True,
         "FLAC_16": True,
         "AAC_320": True,
@@ -113,6 +112,7 @@ PRESETS = {
         "lyrics": True,
         "lyrics_provider_order": ["Deezer", "musiXmatch"],
         "artwork_size": 3000,
+        "resolution": 1080,
         "MQA_FLAC_24": True,
         "FLAC_16": True,
         "AAC_320": False,
@@ -132,6 +132,7 @@ PRESETS = {
         "lyrics": True,
         "lyrics_provider_order": ["Deezer", "musiXmatch"],
         "artwork_size": 3000,
+        "resolution": 1080,
         "MQA_FLAC_24": True,
         "FLAC_16": False,
         "AAC_320": False,
@@ -152,6 +153,7 @@ PRESETS = {
         "lyrics": True,
         "lyrics_provider_order": ["Deezer", "musiXmatch"],
         "artwork_size": 3000,
+        "resolution": 1080,
         "MQA_FLAC_24": False,
         "FLAC_16": True,
         "AAC_320": False,
@@ -172,6 +174,7 @@ PRESETS = {
         "lyrics": True,
         "lyrics_provider_order": ["Deezer", "musiXmatch"],
         "artwork_size": 3000,
+        "resolution": 1080,
         "MQA_FLAC_24": False,
         "FLAC_16": False,
         "AAC_320": True,
@@ -192,6 +195,7 @@ PRESETS = {
         "lyrics": True,
         "lyrics_provider_order": ["Deezer", "musiXmatch"],
         "artwork_size": 3000,
+        "resolution": 1080,
         "MQA_FLAC_24": False,
         "FLAC_16": False,
         "AAC_320": False,

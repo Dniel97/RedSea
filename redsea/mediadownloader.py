@@ -151,18 +151,19 @@ class MediaDownloader(object):
                 preset['resolution'] = 1080
             download_stream(preset['path'], url, preset['resolution'], track_info)
 
-        elif album_info is None:
-            print('\tGrabbing album info...')
-            tries = self.opts['tries']
-            for i in range(tries):
-                try:
-                    album_info = self.api.get_album(track_info['album']['id'])
-                    break
-                except Exception as e:
-                    print(e)
-                    print('\tGrabbing album info failed, retrying... ({}/{})'.format(i + 1, tries))
-                    if i + 1 == tries:
-                        raise
+        else:
+            if album_info is None:
+                print('\tGrabbing album info...')
+                tries = self.opts['tries']
+                for i in range(tries):
+                    try:
+                        album_info = self.api.get_album(track_info['album']['id'])
+                        break
+                    except Exception as e:
+                        print(e)
+                        print('\tGrabbing album info failed, retrying... ({}/{})'.format(i + 1, tries))
+                        if i + 1 == tries:
+                            raise
 
             # Make locations
             album_location = path.join(

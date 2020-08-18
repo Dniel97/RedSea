@@ -26,6 +26,7 @@ Requirements
 * requests
 * mutagen (1.37 or higher)
 * pycryptodomex
+* ffmpeg-python (0.2.0 or higher)
 * deezerapi (already included from [deemix](https://codeberg.org/RemixDev/deemix))
 
 Searching
@@ -33,10 +34,6 @@ Searching
 Searching for tracks and albums is now supported.
 Usage:      `python redsea.py search [track/album] [name of song, spaces are allowed]`
 Example:    `python redsea.py track Darkside Alan Walker`
-
-Optional
---------
-* ffmpeg - only needed if `convert_to_alac` is enabled inside a preset
 
 Setting up (with pip)
 ------------------------
@@ -150,7 +147,13 @@ Config reference
 
 `convert_to_alac`: Converts a .flac file to an ALAC .m4a file (requires ffmpeg)
 
-`lyrics`: Enable lyrics tagging and synced lyrics as .lrc download using the Deezer API (from [deemix](https://codeberg.org/RemixDev/deemix))
+`lyrics`: Enable lyrics tagging and synced lyrics as .lrc download using the Deezer API (from [deemix](https://codeberg.org/RemixDev/deemix)) or musiXmatch
+
+`lyrics_provider_order`: Defines the order (from left to right) you want to get the lyrics from
+
+`artwork_size`: Downloads (artwork_size)x(artwork_size) album covers from iTunes
+
+`resolution`: Which resolution you want to download the videos
 
 Format variables are `{title}`, `{artist}`, `{album}`, `{tracknumber}`.
 

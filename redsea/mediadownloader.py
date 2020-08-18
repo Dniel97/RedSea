@@ -4,6 +4,7 @@ import os
 import os.path as path
 import re
 import base64
+import ffmpeg
 
 import requests
 from urllib3.util.retry import Retry
@@ -268,21 +269,22 @@ class MediaDownloader(object):
 
                 # Converting FLAC to ALAC
                 if self.opts['convert_to_alac'] and ftype == 'flac':
-                    pipe = Popen('ffmpeg -version', shell=True, stdout=PIPE).stdout
-                    output = pipe.read()
-                    if output.find(b'ffmpeg version?') == -1:
-                        print("\tConverting FLAC to ALAC...")
-                        conv_file = temp_file[:-5] + ".m4a"
-                        command = 'ffmpeg -i "{0}" -vn -c:a alac "{1}"'.format(temp_file, conv_file)
-                        pipe = Popen(command, shell=True, stdout=PIPE)
-                        pipe.wait()
-                        if path.isfile(conv_file) and not overwrite:
-                            print("\tConversion successful")
-                            os.remove(temp_file)
-                            temp_file = conv_file
-                            ftype = "m4a"
-                    else:
-                        print("\tFfmpeg couldn't be found")
+                    print("\tConverting FLAC to ALAC...")
+                    conv_file = temp_file[:-5] + ".m4a"
+                    # command = 'ffmpeg -i "{0}" -vn -c:a alac "{1}"'.format(temp_file, conv_file)
+                    (
+                        ffmpeg
+                            .input(temp_file)
+                            .output(conv_file, acodec='alac', loglevel='warning')
+                            .overwrite_output()
+                            .run()
+                    )
+
+                    if path.isfile(conv_file) and not overwrite:
+                        print("\tConversion successful")
+                        os.remove(temp_file)
+                        temp_file = conv_file
+                        ftype = "m4a"
 
                 # Get lyrics from Deezer using deemix (https://codeberg.org/RemixDev/deemix)
                 lyrics = None

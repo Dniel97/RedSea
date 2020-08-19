@@ -342,7 +342,6 @@ class MediaDownloader(object):
                                     print('\tNo synced lyrics could be found!')
 
                                 if 'sync' in track:
-                                    test = os.path.splitext(track_path)[0] + '.lrc'
                                     if not os.path.isfile(os.path.splitext(track_path)[0] + '.lrc'):
                                         with open((os.path.splitext(track_path)[0] + '.lrc'), 'wb') as f:
                                             f.write(track['sync'].encode('utf-8'))

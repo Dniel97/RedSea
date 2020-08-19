@@ -110,7 +110,8 @@ def tag_video(file_path, track_info, album_art_path):
 
 
 def download_stream(folder_path, url, resolution, video_info):
-    path = folder_path + '/' + video_info['artist']['name'] + ' - ' + video_info['title'] + '/'
+    path = os.path.join(folder_path, video_info['artist']['name'] + ' - ' + video_info['title'])
+    tmp_folder = os.path.join(path, 'tmp')
     playlists = parse_master_playlist(url)
     urllist = []
 
@@ -126,18 +127,20 @@ def download_stream(folder_path, url, resolution, video_info):
 
     print_video_info(video_info)
 
-    if not os.path.isdir(path + 'tmp'):
-        os.makedirs(path + 'tmp')
+    if not os.path.isdir(tmp_folder):
+        os.makedirs(tmp_folder)
 
-    if os.path.exists(path + 'tmp/filelist.txt'):
-        os.remove(path + 'tmp/filelist.txt')
+    filelist_loc = os.path.join(tmp_folder, 'filelist.txt')
+
+    if os.path.exists(filelist_loc):
+        os.remove(filelist_loc)
 
     filename = ""
     for i in range(len(urllist)):
         try:
-            filename = path + 'tmp/' + str(i).zfill(3) + '.ts'
+            filename = os.path.join(tmp_folder, str(i).zfill(3) + '.ts')
             download_file(urllist, i, filename)
-            with open(path + 'tmp/filelist.txt', 'a') as f:
+            with open(filelist_loc, 'a') as f:
                 f.write("file '" + str(i).zfill(3) + '.ts' + "'\n")
             percent = i / (len(urllist) - 1) * 100
             print("\tDownload progress: {0:.0f}%".format(percent), end='\r')
@@ -151,20 +154,20 @@ def download_stream(folder_path, url, resolution, video_info):
         #   print("\tDownload progress: {0:.0f}%".format(percent), end='\r')
     print("\n\tDownload succeeded!")
 
-    file_path = path + video_info['title'] + '.mp4'
+    file_path = os.path.join(path, video_info['title'] + '.mp4')
 
     (
         ffmpeg
-        .input(path + 'tmp/filelist.txt', format='concat', safe=0)
+        .input(filelist_loc, format='concat', safe=0)
         .output(file_path, vcodec='copy', acodec='copy', c='copy', loglevel='warning')
         .overwrite_output()
         .run()
     )
     print('\tConcatenation succeeded!')
-    shutil.rmtree(path + 'tmp')
+    shutil.rmtree(tmp_folder)
 
     print('\tDownloading album art ...')
-    aa_location = path + 'Cover.jpg'
+    aa_location = os.path.join(path, 'Cover.jpg')
     if not os.path.isfile(aa_location):
         if not download_video_artwork(video_info['imageId'], aa_location):
             aa_location = None

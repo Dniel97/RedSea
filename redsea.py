@@ -105,7 +105,7 @@ def main():
             else:
                 specialtag = ""
 
-            if song['explicit'] == True:
+            if song['explicit']:
                 explicittag = " [E]"
             else:
                 explicittag = ""

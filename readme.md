@@ -31,9 +31,15 @@ Requirements
 
 Searching
 ---------
-Searching for tracks and albums is now supported.
-Usage:      `python redsea.py search [track/album] [name of song, spaces are allowed]`
-Example:    `python redsea.py track Darkside Alan Walker`
+Searching for tracks, albums and videos is now supported.
+Usage:      `python redsea.py search [track/album/video] [name of song/video, spaces are allowed]`
+Example:    `python redsea.py search video Darkside Alan Walker`
+
+Exploring
+---------
+Exploring new Dolby Atmos or 360 Reality Audio releases is now supported
+Usage:      `python redsea.py explore (dolby atmos/sony 360)`
+Example:    `python redsea.py explore dolby atmos`
 
 Setting up (with pip)
 ------------------------

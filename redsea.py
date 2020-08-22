@@ -79,6 +79,58 @@ def main():
             RSF.reauth()
             exit()
 
+    elif args.urls[0] == 'explore':
+        if len(args.urls) == 3:
+            if args.urls[1] == 'dolby' and args.urls[2] == 'atmos':
+                page = 'dolby_atmos'
+            elif args.urls[1] == 'sony' and args.urls[2] == '360':
+                page = '360'
+            else:
+                print("Example usage of explore: python redsea.py explore (dolby atmos/sony 360)")
+                exit()
+        else:
+            print("Example usage of explore: python redsea.py explore (dolby atmos/sony 360)")
+            exit()
+
+        md = MediaDownloader(TidalApi(RSF.load_session(args.account)), preset, Tagger(preset))
+        page_content = md.page(page)
+        show_more_link = page_content['rows'][len(page_content['rows'])-1]['modules'][0]['showMore']['apiPath']
+        now_available = md.page(show_more_link[6:])
+        items = now_available['rows'][0]['modules'][0]['pagedList']['items']
+        total_items = len(items)
+
+        for i in range(total_items):
+            item = items[i]
+
+            if item['audioModes'] == ['DOLBY_ATMOS']:
+                specialtag = " [Dolby Atmos]"
+            elif item['audioModes'] == ['SONY_360RA']:
+                specialtag = " [360 Reality Audio]"
+            else:
+                specialtag = ""
+
+            if item['explicit']:
+                explicittag = " [E]"
+            else:
+                explicittag = ""
+
+            print(str(i + 1) + ") " + str(item['title']) + " - " + str(
+                item['artists'][0]['name']) + explicittag + specialtag)
+
+        print(str(total_items+1) + ") Exit")
+
+        while True:
+            chosen = int(input("Album Selection: ")) - 1
+            if chosen == total_items:
+                exit()
+            elif chosen > total_items or chosen < 0:
+                print("Enter an existing number")
+            else:
+                break
+            print()
+
+        media_to_download = [{'id': str(items[chosen]['id']), 'type': 'a'}]
+
     elif args.urls[0] == 'search':
         md = MediaDownloader(TidalApi(RSF.load_session(args.account)), preset, Tagger(preset))
         while True:
@@ -105,7 +157,7 @@ def main():
                     if song['audioModes'] == ['DOLBY_ATMOS']:
                         specialtag = " [Dolby Atmos]"
                     elif song['audioModes'] == ['SONY_360RA']:
-                        specialtag = " [Sony 360 RA]"
+                        specialtag = " [360 Reality Audio]"
                     elif song['audioQuality'] == 'HI_RES':
                         specialtag = " [MQA]"
                     else:
@@ -118,7 +170,8 @@ def main():
                 else:
                     explicittag = ""
 
-                print(str(i+1) + ") " + str(song['title']) + " - " + str(song['artists'][0]['name']) + explicittag + specialtag)
+                print(str(i + 1) + ") " + str(song['title']) + " - " + str(
+                    song['artists'][0]['name']) + explicittag + specialtag)
 
             query = None
 

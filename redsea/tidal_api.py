@@ -111,6 +111,9 @@ class TidalApi(object):
     def get_search_data(self, searchterm):
         return self._get('search', params={'query': str(searchterm), 'offset': 0, 'limit': 10, 'includeContributors': 'true'})
 
+    def get_page(self, pageurl):
+        return self._get('pages/' + pageurl, params={'deviceType': 'TV', 'locale': 'en_US', 'mediaFormats': 'SONY_360'})
+
     def get_playlist_items(self, playlist_id):
         result = self._get('playlists/' + playlist_id + '/items', {
             'offset': 0,
@@ -638,6 +641,10 @@ class TidalSessionFile(object):
         '''
 
         if session_name in self.sessions:
+            if not self.sessions[session_name].valid() and isinstance(self.sessions[session_name], TidalMobileSession):
+                self.sessions[session_name].refresh()
+            if not self.sessions[session_name].valid() and isinstance(self.sessions[session_name], TidalTvSession):
+                self.sessions[session_name].refresh()
             assert self.sessions[session_name].valid(), '{} has an invalid sessionId. Please re-authenticate'.format(
                 session_name)
             self.default = session_name

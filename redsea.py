@@ -81,49 +81,87 @@ def main():
 
     elif args.urls[0] == 'search':
         md = MediaDownloader(TidalApi(RSF.load_session(args.account)), preset, Tagger(preset))
-        searchresult = md.search_for_id(args.urls[2:])
-        if args.urls[1] == 'track':
-            searchtype = 'tracks'
-        elif args.urls[1] == 'album':
-            searchtype = 'albums'
-        else:
-            print("Example usage of search: python redsea.py search [track/album] Darkside Alan Walker")
-            exit()
-        # elif args.urls[1] == 'playlist':
-        #    searchtype = 'playlists'
-        
-        numberofsongs = int(searchresult[searchtype]['totalNumberOfItems'])
-        if numberofsongs > 10:
-            numberofsongs = 10
-        for i in range(numberofsongs):
-            song = searchresult[searchtype]['items'][i]
-
-            if song['audioModes'] == ['DOLBY_ATMOS']:
-                specialtag = " [Dolby Atmos]"
-            elif song['audioQuality'] == 'HI_RES':
-                specialtag = " [MQA]"
+        while True:
+            searchresult = md.search_for_id(args.urls[2:])
+            if args.urls[1] == 'track':
+                searchtype = 'tracks'
+            elif args.urls[1] == 'album':
+                searchtype = 'albums'
+            elif args.urls[1] == 'video':
+                searchtype = 'videos'
             else:
-                specialtag = ""
+                print("Example usage of search: python redsea.py search [track/album/video] Darkside Alan Walker")
+                exit()
+            # elif args.urls[1] == 'playlist':
+            #    searchtype = 'playlists'
 
-            if song['explicit']:
-                explicittag = " [E]"
+            numberofsongs = int(searchresult[searchtype]['totalNumberOfItems'])
+            if numberofsongs > 10:
+                numberofsongs = 10
+            for i in range(numberofsongs):
+                song = searchresult[searchtype]['items'][i]
+
+                if searchtype != 'videos':
+                    if song['audioModes'] == ['DOLBY_ATMOS']:
+                        specialtag = " [Dolby Atmos]"
+                    elif song['audioModes'] == ['SONY_360RA']:
+                        specialtag = " [Sony 360 RA]"
+                    elif song['audioQuality'] == 'HI_RES':
+                        specialtag = " [MQA]"
+                    else:
+                        specialtag = ""
+                else:
+                    specialtag = " [" + song['quality'].replace('MP4_', '') + "]"
+
+                if song['explicit']:
+                    explicittag = " [E]"
+                else:
+                    explicittag = ""
+
+                print(str(i+1) + ") " + str(song['title']) + " - " + str(song['artists'][0]['name']) + explicittag + specialtag)
+
+            query = None
+
+            if numberofsongs > 0:
+                print(str(numberofsongs + 1) + ") Not found? Try a new search")
+                while True:
+                    chosen = int(input("Song Selection: ")) - 1
+                    if chosen == numberofsongs:
+                        query = input("Enter new search query: [track/album/video] Darkside Alan Walker: ")
+                        break
+                    elif chosen > numberofsongs:
+                        print("Enter an existing number")
+                    else:
+                        break
+                print()
+                if query:
+                    args.urls = ("search " + query).split()
+                    continue
             else:
-                explicittag = ""
+                print("No results found for '" + ' '.join(args.urls[2:]))
+                print("1) Not found? Try a new search")
+                print("2) Quit")
+                while True:
+                    chosen = int(input("Selection: "))
+                    if chosen == 1:
+                        query = input("Enter new search query: [track/album/video] Darkside Alan Walker: ")
+                        break
+                    else:
+                        exit()
+                print()
+                if query:
+                    args.urls = ("search " + query).split()
+                    continue
 
-            print(str(i+1) + ") " + str(song['title']) + " - " + str(song['artists'][0]['name']) + explicittag + specialtag)
-        if numberofsongs > 0:
-            chosen = int(input("Song Selection: ")) - 1
-            print()
-        else:
-            print("No results found for '" + ' '.join(args.urls[2:]) + "', quitting.")
-            exit()
-        
-        if searchtype == 'tracks':
-            media_to_download = [{'id': str(searchresult[searchtype]['items'][chosen]['id']), 'type': 't'}]
-        elif searchtype == 'albums':
-            media_to_download = [{'id': str(searchresult[searchtype]['items'][chosen]['id']), 'type': 'a'}]
-        # elif searchtype == 'playlists':
-        #    media_to_download = [{'id': str(searchresult[searchtype]['items'][chosen]['id']), 'type': 'p'}]
+            if searchtype == 'tracks':
+                media_to_download = [{'id': str(searchresult[searchtype]['items'][chosen]['id']), 'type': 't'}]
+            elif searchtype == 'albums':
+                media_to_download = [{'id': str(searchresult[searchtype]['items'][chosen]['id']), 'type': 'a'}]
+            elif searchtype == 'videos':
+                media_to_download = [{'id': str(searchresult[searchtype]['items'][chosen]['id']), 'type': 'v'}]
+            # elif searchtype == 'playlists':
+            #    media_to_download = [{'id': str(searchresult[searchtype]['items'][chosen]['id']), 'type': 'p'}]
+            break
 
     else:
         media_to_download = cli.parse_media_option(args.urls, args.file)

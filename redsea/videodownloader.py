@@ -110,8 +110,8 @@ def tag_video(file_path, track_info, album_art_path):
 
 
 def download_stream(folder_path, url, resolution, video_info):
-    path = os.path.join(folder_path, video_info['artist']['name'] + ' - ' + video_info['title'])
-    tmp_folder = os.path.join(path, 'tmp')
+    path = os.path.join(folder_path, video_info['artist']['name'] + ' - ' + video_info['title'] + '/')
+    tmp_folder = os.path.join(path, 'tmp/')
     playlists = parse_master_playlist(url)
     urllist = []
 

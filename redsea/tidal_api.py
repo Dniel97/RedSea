@@ -274,7 +274,6 @@ class TidalMobileSession(TidalSession):
 
     def auth(self, password):
         s = requests.Session()
-        s.verify = False
 
         params = {
             'response_type': 'code',

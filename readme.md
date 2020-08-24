@@ -2,10 +2,6 @@ RedSea
 ======
 Music downloader and tagger for Tidal. For educational use only, and may break in the future.
 
-Lyrics Support
---------------
-Redsea supports retrieving synchronized lyrics from the services LyricFind via Deezer, and Musixmatch, automatically falling back if one doesn't have lyrics, depending on the configuration
-
 Current state
 -------------
 This fork is currently maintained by me ([Dniel97](https://github.com/Dniel97))
@@ -16,10 +12,6 @@ RedSea is a music downloader and tagger for the Tidal music streaming service. I
 API implementation - it is contained in `redsea/tidal_api.py` and only requires `requests` to be
 installed. Note that you will you have to implement the Tidal lossless download hack yourself -- you can find this in `mediadownloader.py`.
 
-First setup
------------
-After downloading RedSea, copy `config/settings.example.py` and rename it to `config/settings.py`, now you can set all your preferences inside `settings.py`.
-
 Requirements
 ------------
 * Python (3.6 or higher)
@@ -29,17 +21,25 @@ Requirements
 * ffmpeg-python (0.2.0 or higher)
 * deezerapi (already included from [deemix](https://codeberg.org/RemixDev/deemix))
 
-Searching
----------
-Searching for tracks, albums and videos is now supported.
-Usage:      `python redsea.py search [track/album/video] [name of song/video, spaces are allowed]`
-Example:    `python redsea.py search video Darkside Alan Walker`
 
-Exploring
----------
-Exploring new Dolby Atmos or 360 Reality Audio releases is now supported
-Usage:      `python redsea.py explore (dolby atmos/sony 360)`
-Example:    `python redsea.py explore dolby atmos`
+First setup
+-----------
+After downloading RedSea, copy `config/settings.example.py` and rename it to `config/settings.py`, now you can set all your preferences inside `settings.py`.
+
+#### Linux:
+1. Run `sudo apt update` 
+2. Run `sudo apt install ffmpeg`
+
+#### MacOS:
+1. If you haven't already installed Homebew: Run `/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"`
+2. Run `brew install ffmpeg`
+
+#### Windows:
+1. Download [ffmpeg](https://ffmpeg.zeranoe.com/builds/)
+2. Unpack the zip folder `ffmpeg-XXXXX-win64-static.zip` inside `C:\Program Files\ffmpeg\`
+3. Go to `Control Panel > System and Security > System > Advanced system settings > Environment Variables ...`
+4. In the Environment Variables window, click the `Path` row under the `Variable` column, then click `Edit..`
+5. Click on `New` inside the `Edit environment variable` window and paste `C:\Program Files\ffmpeg\bin\`
 
 Setting up (with pip)
 ------------------------
@@ -105,6 +105,26 @@ How to use
     --file                The URLs to download inside a .txt file with a single 
                             track/album/artist each line.
 
+Searching
+---------
+Searching for tracks, albums and videos is now supported.
+
+Usage:      `python redsea.py search [track/album/video] [name of song/video, spaces are allowed]`
+
+Example:    `python redsea.py search video Darkside Alan Walker`
+
+Exploring
+---------
+Exploring new Dolby Atmos or 360 Reality Audio releases is now supported
+
+Usage:      `python redsea.py explore (dolby atmos/sony 360)`
+
+Example:    `python redsea.py explore dolby atmos`
+
+Lyrics Support
+--------------
+Redsea supports retrieving synchronized lyrics from the services LyricFind via Deezer, and Musixmatch, automatically falling back if one doesn't have lyrics, depending on the configuration
+
 Tidal issues
 ------------
 * Sometimes, tracks will be tagged with a useless version (for instance, "(album version)"), or have the same version twice "(album version)(album version)". This is because tracks in
@@ -112,10 +132,13 @@ Tidal issues
     
 * Tracks may be tagged with an inaccurate release year; this may be because of Tidal only having the "rerelease" or "remastered" version but showing it as the original.
 
-TODO
-----
-* Filename sanitisation is overzealous
-* Playlists are treated like albums
+To do/Whishlist
+---------------
+* ID based downloading (check if ID is a track, album, video, ...)
+* Complete `mediadownloader.py` rewrite
+* Move lyrics support to tagger.py
+* Support for being used as a python module (maybe pip?)
+* Maybe Spotify playlist support
 
 Config reference
 ----------------

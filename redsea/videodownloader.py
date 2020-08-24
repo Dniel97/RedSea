@@ -159,7 +159,7 @@ def download_stream(folder_path, url, resolution, video_info):
     (
         ffmpeg
         .input(filelist_loc, format='concat', safe=0)
-        .output(file_path, vcodec='copy', acodec='copy', c='copy', loglevel='warning')
+        .output(file_path, vcodec='copy', acodec='copy', loglevel='warning')
         .overwrite_output()
         .run()
     )

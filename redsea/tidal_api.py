@@ -137,6 +137,9 @@ class TidalApi(object):
 
         return result
 
+    def get_playlist(self, playlist_id):
+        return self._get('playlists/' + str(playlist_id))
+
     def get_album_tracks(self, album_id):
         return self._get('albums/' + str(album_id) + '/tracks')
 
@@ -166,6 +169,32 @@ class TidalApi(object):
 
     def get_artist_albums_ep_singles(self, artist_id):
         return self._get('artists/' + str(artist_id) + '/albums', params={'filter': 'EPSANDSINGLES'})
+
+    def get_type_from_id(self, id):
+        result = None
+        try:
+            result = self.get_album(id)
+            return 'a'
+        except TidalError:
+            pass
+        try:
+            result = self.get_artist(id)
+            return 'r'
+        except TidalError:
+            pass
+        try:
+            result = self.get_track(id)
+            return 't'
+        except TidalError:
+            pass
+        try:
+            result = self.get_video(id)
+            return 'v'
+        except TidalError:
+            pass
+
+        return result
+
 
     @classmethod
     def get_album_artwork_url(cls, album_id, size=1280):

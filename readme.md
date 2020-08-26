@@ -105,16 +105,24 @@ How to use
     --file                The URLs to download inside a .txt file with a single 
                             track/album/artist each line.
 
-Searching
----------
+####Searching
+
 Searching for tracks, albums and videos is now supported.
 
 Usage:      `python redsea.py search [track/album/video] [name of song/video, spaces are allowed]`
 
 Example:    `python redsea.py search video Darkside Alan Walker`
 
-Exploring
----------
+####ID downloading
+
+Download an album/track/artist/video/playlist with just the ID instead of an URL
+
+Usage:      `python redsea.py id [album/track/artist/video/playlist ID]`
+
+Example:    `python redsea.py id id 92265335`
+
+####Exploring
+
 Exploring new Dolby Atmos or 360 Reality Audio releases is now supported
 
 Usage:      `python redsea.py explore (dolby atmos/sony 360)`
@@ -134,7 +142,7 @@ Tidal issues
 
 To do/Whishlist
 ---------------
-* ID based downloading (check if ID is a track, album, video, ...)
+* ~~ID based downloading (check if ID is a track, album, video, ...)~~
 * Complete `mediadownloader.py` rewrite
 * Move lyrics support to tagger.py
 * Support for being used as a python module (maybe pip?)

@@ -140,6 +140,12 @@ class MediaDownloader(object):
     def page(self, pageurl):
         return self.api.get_page(pageurl)
 
+    def type_from_id(self, id):
+        return self.api.get_type_from_id(id)
+
+    def playlist_from_id(self, id):
+        return self.api.get_playlist(id)
+
     def download_media(self, track_info, preset, album_info=None, overwrite=False):
         track_id = track_info['id']
         assert track_info['allowStreaming'], 'Unable to download track {0}: not allowed to stream/download'.format(

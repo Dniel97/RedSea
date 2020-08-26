@@ -3,6 +3,7 @@
 import traceback
 import sys
 import os
+import re
 
 import redsea.cli as cli
 
@@ -79,6 +80,41 @@ def main():
             RSF.reauth()
             exit()
 
+    elif args.urls[0] == 'id':
+        type = None
+        md = MediaDownloader(TidalApi(RSF.load_session(args.account)), preset, Tagger(preset))
+
+        if len(args.urls) == 2:
+            id = args.urls[1]
+            if not id.isdigit():
+                # Check if id is playlist (UUIDv4)
+                pattern = re.compile('^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$')
+                if pattern.match(id):
+                    try:
+                        result = md.playlist_from_id(id)
+                        type = 'p'
+                    except TidalError:
+                        print("The playlist id " + str(id) + " could not be found!")
+                        exit()
+
+                else:
+                    print('The id ' + str(id) + ' is not valid.')
+                    exit()
+        else:
+            print('Example usage: python redsea.py id 92265335')
+            exit()
+
+        if type is None:
+            type = md.type_from_id(id)
+
+        if type:
+            media_to_download = [{'id': id, 'type': type}]
+
+        else:
+            print("The id " + str(id) + " could not be found!")
+            exit()
+
+
     elif args.urls[0] == 'explore':
         if len(args.urls) == 3:
             if args.urls[1] == 'dolby' and args.urls[2] == 'atmos':
@@ -114,8 +150,10 @@ def main():
             else:
                 explicittag = ""
 
+            date = " (" + item['streamStartDate'].split('T')[0] + ")"
+
             print(str(i + 1) + ") " + str(item['title']) + " - " + str(
-                item['artists'][0]['name']) + explicittag + specialtag)
+                item['artists'][0]['name']) + explicittag + specialtag + date)
 
         print(str(total_items+1) + ") Exit")
 

@@ -22,7 +22,9 @@ tries: How many times to attempt to get a valid stream URL.
 path: Base download directory
 convert_to_alac: Converts a .flac file to an ALAC .m4a file (requires ffmpeg)
 lyrics: Enable lyrics tagging and synced lyrics as .lrc download using the Deezer API (from https://codeberg.org/RemixDev/deemix)
-Format variables are {title}, {artist}, {album}, {tracknumber}.
+Format variables are {title}, {artist}, {album}, {tracknumber}, {discnumber}, {date}, {quality}, {explicit}
+{quality} has a whitespaces in front, so it will look like this " [Dolby Atmos]", " [360]" or " [M]" according to the downloaded quality
+{explicit} has a whitespaces in front, so it will look like this " [E]"
 track_format: How tracks are formatted. The relevant extension is appended to the end.
 album_format: Base album directory - tracks and cover art are stored here. May have slashes in it, for instance {artist}/{album}.
 
@@ -64,7 +66,7 @@ PRESETS = {
         "tries": 5,
         "path": path,
         "track_format": "{tracknumber} - {title}",
-        "album_format": "{albumartist} - {album}",
+        "album_format": "{albumartist} - {album}{quality}{explicit}",
         "convert_to_alac": False,
         "lyrics": True,
         "lyrics_provider_order": ["Deezer", "musiXmatch"],
@@ -87,7 +89,7 @@ PRESETS = {
         "tries": 5,
         "path": path,
         "track_format": "{tracknumber} - {title}",
-        "album_format": "{albumartist} - {album}",
+        "album_format": "{albumartist} - {album}{quality}{explicit}",
         "convert_to_alac": True,
         "lyrics": True,
         "lyrics_provider_order": ["Deezer", "musiXmatch"],
@@ -99,47 +101,6 @@ PRESETS = {
         "AAC_96": True
     },
 
-    # This preset will allow FLAC_16 and MQA files only
-    "mqa_flac": {
-        "keep_cover_jpg": True,
-        "embed_album_art": True,
-        "save_album_json": False,
-        "tries": 5,
-        "path": path,
-        "track_format": "{tracknumber} - {title}",
-        "album_format": "{albumartist} - {album}",
-        "convert_to_alac": False,
-        "lyrics": True,
-        "lyrics_provider_order": ["Deezer", "musiXmatch"],
-        "artwork_size": 3000,
-        "resolution": 1080,
-        "MQA_FLAC_24": True,
-        "FLAC_16": True,
-        "AAC_320": False,
-        "AAC_96": False
-    },
-
-    # This preset will only download MQA
-    "MQA": {
-        "keep_cover_jpg": True,
-        "embed_album_art": True,
-        "save_album_json": False,
-        "tries": 5,
-        "path": path,
-        "track_format": "{tracknumber} - {title}",
-        "album_format": "{albumartist} - {album}",
-        "convert_to_alac": False,
-        "lyrics": True,
-        "lyrics_provider_order": ["Deezer", "musiXmatch"],
-        "artwork_size": 3000,
-        "resolution": 1080,
-        "MQA_FLAC_24": True,
-        "FLAC_16": False,
-        "AAC_320": False,
-        "AAC_96": False
-    },
-
-
     # This preset will only download FLAC 16
     "FLAC": {
         "keep_cover_jpg": True,
@@ -148,7 +109,7 @@ PRESETS = {
         "tries": 5,
         "path": path,
         "track_format": "{tracknumber} - {title}",
-        "album_format": "{albumartist} - {album}",
+        "album_format": "{albumartist} - {album}{quality}{explicit}",
         "convert_to_alac": False,
         "lyrics": True,
         "lyrics_provider_order": ["Deezer", "musiXmatch"],
@@ -158,47 +119,5 @@ PRESETS = {
         "FLAC_16": True,
         "AAC_320": False,
         "AAC_96": False
-    },
-
-
-    # This preset will only download AAC ~320
-    "320": {
-        "keep_cover_jpg": True,
-        "embed_album_art": True,
-        "save_album_json": False,
-        "tries": 5,
-        "path": path,
-        "track_format": "{tracknumber} - {title}",
-        "album_format": "{albumartist} - {album}",
-        "convert_to_alac": False,
-        "lyrics": True,
-        "lyrics_provider_order": ["Deezer", "musiXmatch"],
-        "artwork_size": 3000,
-        "resolution": 1080,
-        "MQA_FLAC_24": False,
-        "FLAC_16": False,
-        "AAC_320": True,
-        "AAC_96": False
-    },
-
-
-    # This preset will only download AAC ~96
-    "96": {
-        "keep_cover_jpg": True,
-        "embed_album_art": True,
-        "save_album_json": False,
-        "tries": 5,
-        "path": path,
-        "track_format": "{tracknumber} - {title}",
-        "album_format": "{albumartist} - {album}",
-        "convert_to_alac": False,
-        "lyrics": True,
-        "lyrics_provider_order": ["Deezer", "musiXmatch"],
-        "artwork_size": 3000,
-        "resolution": 1080,
-        "MQA_FLAC_24": False,
-        "FLAC_16": False,
-        "AAC_320": False,
-        "AAC_96": True
     },
 }

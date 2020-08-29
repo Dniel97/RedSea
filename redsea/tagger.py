@@ -110,6 +110,19 @@ class Tagger(object):
         if 'genre' in track_info:
             tagger['genre'] = track_info['genre']
 
+        if track_type is None:
+            if track_info['audioModes'] == ['DOLBY_ATMOS']:
+                tagger['quality'] = " [Dolby Atmos]"
+            elif track_info['audioModes'] == ['SONY_360RA']:
+                tagger['quality'] = " [360]"
+            elif track_info['audioQuality'] == 'HI_RES':
+                tagger['quality'] = " [M]"
+            else:
+                tagger['quality'] = ""
+
+            if 'explicit' in album_info:
+                tagger['explicit'] = ' [E]' if album_info['explicit'] else ''
+
         return tagger
 
     def _meta_tag(self, tagger, track_info, album_info, track_type):

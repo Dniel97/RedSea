@@ -146,6 +146,7 @@ To do/Whishlist
 * Move lyrics support to tagger.py
 * Support for being used as a python module (maybe pip?)
 * Maybe Spotify playlist support
+* Artist video download (which downloads all videos from a given artist)
 
 Config reference
 ----------------
@@ -191,7 +192,11 @@ Config reference
 
 `resolution`: Which resolution you want to download the videos
 
-Format variables are `{title}`, `{artist}`, `{album}`, `{tracknumber}`.
+Format variables are `{title}`, `{artist}`, `{album}`, `{tracknumber}`, `{discnumber}`, `{date}`, `{quality}`, `{explicit}`.
+
+* `{quality}` has a whitespace in front, so it will look like this " [Dolby Atmos]", " [360]" or " [M]" according to the downloaded quality
+
+* `{explicit}` has a whitespace in front, so it will look like this " [E]"
 
 `track_format`: How tracks are formatted. The relevant extension is appended to the end.
 

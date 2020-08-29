@@ -9,8 +9,7 @@ This fork is currently maintained by me ([Dniel97](https://github.com/Dniel97))
 Introduction
 ------------
 RedSea is a music downloader and tagger for the Tidal music streaming service. It is designed partially as a Tidal API example. This repository also hosts a wildly incomplete Python Tidal
-API implementation - it is contained in `redsea/tidal_api.py` and only requires `requests` to be
-installed. Note that you will you have to implement the Tidal lossless download hack yourself -- you can find this in `mediadownloader.py`.
+API implementation - it is contained in `redsea/tidal_api.py` and only requires `requests` to be installed.
 
 Requirements
 ------------
@@ -105,7 +104,7 @@ How to use
     --file                The URLs to download inside a .txt file with a single 
                             track/album/artist each line.
 
-####Searching
+#### Searching
 
 Searching for tracks, albums and videos is now supported.
 
@@ -113,7 +112,7 @@ Usage:      `python redsea.py search [track/album/video] [name of song/video, sp
 
 Example:    `python redsea.py search video Darkside Alan Walker`
 
-####ID downloading
+#### ID downloading
 
 Download an album/track/artist/video/playlist with just the ID instead of an URL
 
@@ -121,7 +120,7 @@ Usage:      `python redsea.py id [album/track/artist/video/playlist ID]`
 
 Example:    `python redsea.py id id 92265335`
 
-####Exploring
+#### Exploring
 
 Exploring new Dolby Atmos or 360 Reality Audio releases is now supported
 

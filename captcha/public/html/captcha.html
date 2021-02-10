@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>captcha</title>
+</head>
+<body>
+<script src="https://www.google.com/recaptcha/api.js?render=6Lf-N-0UAAAAAOm0_ZBFblrmIr7KRswyRawEBonm"></script>
+
+<form id="modal_captcha_form_v3" method="post" action="/submit">
+    <button style="display: none;" class="g-recaptcha" id="g-recaptcha-v3" data-sitekey="6Lf-N-0UAAAAAOm0_ZBFblrmIr7KRswyRawEBonm"
+         data-callback="onCaptchaSolvedV3" data-action="submit"></button>
+</form>
+<form id="modal_captcha_form_v2" action="/submit" method="get">
+    <div class="g-recaptcha" data-sitekey="6LcaN-0UAAAAAN056lYOwirUdIJ70tvy9QwNBajZ"
+         data-callback="onCaptchaSolvedV2"></div>
+    <script type="text/javascript" src="https://www.google.com/recaptcha/api.js"></script>
+</form>
+
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"
+        integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
+<script type="text/javascript">
+    grecaptcha.ready(function () {
+        document.getElementById("g-recaptcha-v3").click();
+    });
+
+    function onCaptchaSolvedV3() {
+        $.get("/submit", $("#modal_captcha_form_v3").serialize());
+    }
+
+    function onCaptchaSolvedV2() {
+        $.get("/submit", $("#modal_captcha_form_v2").serialize());
+    }
+
+    /*
+    grecaptcha.ready(function () {
+        grecaptcha.execute('6Lf-N-0UAAAAAOm0_ZBFblrmIr7KRswyRawEBonm', {action: 'submit'}).then(function (token) {
+           console.log(token)
+        });
+    });
+     */
+</script>
+</body>
+</html>

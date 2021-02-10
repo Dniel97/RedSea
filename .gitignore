@@ -1,0 +1,10 @@
+__pycache__/
+.venv
+.vscode
+sessions.pk
+downloads/
+.DS_Store
+.idea/
+settings.py
+node_modules/
+failed_tracks.txt

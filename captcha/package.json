@@ -1,0 +1,14 @@
+{
+  "name": "tidal_recaptcha",
+  "version": "0.1.0",
+  "description": "Get the reCaptcha response from Tidal",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "author": "Dniel97",
+  "devDependencies": {
+    "electron": "^10.1.1",
+    "electron-builder": "^22.8.1"
+  }
+}

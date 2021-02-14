@@ -199,6 +199,8 @@ Config reference
 
 `lyrics_provider_order`: Defines the order (from left to right) you want to get the lyrics from
 
+`genre_language`: Select the language of the genres from Deezer to `en-US, de, fr, ...` 
+
 `artwork_size`: Downloads (artwork_size)x(artwork_size) album covers from iTunes, set it to `0` to disable iTunes cover
 
 `resolution`: Which resolution you want to download the videos

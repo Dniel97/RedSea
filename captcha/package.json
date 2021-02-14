@@ -8,7 +8,7 @@
   },
   "author": "Dniel97",
   "devDependencies": {
-    "electron": "^10.1.1",
+    "electron": "^10.2.0",
     "electron-builder": "^22.8.1"
   }
 }

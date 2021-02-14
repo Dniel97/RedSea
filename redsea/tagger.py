@@ -160,7 +160,7 @@ class Tagger(object):
 
         tagger.save(file_path)
 
-    def tag_m4a(self, file_path, track_info, album_info, lyrics, album_art_path=None):
+    def tag_m4a(self, file_path, track_info, album_info, lyrics, credits_dict=None, album_art_path=None):
             tagger = EasyMP4(file_path)
 
             # Register ISRC, UPC, lyrics and explicit tags
@@ -180,5 +180,12 @@ class Tagger(object):
             # Set lyrics from Deezer
             if lyrics:
                 tagger['lyrics'] = lyrics
+
+            if credits_dict:
+                for key, value in credits_dict.items():
+                    contributors = value.split(', ')
+                    # Create a new freeform atom and set the contributors in bytes
+                    tagger.RegisterTextKey(key, '----:com.apple.itunes:' + key)
+                    tagger[key] = [bytes(con, encoding='utf-8') for con in contributors]
 
             tagger.save(file_path)

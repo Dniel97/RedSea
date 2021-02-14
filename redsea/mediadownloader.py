@@ -5,24 +5,17 @@ import os.path as path
 import re
 import base64
 import ffmpeg
-import binascii
-import shutil 
-import platform
-import subprocess
+import shutil
 
 import requests
 from urllib3.util.retry import Retry
 from requests.adapters import HTTPAdapter
-from subprocess import Popen, PIPE
 
 from .decryption import decrypt_file, decrypt_security_token
 from .tagger import FeaturingFormat
 from .tidal_api import TidalApi, TidalRequestError, technical_names
 from deezer.deezer import Deezer, APIError
 from .videodownloader import download_stream, download_file
-
-# Deezer API
-dz = Deezer()
 
 
 def _mkdir_p(path):
@@ -42,6 +35,12 @@ class MediaDownloader(object):
         self.api = api
         self.opts = options
         self.tm = tagger
+
+        # Deezer API
+        if 'genre_language' in self.opts:
+            self.dz = Deezer(language=self.opts['genre_language'])
+        else:
+            self.dz = Deezer()
 
         self.session = requests.Session()
         retries = Retry(total=10,
@@ -163,7 +162,7 @@ class MediaDownloader(object):
     def playlist_from_id(self, id):
         return self.api.get_playlist(id)
 
-    def download_media(self, track_info, preset, album_info=None, overwrite=False):
+    def download_media(self, track_info, album_info=None, overwrite=False):
         track_id = track_info['id']
         assert track_info['allowStreaming'], 'Unable to download track {0}: not allowed to stream/download'.format(
             track_id)
@@ -174,9 +173,9 @@ class MediaDownloader(object):
         if 'type' in track_info:
             playback_info = self.api.get_video_stream_url(track_id)
             url = playback_info['url']
-            if not 'resolution' in preset:
-                preset['resolution'] = 1080
-            download_stream(preset['path'], url, preset['resolution'], track_info)
+            if not 'resolution' in self.opts:
+                self.opts['resolution'] = 1080
+            download_stream(self.opts['path'], url, self.opts['resolution'], track_info)
 
         else:
             if album_info is None:
@@ -215,7 +214,7 @@ class MediaDownloader(object):
             # stream_data = self.get_stream_url(track_id, quality)
 
             DRM = False 
-            playback_info = self.api.get_stream_url(track_id, preset['quality'])          
+            playback_info = self.api.get_stream_url(track_id, self.opts['quality'])
                 
             manifest_unparsed = base64.b64decode(playback_info['manifest']).decode('UTF-8')
             if 'ContentProtection' in manifest_unparsed:
@@ -327,10 +326,10 @@ class MediaDownloader(object):
                 if not path.isfile(aa_location):
                     try:
                         artwork_size = 1200
-                        if 'artwork_size' in preset:
-                            if preset['artwork_size'] == 0:
+                        if 'artwork_size' in self.opts:
+                            if self.opts['artwork_size'] == 0:
                                 raise Exception
-                            artwork_size = preset['artwork_size']
+                            artwork_size = self.opts['artwork_size']
 
                         print('\tDownloading album art from iTunes...')
                         s = requests.Session()
@@ -355,8 +354,8 @@ class MediaDownloader(object):
                             raise Exception
 
                         compressed = 'bb'
-                        if 'uncompressed_artwork' in preset:
-                            if preset['uncompressed_artwork']:
+                        if 'uncompressed_artwork' in self.opts:
+                            if self.opts['uncompressed_artwork']:
                                 compressed = '-999'
                         album_cover = album_cover.replace('100x100bb.jpg',
                                                           '{}x{}{}.jpg'.format(artwork_size, artwork_size, compressed))
@@ -416,8 +415,8 @@ class MediaDownloader(object):
                                 credits_dict[track_credits[i]['type']] += contributors[j]['name']
 
                     if credits_dict != {}:
-                        if 'save_credits_txt' in preset:
-                            if preset['save_credits_txt']:
+                        if 'save_credits_txt' in self.opts:
+                            if self.opts['save_credits_txt']:
                                 data = ''
                                 for key, value in credits_dict.items():
                                     data += key + ': '
@@ -425,37 +424,37 @@ class MediaDownloader(object):
                                 with open((os.path.splitext(track_path)[0] + '.txt'), 'w') as f:
                                     f.write(data)
                         # Janky way to set the dict to None to tell the tagger not to include it
-                        if 'embed_credits' in preset:
-                            if not preset['embed_credits']:
+                        if 'embed_credits' in self.opts:
+                            if not self.opts['embed_credits']:
                                 credits_dict = None
                 except IndexError:
                     credits_dict = None
 
                 # Get lyrics from Deezer using deemix (https://codeberg.org/RemixDev/deemix)
                 lyrics = None
-                if preset['lyrics']:
-                    for provider in preset['lyrics_provider_order']:
+                if self.opts['lyrics']:
+                    for provider in self.opts['lyrics_provider_order']:
                         if provider == 'Deezer':
-                            if preset['lyrics']:
+                            if self.opts['lyrics']:
                                 print('\tGetting lyrics from Deezer...')
                                 track_lyrics = {}
                                 song = None
                                 try:
-                                    song = dz.get_track_by_ISRC(track_info['isrc'])
+                                    song = self.dz.get_track_by_ISRC(track_info['isrc'])
                                 except APIError:
                                     print('\tTrack could not be found using ISRC. Searching for track using the title, '
                                           'artist and album...')
                                     try:
-                                        song = dz.get_track(dz.get_track_from_metadata(track_info['artist']['name'],
-                                                                                       track_info['title'],
-                                                                                       track_info['album']['title']))
+                                        song = self.dz.get_track(self.dz.get_track_from_metadata(
+                                            track_info['artist']['name'], track_info['title'],
+                                            track_info['album']['title']))
                                     except APIError:
                                         print('\tNo Track could be found!')
                                         continue
                                 if song:
                                     # Get album genres from Deezer
                                     try:
-                                        genres = dz.get_album(song['album']['id'])['genres']
+                                        genres = self.dz.get_album(song['album']['id'])['genres']
                                         if 'data' in genres and len(genres['data']) > 0:
                                             track_info['genre'] = []
                                             for genre in genres['data']:
@@ -463,7 +462,7 @@ class MediaDownloader(object):
                                     except APIError:
                                         print('\tNo genres found!')
                                     try:
-                                        track_lyrics = dz.get_lyrics_gw(song['id'])
+                                        track_lyrics = self.dz.get_lyrics_gw(song['id'])
                                     except APIError:
                                         print('\tNo lyrics for the given track could be found!')
                                         continue

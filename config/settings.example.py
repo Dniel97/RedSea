@@ -25,6 +25,7 @@ save_credits_txt: Saves a {track_format}.txt file with the file containing all t
 embed_credits: Embeds all the credits tags inside a FLAC file
 lyrics: Enable lyrics tagging and synced lyrics as .lrc download using the Deezer API (from [deemix](https://codeberg.org/RemixDev/deemix)) or musiXmatch
 lyrics_provider_order: Defines the order (from left to right) you want to get the lyrics from
+genre_language: Select the language of the genres from Deezer to "en-US", "de", "fr", ...
 artwork_size: Downloads (artwork_size)x(artwork_size) album covers from iTunes, set it to 0 to disable iTunes cover
 resolution: Which resolution you want to download the videos
 Format variables are {title}, {artist}, {album}, {tracknumber}, {discnumber}, {date}, {quality}, {explicit}.
@@ -81,6 +82,7 @@ PRESETS = {
         "embed_credits": True,
         "lyrics": True,
         "lyrics_provider_order": ["Deezer", "musiXmatch"],
+        "genre_language": "en-US",
         "artwork_size": 3000,
         "uncompressed_artwork": True,
         "resolution": 1080,
@@ -107,6 +109,7 @@ PRESETS = {
         "embed_credits": True,
         "lyrics": True,
         "lyrics_provider_order": ["Deezer", "musiXmatch"],
+        "genre_language": "en-US",
         "artwork_size": 3000,
         "uncompressed_artwork": True,
         "resolution": 1080,
@@ -130,6 +133,7 @@ PRESETS = {
         "embed_credits": True,
         "lyrics": True,
         "lyrics_provider_order": ["Deezer", "musiXmatch"],
+        "genre_language": "en-US",
         "artwork_size": 3000,
         "uncompressed_artwork": False,
         "resolution": 1080,
@@ -153,6 +157,7 @@ PRESETS = {
         "embed_credits": True,
         "lyrics": True,
         "lyrics_provider_order": ["Deezer", "musiXmatch"],
+        "genre_language": "en-US",
         "artwork_size": 3000,
         "uncompressed_artwork": True,
         "resolution": 1080,

@@ -56,7 +56,7 @@ function createWindow() {
         height: 650,
         icon: trayIcon,
         webPreferences: {
-            nodeIntegration: true,
+            contextIsolation: true,
             enableRemoteModule: true
         }
     });

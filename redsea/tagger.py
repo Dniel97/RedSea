@@ -1,3 +1,5 @@
+import unicodedata
+
 from mutagen.easymp4 import EasyMP4
 from mutagen.flac import FLAC, Picture
 from mutagen.mp4 import MP4Cover
@@ -6,6 +8,11 @@ from mutagen.id3 import PictureType
 
 # Needed for Windows tagging support
 MP4Tags._padding = 0
+
+
+def normalize_key(s):
+    # Remove accents from a given string
+    return ''.join(c for c in unicodedata.normalize('NFD', s) if unicodedata.category(c) != 'Mn')
 
 
 class FeaturingFormat():
@@ -156,36 +163,37 @@ class Tagger(object):
             for key, value in credits_dict.items():
                 contributors = value.split(', ')
                 for con in contributors:
-                    tagger.tags.append((key, con))
+                    tagger.tags.append((normalize_key(key), con))
 
         tagger.save(file_path)
 
     def tag_m4a(self, file_path, track_info, album_info, lyrics, credits_dict=None, album_art_path=None):
-            tagger = EasyMP4(file_path)
+        tagger = EasyMP4(file_path)
 
-            # Register ISRC, UPC, lyrics and explicit tags
-            tagger.RegisterTextKey('isrc', '----:com.apple.itunes:ISRC')
-            tagger.RegisterTextKey('upc', '----:com.apple.itunes:UPC')
-            tagger.RegisterTextKey('explicit', 'rtng')
-            tagger.RegisterTextKey('lyrics', '\xa9lyr')
+        # Register ISRC, UPC, lyrics and explicit tags
+        tagger.RegisterTextKey('isrc', '----:com.apple.itunes:ISRC')
+        tagger.RegisterTextKey('upc', '----:com.apple.itunes:UPC')
+        tagger.RegisterTextKey('explicit', 'rtng')
+        tagger.RegisterTextKey('lyrics', '\xa9lyr')
 
-            self._meta_tag(tagger, track_info, album_info, 'm4a')
-            if self.fmtopts['embed_album_art'] and album_art_path is not None:
-                pic = None
-                with open(album_art_path, 'rb') as f:
-                    pic = MP4Cover(f.read())
-                tagger.RegisterTextKey('covr', 'covr')
-                tagger['covr'] = [pic]
+        self._meta_tag(tagger, track_info, album_info, 'm4a')
+        if self.fmtopts['embed_album_art'] and album_art_path is not None:
+            pic = None
+            with open(album_art_path, 'rb') as f:
+                pic = MP4Cover(f.read())
+            tagger.RegisterTextKey('covr', 'covr')
+            tagger['covr'] = [pic]
 
-            # Set lyrics from Deezer
-            if lyrics:
-                tagger['lyrics'] = lyrics
+        # Set lyrics from Deezer
+        if lyrics:
+            tagger['lyrics'] = lyrics
 
-            if credits_dict:
-                for key, value in credits_dict.items():
-                    contributors = value.split(', ')
-                    # Create a new freeform atom and set the contributors in bytes
-                    tagger.RegisterTextKey(key, '----:com.apple.itunes:' + key)
-                    tagger[key] = [bytes(con, encoding='utf-8') for con in contributors]
+        if credits_dict:
+            for key, value in credits_dict.items():
+                contributors = value.split(', ')
+                key = normalize_key(key)
+                # Create a new freeform atom and set the contributors in bytes
+                tagger.RegisterTextKey(key, '----:com.apple.itunes:' + key)
+                tagger[key] = [bytes(con, encoding='utf-8') for con in contributors]
 
-            tagger.save(file_path)
+        tagger.save(file_path)

@@ -193,9 +193,11 @@ Config reference
 
 `save_credits_txt`: Saves a `{track_format}.txt` file with the file containing all the credits of a specific song
 
-`embed_credits`: Embeds all the credits tags inside a FLAC file
+`embed_credits`: Embeds all the credits tags inside a FLAC/MP4 file
 
-`lyrics`: Enable lyrics tagging and synced lyrics as .lrc download using the Deezer API (from [deemix](https://codeberg.org/RemixDev/deemix)) or musiXmatch
+`save_lyrics_lrc`: Saves synced lyrics as .lrc using the Deezer API (from [deemix](https://codeberg.org/RemixDev/deemix)) or musiXmatch
+
+`embed_lyrics`: Embed the unsynced lyrics inside a FLAC/MP4 file
 
 `lyrics_provider_order`: Defines the order (from left to right) you want to get the lyrics from
 

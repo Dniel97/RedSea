@@ -426,20 +426,23 @@ class MediaDownloader(object):
                 except IndexError:
                     credits_dict = None
 
-                # Get lyrics from Deezer using deemix (https://codeberg.org/RemixDev/deemix)
                 lyrics = None
-                if self.opts['lyrics']:
-                    for provider in self.opts['lyrics_provider_order']:
-                        if provider == 'Deezer':
-                            if self.opts['lyrics']:
+                if 'save_lyrics_lrc' in self.opts and 'embed_lyrics' in self.opts:
+                    if self.opts['save_lyrics_lrc'] or self.opts['embed_lyrics']:
+
+                        for provider in self.opts['lyrics_provider_order']:
+
+                            # Get lyrics from Deezer using deemix (https://codeberg.org/RemixDev/deemix)
+                            if provider == 'Deezer':
                                 print('\tGetting lyrics from Deezer...')
                                 track_lyrics = {}
                                 song = None
                                 try:
                                     song = self.dz.get_track_by_ISRC(track_info['isrc'])
                                 except APIError:
-                                    print('\tTrack could not be found using ISRC. Searching for track using the title, '
-                                          'artist and album...')
+                                    print(
+                                        '\tTrack could not be found using ISRC. Searching for track using the title, '
+                                        'artist and album...')
                                     try:
                                         song = self.dz.get_track(self.dz.get_track_from_metadata(
                                             track_info['artist']['name'], track_info['title'],
@@ -464,71 +467,79 @@ class MediaDownloader(object):
                                         continue
 
                                 track = {}
-                                if "LYRICS_TEXT" in track_lyrics:
-                                    lyrics = track_lyrics["LYRICS_TEXT"]
-                                else:
-                                    print('\tNo unsynced lyrics could be found!')
-                                if "LYRICS_SYNC_JSON" in track_lyrics:
-                                    track['sync'] = ""
-                                    lastTimestamp = ""
-                                    for i in range(len(track_lyrics["LYRICS_SYNC_JSON"])):
-                                        if "lrc_timestamp" in track_lyrics["LYRICS_SYNC_JSON"][i]:
-                                            track['sync'] += track_lyrics["LYRICS_SYNC_JSON"][i]["lrc_timestamp"]
-                                            lastTimestamp = track_lyrics["LYRICS_SYNC_JSON"][i]["lrc_timestamp"]
-                                        else:
-                                            track['sync'] += lastTimestamp
-                                        track['sync'] += track_lyrics["LYRICS_SYNC_JSON"][i]["line"] + "\r\n"
-                                else:
-                                    print('\tNo synced lyrics could be found!')
+                                if self.opts['embed_lyrics']:
+                                    if "LYRICS_TEXT" in track_lyrics:
+                                        lyrics = track_lyrics["LYRICS_TEXT"]
+                                    else:
+                                        print('\tNo unsynced lyrics could be found!')
 
-                                if 'sync' in track:
-                                    if not os.path.isfile(os.path.splitext(track_path)[0] + '.lrc'):
-                                        with open((os.path.splitext(track_path)[0] + '.lrc'), 'wb') as f:
-                                            f.write(track['sync'].encode('utf-8'))
+                                if self.opts['save_lyrics_lrc']:
+                                    if "LYRICS_SYNC_JSON" in track_lyrics:
+                                        track['sync'] = ""
+                                        lastTimestamp = ""
+                                        for i in range(len(track_lyrics["LYRICS_SYNC_JSON"])):
+                                            if "lrc_timestamp" in track_lyrics["LYRICS_SYNC_JSON"][i]:
+                                                track['sync'] += track_lyrics["LYRICS_SYNC_JSON"][i][
+                                                    "lrc_timestamp"]
+                                                lastTimestamp = track_lyrics["LYRICS_SYNC_JSON"][i]["lrc_timestamp"]
+                                            else:
+                                                track['sync'] += lastTimestamp
+                                            track['sync'] += track_lyrics["LYRICS_SYNC_JSON"][i]["line"] + "\r\n"
+                                    else:
+                                        print('\tNo synced lyrics could be found!')
+
+                                    if 'sync' in track:
+                                        if not os.path.isfile(os.path.splitext(track_path)[0] + '.lrc'):
+                                            with open((os.path.splitext(track_path)[0] + '.lrc'), 'wb') as f:
+                                                f.write(track['sync'].encode('utf-8'))
 
                                 # Lyrics found, break the loop
                                 break
-                        if provider == 'musiXmatch':
-                            print('\tGetting lyrics from musiXmatch...')
-                            track = {}
-                            s = requests.Session()
+                            # Get lyrics from musiXmatch
+                            if provider == 'musiXmatch':
+                                print('\tGetting lyrics from musiXmatch...')
+                                track = {}
+                                s = requests.Session()
 
-                            params = {
-                                'q_artist': track_info['artist']['name'],
-                                'q_track': track_info['title'],
-                                'usertoken': '2008072b3b27588cf3e55818e5582da7032354ad9978df228acaf5',
-                                'app_id': 'android-player-v1.0'
-                            }
+                                params = {
+                                    'q_artist': track_info['artist']['name'],
+                                    'q_track': track_info['title'],
+                                    'usertoken': '2008072b3b27588cf3e55818e5582da7032354ad9978df228acaf5',
+                                    'app_id': 'android-player-v1.0'
+                                }
 
-                            r = s.get('https://apic.musixmatch.com/ws/1.1/macro.subtitles.get', params=params)
+                                r = s.get('https://apic.musixmatch.com/ws/1.1/macro.subtitles.get', params=params)
 
-                            # Get unsynced lyrics
-                            track_lyrics = r.json()['message']['body']['macro_calls']['track.lyrics.get']['message']
-                            if track_lyrics['header']['status_code'] == 200:
-                                lyrics = track_lyrics['body']['lyrics']['lyrics_body']
-                            elif track_lyrics['header']['status_code'] == 404:
-                                print('\tNo unsynced lyrics could be found!')
+                                # Get unsynced lyrics
+                                if self.opts['embed_lyrics']:
+                                    track_lyrics = r.json()['message']['body']['macro_calls']['track.lyrics.get'][
+                                        'message']
+                                    if track_lyrics['header']['status_code'] == 200:
+                                        lyrics = track_lyrics['body']['lyrics']['lyrics_body']
+                                    elif track_lyrics['header']['status_code'] == 404:
+                                        print('\tNo unsynced lyrics could be found!')
 
-                            # Get synced lyrics
-                            track_subtitles = r.json()['message']['body']['macro_calls']['track.subtitles.get'][
-                                'message']
-                            if track_subtitles['header']['status_code'] == 200:
-                                if len(track_subtitles['body']) > 0:
-                                    track['sync'] = track_subtitles['body']['subtitle_list'][0]['subtitle'][
-                                        'subtitle_body']
-                                else:
-                                    print('\tNo synced lyrics could be found!')
-                            elif track_subtitles['header']['status_code'] == 404:
-                                print('\tNo synced lyrics could be found!')
-                                continue
+                                # Get synced lyrics
+                                if self.opts['save_lyrics_lrc']:
+                                    track_subtitles = r.json()['message']['body']['macro_calls']['track.subtitles.get'][
+                                        'message']
+                                    if track_subtitles['header']['status_code'] == 200:
+                                        if len(track_subtitles['body']) > 0:
+                                            track['sync'] = track_subtitles['body']['subtitle_list'][0]['subtitle'][
+                                                'subtitle_body']
+                                        else:
+                                            print('\tNo synced lyrics could be found!')
+                                    elif track_subtitles['header']['status_code'] == 404:
+                                        print('\tNo synced lyrics could be found!')
+                                        continue
 
-                            if 'sync' in track:
-                                if not os.path.isfile(os.path.splitext(track_path)[0] + '.lrc'):
-                                    with open((os.path.splitext(track_path)[0] + '.lrc'), 'wb') as f:
-                                        f.write(track['sync'].encode('utf-8'))
+                                    if 'sync' in track:
+                                        if not os.path.isfile(os.path.splitext(track_path)[0] + '.lrc'):
+                                            with open((os.path.splitext(track_path)[0] + '.lrc'), 'wb') as f:
+                                                f.write(track['sync'].encode('utf-8'))
 
-                            # Lyrics found, break the loop
-                            break
+                                # Lyrics found, break the loop
+                                break
 
                 # Tagging
                 print('\tTagging media file...')

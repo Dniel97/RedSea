@@ -22,8 +22,9 @@ tries: How many times to attempt to get a valid stream URL.
 path: Base download directory
 convert_to_alac: Converts a .flac file to an ALAC .m4a file (requires ffmpeg)
 save_credits_txt: Saves a {track_format}.txt file with the file containing all the credits of a specific song
-embed_credits: Embeds all the credits tags inside a FLAC file
-lyrics: Enable lyrics tagging and synced lyrics as .lrc download using the Deezer API (from [deemix](https://codeberg.org/RemixDev/deemix)) or musiXmatch
+embed_credits: Embeds all the credits tags inside a FLAC/MP4 file
+save_lyrics_lrc: Saves synced lyrics as .lrc using the Deezer API (from [deemix](https://codeberg.org/RemixDev/deemix)) or musiXmatch
+embed_lyrics: Embed the unsynced lyrics inside a FLAC/MP4 file
 lyrics_provider_order: Defines the order (from left to right) you want to get the lyrics from
 genre_language: Select the language of the genres from Deezer to "en-US", "de", "fr", ...
 artwork_size: Downloads (artwork_size)x(artwork_size) album covers from iTunes, set it to 0 to disable iTunes cover
@@ -80,7 +81,8 @@ PRESETS = {
         "convert_to_alac": False,
         "save_credits_txt": False,
         "embed_credits": True,
-        "lyrics": True,
+        "save_lyrics_lrc": True,
+        "embed_lyrics": True,
         "lyrics_provider_order": ["Deezer", "musiXmatch"],
         "genre_language": "en-US",
         "artwork_size": 3000,
@@ -107,7 +109,8 @@ PRESETS = {
         "convert_to_alac": True,
         "save_credits_txt": False,
         "embed_credits": True,
-        "lyrics": True,
+        "save_lyrics_lrc": True,
+        "embed_lyrics": True,
         "lyrics_provider_order": ["Deezer", "musiXmatch"],
         "genre_language": "en-US",
         "artwork_size": 3000,
@@ -131,7 +134,8 @@ PRESETS = {
         "convert_to_alac": False,
         "save_credits_txt": False,
         "embed_credits": True,
-        "lyrics": True,
+        "save_lyrics_lrc": True,
+        "embed_lyrics": True,
         "lyrics_provider_order": ["Deezer", "musiXmatch"],
         "genre_language": "en-US",
         "artwork_size": 3000,
@@ -155,7 +159,8 @@ PRESETS = {
         "convert_to_alac": False,
         "save_credits_txt": False,
         "embed_credits": True,
-        "lyrics": True,
+        "save_lyrics_lrc": True,
+        "embed_lyrics": True,
         "lyrics_provider_order": ["Deezer", "musiXmatch"],
         "genre_language": "en-US",
         "artwork_size": 3000,

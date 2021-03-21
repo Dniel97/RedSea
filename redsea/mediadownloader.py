@@ -8,6 +8,7 @@ import ffmpeg
 import shutil
 
 import requests
+from tqdm import tqdm
 from urllib3.util.retry import Retry
 from requests.adapters import HTTPAdapter
 
@@ -57,14 +58,12 @@ class MediaDownloader(object):
         except KeyError:
             return False
         with open(where, 'wb') as f:
-            cc = 0
-            for chunk in r.iter_content(chunk_size=1024):
-                cc += 1024
-                print(
-                    "\tDownload progress: {0:.0f}%".format((cc / total) * 100),
-                    end='\r')
-                if chunk:  # filter out keep-alive new chunks
-                    f.write(chunk)
+            with tqdm(total=total, unit='B', unit_scale=True, unit_divisor=1024, miniters=1,
+                      bar_format='        {l_bar}{bar}{r_bar}') as bar:
+                for chunk in r.iter_content(chunk_size=1024):
+                    if chunk:  # filter out keep-alive new chunks
+                        f.write(chunk)
+                        bar.update(len(chunk))
             print()
         return where
 
@@ -87,8 +86,8 @@ class MediaDownloader(object):
 
         # Check last character is space
         if len(name) > 0:
-            if name[len(name)-1] == ' ':
-                name = name[:len(name)-1]
+            if name[len(name) - 1] == ' ':
+                name = name[:len(name) - 1]
 
         return re.sub(r'[:]', ' - ', name)
 
@@ -213,12 +212,12 @@ class MediaDownloader(object):
             # Attempt to get stream URL
             # stream_data = self.get_stream_url(track_id, quality)
 
-            DRM = False 
+            DRM = False
             playback_info = self.api.get_stream_url(track_id, self.opts['quality'])
-                
+
             manifest_unparsed = base64.b64decode(playback_info['manifest']).decode('UTF-8')
             if 'ContentProtection' in manifest_unparsed:
-                DRM = True 
+                DRM = True
                 print("\tWarning: DRM has been detected. If you do not have the decryption key, do not use web login.")
             elif 'manifestMimeType' in playback_info:
                 if playback_info['manifestMimeType'] == 'application/dash+xml':
@@ -226,7 +225,7 @@ class MediaDownloader(object):
                                          + ' in ' + str(playback_info['audioQuality']) + ' audio quality. This cannot '
                                                                                          'be downloaded with a TV '
                                                                                          'session for now.\n')
-                
+
             if not DRM:
                 manifest = json.loads(manifest_unparsed)
                 # Detect codec
@@ -244,9 +243,9 @@ class MediaDownloader(object):
                         ftype = 'm4a'
                 else:
                     ftype = 'flac'
-            #ftype needs to be changed to work with audio codecs instead when with web auth
+            # ftype needs to be changed to work with audio codecs instead when with web auth
             else:
-                ftype ='flac'
+                ftype = 'flac'
 
             if album_info['numberOfVolumes'] > 1:
                 track_path = path.join(disc_location, track_file + '.' + ftype)
@@ -276,16 +275,14 @@ class MediaDownloader(object):
                 length = int(pattern.findall(manifest)[0]) + 3
 
                 # Download all chunk files from MPD
-                with open(album_location + '/encrypted.mp4','wb') as encrypted_file:    
+                with open(album_location + '/encrypted.mp4', 'wb') as encrypted_file:
                     for i in range(length):
                         link = playback_link.replace("$Number$", str(i))
                         filename = os.path.join(tmp_folder, str(i).zfill(3) + '.mp4')
                         download_file([link], 0, filename)
-                        with open(filename,'rb') as fd:
+                        with open(filename, 'rb') as fd:
                             shutil.copyfileobj(fd, encrypted_file)
-                        print(
-                        "\tDownload progress: {0:.0f}%".format(((i+1) / length) * 100),
-                        end='\r')
+                        print('\tDownload progress: {0:.0f}%'.format(((i + 1) / length) * 100), end='\r')
                 print()
                 os.chdir(album_location)
 
@@ -293,7 +290,6 @@ class MediaDownloader(object):
                 print("\tDecrypting m4a")
                 try:
                     os.system('mp4decrypt --key {} encrypted.mp4 "{}"'.format(decryption_key, track_file + '.m4a'))
-                    ('tmp')
                 except Exception as e:
                     print(e)
                     print('mp4decrypt not found!')
@@ -312,16 +308,16 @@ class MediaDownloader(object):
                 os.remove(track_file + '.m4a')
                 os.chdir('../../')
 
-            if not DRM:
-                temp_file = self._dl_url(url, track_path)
-
-                if 'encryptionType' in manifest and manifest['encryptionType'] != 'NONE':
-                    if not manifest['keyId'] == '':
-                        print('\tLooks like file is encrypted. Decrypting...')
-                        key, nonce = decrypt_security_token(manifest['keyId'])
-                        decrypt_file(temp_file, key, nonce)
-
             try:
+                if not DRM:
+                    temp_file = self._dl_url(url, track_path)
+
+                    if 'encryptionType' in manifest and manifest['encryptionType'] != 'NONE':
+                        if not manifest['keyId'] == '':
+                            print('\tLooks like file is encrypted. Decrypting...')
+                            key, nonce = decrypt_security_token(manifest['keyId'])
+                            decrypt_file(temp_file, key, nonce)
+
                 aa_location = path.join(album_location, 'Cover.jpg')
                 if not path.isfile(aa_location):
                     try:
@@ -404,7 +400,7 @@ class MediaDownloader(object):
                 album_credits = self.credits_from_album(str(album_info['id']))
                 credits_dict = {}
                 try:
-                    track_credits = album_credits['items'][track_info['trackNumber']-1]['credits']
+                    track_credits = album_credits['items'][track_info['trackNumber'] - 1]['credits']
                     for i in range(len(track_credits)):
                         credits_dict[track_credits[i]['type']] = ''
                         contributors = track_credits[i]['contributors']

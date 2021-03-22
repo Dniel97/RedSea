@@ -119,7 +119,6 @@ def download_stream(folder_path, url, resolution, video_info):
         if resolution >= int(playlist.split('x')[1]):
             video_info['resolution'] = resolution
             urllist = parse_playlist(playlists[playlist])
-            break
 
     if len(urllist) <= 0:
         print('Error: list of URLs is empty!')

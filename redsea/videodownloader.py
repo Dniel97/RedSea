@@ -17,11 +17,10 @@ def parse_master_playlist(masterurl):
     resolution_list = pattern.findall(content)
     pattern = re.compile(r"(?<=http).+?(?=\\n)")
     plist = pattern.findall(content)
-    playlists = {}
-    for i in range(len(plist)):
-        playlists[resolution_list[i]] = "http" + plist[i]
+    playlists = [{'height': int(resolution_list[i].split('x')[1]),
+                  'url': "http" + plist[i]} for i in range(len(plist))]
 
-    return playlists
+    return sorted(playlists, key=lambda k: k['height'], reverse=True)
 
 
 def parse_playlist(url):
@@ -116,9 +115,10 @@ def download_stream(folder_path, url, resolution, video_info):
     urllist = []
 
     for playlist in playlists:
-        if resolution >= int(playlist.split('x')[1]):
-            video_info['resolution'] = resolution
-            urllist = parse_playlist(playlists[playlist])
+        if resolution >= playlist['height']:
+            video_info['resolution'] = playlist['height']
+            urllist = parse_playlist(playlist['url'])
+            break
 
     if len(urllist) <= 0:
         print('Error: list of URLs is empty!')
@@ -147,7 +147,7 @@ def download_stream(folder_path, url, resolution, video_info):
         # Delete partially downloaded file on keyboard interrupt
         except KeyboardInterrupt:
             if os.path.isfile(filename):
-                print('Deleting partially downloaded file ' + str(filename))
+                print('\tDeleting partially downloaded file ' + str(filename))
                 os.remove(filename)
             raise
         #   print("\tDownload progress: {0:.0f}%".format(percent), end='\r')

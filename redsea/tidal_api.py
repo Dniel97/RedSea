@@ -84,8 +84,7 @@ class TidalApi(object):
         else:
             resp = self.s.get(
                 self.TIDAL_API_BASE + url,
-                headers=self.
-                session.auth_headers(),
+                headers=self.session.auth_headers(),
                 params=params,
                 verify=False)
 

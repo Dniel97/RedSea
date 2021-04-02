@@ -16,7 +16,7 @@ from .decryption import decrypt_file, decrypt_security_token
 from .tagger import FeaturingFormat
 from .tidal_api import TidalApi, TidalRequestError, technical_names
 from deezer.deezer import Deezer, APIError
-from .videodownloader import download_stream, download_file
+from .videodownloader import download_stream, download_file, tags
 
 
 def _mkdir_p(path):
@@ -77,8 +77,9 @@ class MediaDownloader(object):
         else:
             return False
 
-    def _sanitise_name(self, name):
-        name = re.sub(r'[\\\/*?"<>|]', '', str(name))
+    @staticmethod
+    def _sanitise_name(name):
+        name = re.sub(r'[\\\/*?"\'’<>|]', '', str(name))
 
         # Check file length
         if len(name) > 230:
@@ -105,6 +106,13 @@ class MediaDownloader(object):
                     artists.append(a['name'])
 
             info['artist'] = self._sanitise_name(self.featform.get_artist_format(artists))
+        return info
+
+    def _normalise_video(self, video_info):
+        info = {
+            k: self._sanitise_name(v) for k, v in tags(video_info).items()
+        }
+
         return info
 
     def get_stream_url(self, track_id, quality):
@@ -158,6 +166,9 @@ class MediaDownloader(object):
     def credits_from_album(self, album_id):
         return self.api.get_credits(album_id)
 
+    def credits_from_video(self, video_id):
+        return self.api.get_video_credits(video_id)
+
     def playlist_from_id(self, id):
         return self.api.get_playlist(id)
 
@@ -172,9 +183,53 @@ class MediaDownloader(object):
         if 'type' in track_info:
             playback_info = self.api.get_video_stream_url(track_id)
             url = playback_info['url']
-            if not 'resolution' in self.opts:
+
+            # Fallback if settings doesn't exist
+            if 'resolution' not in self.opts:
                 self.opts['resolution'] = 1080
-            download_stream(self.opts['path'], url, self.opts['resolution'], track_info)
+
+            if 'video_folder_format' not in self.opts:
+                self.opts['video_folder_format'] = '{artist} - {title} [{quality}]'
+            if 'video_file_format' not in self.opts:
+                self.opts['video_file_format'] = '{title}'
+
+            # Make video locations
+            video_location = path.join(
+                self.opts['path'], self.opts['video_folder_format'].format(**self._normalise_video(track_info))).strip()
+            video_file = self.opts['video_file_format'].format(**self._normalise_video(track_info))
+            _mkdir_p(video_location)
+
+            file_location = os.path.join(video_location, video_file + '.mp4')
+            if path.isfile(file_location) and not overwrite:
+                print('\tFile {} already exists, skipping.'.format(file_location))
+                return None
+
+            # Get video credits
+            video_credits = self.credits_from_video(str(track_info['id']))
+            credits_dict = {}
+            if video_credits['totalNumberOfItems'] > 0:
+                for contributor in video_credits['items']:
+                    if contributor['role'] not in credits_dict:
+                        credits_dict[contributor['role']] = []
+                    credits_dict[contributor['role']].append(contributor['name'])
+
+                if credits_dict != {}:
+                    '''
+                    if 'save_credits_txt' in self.opts:
+                        if self.opts['save_credits_txt']:
+                            data = ''
+                            for key, value in credits_dict.items():
+                                data += key + ': '
+                                data += value + '\n'
+                            with open((os.path.splitext(track_path)[0] + '.txt'), 'w') as f:
+                                f.write(data)
+                    '''
+                    # Janky way to set the dict to None to tell the tagger not to include it
+                    if 'embed_credits' in self.opts:
+                        if not self.opts['embed_credits']:
+                            credits_dict = None
+
+            download_stream(video_location, video_file, url, self.opts['resolution'], track_info, credits_dict)
 
         else:
             if album_info is None:

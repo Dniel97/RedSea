@@ -207,6 +207,8 @@ Config reference
 
 `resolution`: Which resolution you want to download the videos
 
+### Album/track format
+
 Format variables are `{title}`, `{artist}`, `{album}`, `{tracknumber}`, `{discnumber}`, `{date}`, `{quality}`, `{explicit}`.
 
 * `{quality}` has a whitespace in front, so it will look like this " [Dolby Atmos]", " [360]" or " [M]" according to the downloaded quality
@@ -216,3 +218,15 @@ Format variables are `{title}`, `{artist}`, `{album}`, `{tracknumber}`, `{discnu
 `track_format`: How tracks are formatted. The relevant extension is appended to the end.
 
 `album_format`: Base album directory - tracks and cover art are stored here. May have slashes in it, for instance {artist}/{album}.
+
+### Video format
+
+Format variables are `{title}`, `{artist}`, `{tracknumber}`, `{discnumber}`, `{date}`, `{quality}`, `{explicit}`.
+
+* `{quality}` has a whitespace in front, so it will look like this " [1080P]" according to the highest available resolution returned by the API
+
+* `{explicit}` has a whitespace in front, so it will look like this " [E]"
+
+`video_file_format`: How video filenames are formatted. The '.mp4' extension is appended to the end.
+
+`video_folder_format`: The video directory - tmp files and cover art are stored here. May have slashes in it, for instance {artist}/{title}.

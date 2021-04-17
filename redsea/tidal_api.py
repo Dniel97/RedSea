@@ -84,8 +84,7 @@ class TidalApi(object):
         else:
             resp = self.s.get(
                 self.TIDAL_API_BASE + url,
-                headers=self.
-                session.auth_headers(),
+                headers=self.session.auth_headers(),
                 params=params,
                 verify=False)
 
@@ -136,6 +135,11 @@ class TidalApi(object):
             'offset': 0,
             'limit': 50,
             'includeContributors': True
+        })
+
+    def get_video_credits(self, video_id):
+        return self._get('videos/' + video_id + '/contributors', params={
+            'limit': 50
         })
 
     def get_playlist_items(self, playlist_id):
@@ -254,12 +258,16 @@ class SessionFormats:
 
         for id in [self.dolby_trackid, self.sony_trackid]:
             playback_info = api.get_stream_url(id, ['LOW'])
+            if playback_info['manifestMimeType'] == 'application/dash+xml':
+                continue
             manifest_unparsed = base64.b64decode(playback_info['manifest']).decode('UTF-8')
             if 'ContentProtection' not in manifest_unparsed:
                 self.formats[json.loads(manifest_unparsed)['codecs']] = True
 
         for i in range(len(self.quality)):
             playback_info = api.get_stream_url(self.mqa_trackid, [self.quality[i]])
+            if playback_info['manifestMimeType'] == 'application/dash+xml':
+                continue
 
             manifest_unparsed = base64.b64decode(playback_info['manifest']).decode('UTF-8')
             if 'ContentProtection' not in manifest_unparsed:
@@ -558,12 +566,10 @@ class TidalMobileSession(TidalSession):
             r = requests.get('https://api.tidal.com/v1/users/' + str(self.user_id) + '/subscription',
                              headers=self.auth_headers(), verify=False)
             assert (r.status_code == 200)
-            if r.json()['highestSoundQuality'] == 'HI_RES':
-                print('Your subscription supports Hi-Res Audio')
+            if r.json()['subscription']['type'] == 'HIFI':
                 return True
             else:
-                TidalAuthError('Your subscription does not support Hi-Res Audio')
-                return False
+                raise TidalAuthError('You need a HiFi subscription')
 
     def valid(self):
         if self.access_token is None or datetime.now() > self.expires:
@@ -701,12 +707,10 @@ class TidalTvSession(TidalSession):
             r = requests.get('https://api.tidal.com/v1/users/' + str(self.user_id) + '/subscription',
                              headers=self.auth_headers(), verify=False)
             assert (r.status_code == 200)
-            if r.json()['highestSoundQuality'] == 'LOSSLESS':
-                print('Your subscription supports lossless Audio')
+            if r.json()['subscription']['type'] == 'HIFI':
                 return True
             else:
-                TidalAuthError('Your subscription does not support lossless Audio')
-                return False
+                raise TidalAuthError('You need a HiFi subscription')
 
     def valid(self):
         if self.access_token is None or datetime.now() > self.expires:
@@ -913,12 +917,10 @@ class TidalWebSession(TidalSession):
             r = requests.get('https://api.tidal.com/v1/users/' + str(self.user_id) + '/subscription',
                              headers=self.auth_headers(), verify=False)
             assert (r.status_code == 200)
-            if r.json()['highestSoundQuality'] == 'HI_RES':
-                print('Your subscription supports Hi-Res Audio')
+            if r.json()['subscription']['type'] == 'HIFI':
                 return True
             else:
-                TidalAuthError('Your subscription does not support Hi-Res Audio')
-                return False
+                raise TidalAuthError('You need a HiFi subscription')
 
     def valid(self):
         if self.access_token is None or datetime.now() > self.expires:

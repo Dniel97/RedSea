@@ -11,12 +11,13 @@ USER_AGENT_HEADER = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, 
 
 
 class Deezer:
-    def __init__(self):
+    def __init__(self, language='en'):
         requests.packages.urllib3.disable_warnings(requests.packages.urllib3.exceptions.InsecureRequestWarning)
         self.api_url = "http://www.deezer.com/ajax/gw-light.php"
         self.legacy_api_url = "https://api.deezer.com/"
         self.http_headers = {
-            "User-Agent": USER_AGENT_HEADER
+            "User-Agent": USER_AGENT_HEADER,
+            "Accept-Language": language
         }
         self.session = requests.Session()
         self.session.post("https://www.deezer.com/", headers=self.http_headers, verify=False)

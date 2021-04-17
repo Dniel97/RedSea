@@ -193,15 +193,21 @@ Config reference
 
 `save_credits_txt`: Saves a `{track_format}.txt` file with the file containing all the credits of a specific song
 
-`embed_credits`: Embeds all the credits tags inside a FLAC file
+`embed_credits`: Embeds all the credits tags inside a FLAC/MP4 file
 
-`lyrics`: Enable lyrics tagging and synced lyrics as .lrc download using the Deezer API (from [deemix](https://codeberg.org/RemixDev/deemix)) or musiXmatch
+`save_lyrics_lrc`: Saves synced lyrics as .lrc using the Deezer API (from [deemix](https://codeberg.org/RemixDev/deemix)) or musiXmatch
+
+`embed_lyrics`: Embed the unsynced lyrics inside a FLAC/MP4 file
 
 `lyrics_provider_order`: Defines the order (from left to right) you want to get the lyrics from
+
+`genre_language`: Select the language of the genres from Deezer to `en-US, de, fr, ...` 
 
 `artwork_size`: Downloads (artwork_size)x(artwork_size) album covers from iTunes, set it to `0` to disable iTunes cover
 
 `resolution`: Which resolution you want to download the videos
+
+### Album/track format
 
 Format variables are `{title}`, `{artist}`, `{album}`, `{tracknumber}`, `{discnumber}`, `{date}`, `{quality}`, `{explicit}`.
 
@@ -212,3 +218,15 @@ Format variables are `{title}`, `{artist}`, `{album}`, `{tracknumber}`, `{discnu
 `track_format`: How tracks are formatted. The relevant extension is appended to the end.
 
 `album_format`: Base album directory - tracks and cover art are stored here. May have slashes in it, for instance {artist}/{album}.
+
+### Video format
+
+Format variables are `{title}`, `{artist}`, `{tracknumber}`, `{discnumber}`, `{date}`, `{quality}`, `{explicit}`.
+
+* `{quality}` has a whitespace in front, so it will look like this " [1080P]" according to the highest available resolution returned by the API
+
+* `{explicit}` has a whitespace in front, so it will look like this " [E]"
+
+`video_file_format`: How video filenames are formatted. The '.mp4' extension is appended to the end.
+
+`video_folder_format`: The video directory - tmp files and cover art are stored here. May have slashes in it, for instance {artist}/{title}.

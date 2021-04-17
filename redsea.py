@@ -192,8 +192,8 @@ def main():
             #    searchtype = 'playlists'
 
             numberofsongs = int(searchresult[searchtype]['totalNumberOfItems'])
-            if numberofsongs > 10:
-                numberofsongs = 10
+            if numberofsongs > 20:
+                numberofsongs = 20
             for i in range(numberofsongs):
                 song = searchresult[searchtype]['items'][i]
 

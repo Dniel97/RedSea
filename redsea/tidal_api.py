@@ -581,7 +581,7 @@ class TidalMobileSession(TidalSession):
             r = requests.get('https://api.tidal.com/v1/users/' + str(self.user_id) + '/subscription',
                              headers=self.auth_headers(), verify=False)
             assert (r.status_code == 200)
-            if 'HIFI' not in r.json()['subscription']['type']:
+            if r.json()['subscription']['type'] not in ['HIFI', 'PREMIUM_PLUS']:
                 raise TidalAuthError('You need a HiFi subscription')
 
     def valid(self):
@@ -720,7 +720,7 @@ class TidalTvSession(TidalSession):
             r = requests.get('https://api.tidal.com/v1/users/' + str(self.user_id) + '/subscription',
                              headers=self.auth_headers(), verify=False)
             assert (r.status_code == 200)
-            if 'HIFI' not in r.json()['subscription']['type']:
+            if r.json()['subscription']['type'] not in ['HIFI', 'PREMIUM_PLUS']:
                 raise TidalAuthError('You need a HiFi subscription')
 
     def valid(self):
@@ -933,7 +933,7 @@ class TidalWebSession(TidalSession):
             r = requests.get('https://api.tidal.com/v1/users/' + str(self.user_id) + '/subscription',
                              headers=self.auth_headers(), verify=False)
             assert (r.status_code == 200)
-            if 'HIFI' not in r.json()['subscription']['type']:
+            if r.json()['subscription']['type'] not in ['HIFI', 'PREMIUM_PLUS']:
                 raise TidalAuthError('You need a HiFi subscription')
 
     def valid(self):

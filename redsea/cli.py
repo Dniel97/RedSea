@@ -82,7 +82,7 @@ def parse_media_option(mo, is_file):
     if is_file:
         file_name = str(mo[0])
         mo = []
-        if path.exists(file_name) is True:
+        if path.exists(file_name):
             file = open(file_name, 'r')
             lines = file.readlines()
             for line in lines:

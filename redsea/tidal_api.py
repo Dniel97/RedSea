@@ -124,7 +124,7 @@ class TidalApi(object):
         })
 
     def get_search_data(self, searchterm):
-        return self._get('search', params={'query': str(searchterm), 'offset': 0, 'limit': 10, 'includeContributors': 'true'})
+        return self._get('search', params={'query': str(searchterm), 'offset': 0, 'limit': 20, 'includeContributors': 'true'})
 
     def get_page(self, pageurl):
         return self._get('pages/' + pageurl, params={'deviceType': 'TV', 'locale': 'en_US', 'mediaFormats': 'SONY_360'})
@@ -411,7 +411,7 @@ class TidalMobileSession(TidalSession):
     '''
 
     def __init__(self, username, password, access_token, refresh_token, client_id):
-        self.TIDAL_LOGIN_BASE = 'https://login.tidal.com/'
+        self.TIDAL_LOGIN_BASE = 'https://login.tidal.com/api/'
         self.TIDAL_AUTH_BASE = 'https://auth.tidal.com/v1/'
 
         self.username = username
@@ -420,6 +420,8 @@ class TidalMobileSession(TidalSession):
         self.code_verifier = base64.urlsafe_b64encode(secrets.token_bytes(32)).rstrip(b'=')
         self.code_challenge = base64.urlsafe_b64encode(hashlib.sha256(self.code_verifier).digest()).rstrip(b'=')
         self.client_unique_key = secrets.token_hex(16)
+        self.user_agent = 'Mozilla/5.0 (Linux; Android 10; wv) AppleWebKit/537.36''(KHTML, like Gecko)' \
+                          'Version/4.0 Chrome/90.0.4430.91 Mobile Safari/537.36'
 
         self.access_token = None
         self.refresh_token = None
@@ -461,7 +463,7 @@ class TidalMobileSession(TidalSession):
         assert (r.status_code == 200)
         self.username = r.json()['username']
 
-        assert (self.check_subscription() is True)
+        self.check_subscription()
 
     def auth(self, password, use_recaptcha=True):
         s = requests.Session()
@@ -478,7 +480,9 @@ class TidalMobileSession(TidalSession):
         }
 
         # retrieve csrf token for subsequent request
-        r = s.get(self.TIDAL_LOGIN_BASE + 'authorize', params=params, verify=False)
+        r = s.get('https://login.tidal.com/authorize', params=params, verify=False, headers={
+            'User-Agent': self.user_agent
+        })
 
         if r.status_code == 400:
             raise TidalAuthError("Authorization failed! Is the clientid/token up to date?")
@@ -489,9 +493,11 @@ class TidalMobileSession(TidalSession):
             captcha = ReCaptcha()
 
             r = s.post(self.TIDAL_LOGIN_BASE + 'recaptcha/verify/v3', json={
-                '_csrf': s.cookies['token'],
                 'token': captcha.response_v3
-            }, verify=False)
+            }, verify=False, headers={
+                'User-Agent': self.user_agent,
+                'x-csrf-token': s.cookies['_csrf-token']
+            })
 
             assert (r.status_code == 200)
 
@@ -504,11 +510,13 @@ class TidalMobileSession(TidalSession):
                 recaptcha_response = captcha.response_v2
 
         # enter email, verify email is valid
-        r = s.post('https://login.tidal.com/email', params=params, json={
-            '_csrf': s.cookies['token'],
+        r = s.post(self.TIDAL_LOGIN_BASE + 'email', params=params, json={
             'email': self.username,
             'recaptchaResponse': recaptcha_response
-        }, verify=False)
+        }, verify=False, headers={
+            'User-Agent': self.user_agent,
+            'x-csrf-token': s.cookies['_csrf-token']
+        })
 
         if r.status_code == 401:
             raise TidalAuthError('Recaptcha check is missing')
@@ -521,14 +529,19 @@ class TidalMobileSession(TidalSession):
 
         # login with user credentials
         r = s.post(self.TIDAL_LOGIN_BASE + 'email/user/existing', params=params, json={
-            '_csrf': s.cookies['token'],
             'email': self.username,
             'password': password
-        }, verify=False)
+        }, verify=False, headers={
+            'User-Agent': self.user_agent,
+            'x-csrf-token': s.cookies['_csrf-token']
+        })
+
         assert (r.status_code == 200)
 
         # retrieve access code
-        r = s.get(self.TIDAL_LOGIN_BASE + 'success?lang=en', allow_redirects=False, verify=False)
+        r = s.get('https://login.tidal.com/success?lang=en', allow_redirects=False, verify=False, headers={
+            'User-Agent': self.user_agent
+        })
         if r.status_code == 401:
             raise TidalAuthError('Incorrect password')
         assert (r.status_code == 302)
@@ -544,7 +557,9 @@ class TidalMobileSession(TidalSession):
             'scope': 'r_usr w_usr w_sub',
             'code_verifier': self.code_verifier,
             'client_unique_key': self.client_unique_key
-        }, verify=False)
+        }, verify=False, headers={
+            'User-Agent': self.user_agent
+        })
         assert (r.status_code == 200)
 
         self.access_token = r.json()['access_token']
@@ -559,16 +574,14 @@ class TidalMobileSession(TidalSession):
         self.user_id = r.json()['userId']
         self.country_code = r.json()['countryCode']
 
-        assert (self.check_subscription() is True)
+        self.check_subscription()
 
     def check_subscription(self):
         if self.access_token is not None:
             r = requests.get('https://api.tidal.com/v1/users/' + str(self.user_id) + '/subscription',
                              headers=self.auth_headers(), verify=False)
             assert (r.status_code == 200)
-            if r.json()['subscription']['type'] == 'HIFI':
-                return True
-            else:
+            if r.json()['subscription']['type'] not in ['HIFI', 'PREMIUM_PLUS']:
                 raise TidalAuthError('You need a HiFi subscription')
 
     def valid(self):
@@ -700,16 +713,14 @@ class TidalTvSession(TidalSession):
         assert (r.status_code == 200)
         self.username = r.json()['username']
 
-        assert (self.check_subscription() is True)
+        self.check_subscription()
 
     def check_subscription(self):
         if self.access_token is not None:
             r = requests.get('https://api.tidal.com/v1/users/' + str(self.user_id) + '/subscription',
                              headers=self.auth_headers(), verify=False)
             assert (r.status_code == 200)
-            if r.json()['subscription']['type'] == 'HIFI':
-                return True
-            else:
+            if r.json()['subscription']['type'] not in ['HIFI', 'PREMIUM_PLUS']:
                 raise TidalAuthError('You need a HiFi subscription')
 
     def valid(self):
@@ -753,9 +764,10 @@ class TidalTvSession(TidalSession):
             'User-Agent': 'TIDAL_ANDROID/1000 okhttp/3.13.1'
         }
 
+
 class TidalWebSession(TidalSession):
     def __init__(self, username, password, access_token, refresh_token, client_id):
-        self.TIDAL_LOGIN_BASE = 'https://login.tidal.com/'
+        self.TIDAL_LOGIN_BASE = 'https://login.tidal.com/api/'
         self.TIDAL_AUTH_BASE = 'https://auth.tidal.com/v1/'
 
         self.username = username
@@ -805,7 +817,7 @@ class TidalWebSession(TidalSession):
         assert (r.status_code == 200)
         self.username = r.json()['username']
 
-        assert (self.check_subscription() is True)
+        self.check_subscription()
 
     def auth(self, password, use_recaptcha=True):
         s = requests.Session()
@@ -840,9 +852,10 @@ class TidalWebSession(TidalSession):
             captcha = ReCaptcha()
 
             r = s.post(self.TIDAL_LOGIN_BASE + 'recaptcha/verify/v3', json={
-                '_csrf': s.cookies['token'],
                 'token': captcha.response_v3
-            }, verify=False)
+            }, verify=False, headers={
+                'x-csrf-token': s.cookies['_csrf-token']
+            })
 
             assert (r.status_code == 200)
 
@@ -856,10 +869,11 @@ class TidalWebSession(TidalSession):
 
         # enter email, verify email is valid
         r = s.post('https://login.tidal.com/email', params=params, json={
-            '_csrf': s.cookies['token'],
             'email': self.username,
             'recaptchaResponse': recaptcha_response
-        }, verify=False)
+        }, verify=False, headers={
+            'x-csrf-token': s.cookies['_csrf-token']
+        })
 
         if r.status_code == 401:
             raise TidalAuthError('Recaptcha check is missing')
@@ -872,14 +886,16 @@ class TidalWebSession(TidalSession):
 
         # login with user credentials
         r = s.post(self.TIDAL_LOGIN_BASE + 'email/user/existing', params=params, json={
-            '_csrf': s.cookies['token'],
             'email': self.username,
             'password': password
-        }, verify=False)
+        }, verify=False, headers={
+            'x-csrf-token': s.cookies['_csrf-token']
+        })
+
         assert (r.status_code == 200)
 
         # retrieve access code
-        r = s.get(self.TIDAL_LOGIN_BASE + 'success?lang=en', allow_redirects=False, verify=False)
+        r = s.get('https://login.tidal.com/success?lang=en', allow_redirects=False, verify=False)
         if r.status_code == 401:
             raise TidalAuthError('Incorrect password')
         assert (r.status_code == 302)
@@ -910,16 +926,14 @@ class TidalWebSession(TidalSession):
         self.user_id = r.json()['userId']
         self.country_code = r.json()['countryCode']
 
-        assert (self.check_subscription() is True)
+        self.check_subscription()
 
     def check_subscription(self):
         if self.access_token is not None:
             r = requests.get('https://api.tidal.com/v1/users/' + str(self.user_id) + '/subscription',
                              headers=self.auth_headers(), verify=False)
             assert (r.status_code == 200)
-            if r.json()['subscription']['type'] == 'HIFI':
-                return True
-            else:
+            if r.json()['subscription']['type'] not in ['HIFI', 'PREMIUM_PLUS']:
                 raise TidalAuthError('You need a HiFi subscription')
 
     def valid(self):

@@ -91,7 +91,7 @@ class Tagger(object):
                 # TODO: less hacky way of getting the year?
                 tagger['date'] = str(album_info['releaseDate'][:4])
             if album_info['upc'] and track_type == 'm4a':
-                tagger['upc'] = bytes(album_info['upc'], encoding="ascii")
+                tagger['upc'] = album_info['upc'].encode()
 
         if track_info['version'] is not None and track_info['version'] != '':
             fmt = ' ({})'.format(track_info['version'])
@@ -104,8 +104,8 @@ class Tagger(object):
 
         if track_info['isrc'] is not None:
             if track_type == 'm4a':
-                tagger['isrc'] = bytes(track_info['isrc'], encoding="ascii")
-            elif track_type == "flac":
+                tagger['isrc'] = track_info['isrc'].encode()
+            elif track_type == 'flac':
                 tagger['isrc'] = track_info['isrc']
 
         # Stupid library won't accept int so it is needed to cast it to a byte with hex value 01
@@ -119,15 +119,20 @@ class Tagger(object):
         if 'genre' in track_info:
             tagger['genre'] = track_info['genre']
 
+        if 'replayGain' in track_info and 'peak' in track_info:
+            if track_type == 'flac':
+                tagger['REPLAYGAIN_TRACK_GAIN'] = str(track_info['replayGain'])
+                tagger['REPLAYGAIN_TRACK_PEAK'] = str(track_info['peak'])
+
         if track_type is None:
             if track_info['audioModes'] == ['DOLBY_ATMOS']:
-                tagger['quality'] = " [Dolby Atmos]"
+                tagger['quality'] = ' [Dolby Atmos]'
             elif track_info['audioModes'] == ['SONY_360RA']:
-                tagger['quality'] = " [360]"
+                tagger['quality'] = ' [360]'
             elif track_info['audioQuality'] == 'HI_RES':
-                tagger['quality'] = " [M]"
+                tagger['quality'] = ' [M]'
             else:
-                tagger['quality'] = ""
+                tagger['quality'] = ''
 
             if 'explicit' in album_info:
                 tagger['explicit'] = ' [E]' if album_info['explicit'] else ''
@@ -149,7 +154,7 @@ class Tagger(object):
             # Check if cover is smaller than 16MB
             if len(pic.data) < pic._MAX_SIZE:
                 pic.type = PictureType.COVER_FRONT
-                pic.mime = u"image/jpeg"
+                pic.mime = u'image/jpeg'
                 tagger.add_picture(pic)
             else:
                 print('\tCover file size is too large, only {0:.2f}MB are allowed.'.format(pic._MAX_SIZE / 1024 ** 2))
@@ -194,6 +199,6 @@ class Tagger(object):
                 key = normalize_key(key)
                 # Create a new freeform atom and set the contributors in bytes
                 tagger.RegisterTextKey(key, '----:com.apple.itunes:' + key)
-                tagger[key] = [bytes(con, encoding='utf-8') for con in contributors]
+                tagger[key] = [con.encode() for con in contributors]
 
         tagger.save(file_path)

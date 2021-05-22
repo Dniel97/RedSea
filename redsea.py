@@ -309,10 +309,9 @@ def main():
                         playlist = md.api.get_playlist(media['id'])
                         md.opts['path'] += '/' + md._sanitise_name(playlist['title'])
                         # Make sure only tracks are in playlist items
-                        playlistItems = md.api.get_playlist_items(media['id'])['items']
-                        for item in playlistItems:
-                            if item['type'] == 'track':
-                                tracks.append(item['item'])
+                        playlist_items = md.api.get_playlist_items(media['id'])['items']
+                        for item_ in playlist_items:
+                            tracks.append(item_['item'])
 
                     # Album
                     elif media['type'] == 'a':

@@ -55,7 +55,7 @@ AAC_96: 96Kbps AAC
 BRUTEFORCEREGION = True
 
 # Shows the Access JWT after every refresh and creation
-SHOWAUTH = True
+SHOWAUTH = False
 
 # The Desktop token
 # TOKEN = '_DSTon1kC8pABnTw'    # ALAC only

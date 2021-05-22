@@ -2,6 +2,7 @@ import getpass
 
 from redsea.tidal_api import TidalSessionFile, TidalRequestError, TidalMobileSession, TidalTvSession, TidalWebSession, SessionFormats
 
+
 class RedseaSessionFile(TidalSessionFile):
     '''
     Redsea - TidalSession interpreter
@@ -24,19 +25,11 @@ class RedseaSessionFile(TidalSessionFile):
                         'Mobile (needed for MQA, AC-4), Desktop (MQA) or Web (FLAC only, encrypted so nearly useless)? [t/m/d/w]? ')
 
         token_confirm = 'N'
-        accesstoken = ''
-        refreshtoken = ''
-        clientid = ''
 
         if confirm.upper() == 'T':
             device = 'tv'
         elif confirm.upper() == 'M':
             device = 'mobile'
-            token_confirm = input('Do you want to enter your access_token, refresh_token and client_id [y/N]? ')
-            if token_confirm.upper() == 'Y':
-                accesstoken = input('access_token/oAuthAccessToken (eyJhbGciOiJIUzI1NiJ9 ...): ')
-                refreshtoken = input('refresh_token/oAuthRefreshToken (eyJhbGciOiJIUzI1NiJ9 ...): ')
-                clientid = input('client_id/apiToken (Random numbers ...): ')
         elif confirm.upper() == 'W':
             device = 'web'
         else:
@@ -69,7 +62,7 @@ class RedseaSessionFile(TidalSessionFile):
                         return False
 
             try:
-                super().new_session(name, username, password, device, accesstoken, refreshtoken, clientid)
+                super().new_session(name, username, password, device)
                 break
             except TidalRequestError as e:
                 if str(e).startswith('3001'):
@@ -84,6 +77,7 @@ class RedseaSessionFile(TidalSessionFile):
                 if not confirm.upper() == 'N':
                     continue
 
+        SessionFormats(self.sessions[name]).print_fomats()
         print('Session saved!')
         if not self.default == name:
             print('Session named "{}". Use the "-a {}" flag when running redsea to choose session'.format(name, name))
@@ -131,7 +125,7 @@ class RedseaSessionFile(TidalSessionFile):
         Removes a session from the session store
         '''
 
-        self.list_sessions()
+        self.list_sessions(formats=False)
 
         name = ''
         while name == '':
@@ -144,7 +138,7 @@ class RedseaSessionFile(TidalSessionFile):
                 if confirm.upper() == 'Y':
                     return False
 
-    def list_sessions(self, mobile_only=False):
+    def list_sessions(self, mobile_only=False, formats=True):
         '''
         List all available sessions
         '''
@@ -172,7 +166,8 @@ class RedseaSessionFile(TidalSessionFile):
                 continue
 
             print('   [{}]{} {} | {}'.format(self.sessions[s].country_code, device, self.sessions[s].username, s))
-            session_format = SessionFormats(self.sessions[s]).print_fomats()
+            if formats:
+                SessionFormats(self.sessions[s]).print_fomats()
 
         print('')
         if self.default is not None:
@@ -184,7 +179,7 @@ class RedseaSessionFile(TidalSessionFile):
         Sets a session as the default
         '''
 
-        self.list_sessions()
+        self.list_sessions(formats=False)
 
         while True:
             name = input('Please provide the name of the session you would like to set as default: ')
@@ -201,7 +196,7 @@ class RedseaSessionFile(TidalSessionFile):
         with the Tidal server to get a new (valid) sessionId
         '''
 
-        self.list_sessions()
+        self.list_sessions(formats=False)
 
         while True:
             name = input('Please provide the name of the session you would like to reauthenticate: ')

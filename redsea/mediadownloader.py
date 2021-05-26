@@ -189,7 +189,7 @@ class MediaDownloader(object):
                 self.opts['resolution'] = 1080
 
             if 'video_folder_format' not in self.opts:
-                self.opts['video_folder_format'] = '{artist} - {title} [{quality}]'
+                self.opts['video_folder_format'] = '{artist} - {title}{quality}'
             if 'video_file_format' not in self.opts:
                 self.opts['video_file_format'] = '{title}'
 

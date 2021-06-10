@@ -122,7 +122,7 @@ def tags(video_info: dict, tagger=None, ftype=None):
     return tagger
 
 
-def tag_video(file_path: str, track_info: dict, credits_dict:dict, album_art_path: str):
+def tag_video(file_path: str, track_info: dict, credits_dict: dict, album_art_path: str):
     tagger = EasyMP4(file_path)
     tagger.RegisterTextKey('explicit', 'rtng')
 
@@ -146,7 +146,7 @@ def tag_video(file_path: str, track_info: dict, credits_dict:dict, album_art_pat
 
 
 def download_stream(folder_path: str, file_name: str, url: str, resolution: int, video_info: dict, credits_dict: dict):
-    tmp_folder = os.path.join(folder_path, 'tmp/')
+    tmp_folder = os.path.join(folder_path, 'tmp')
     playlists = parse_master_playlist(url)
     urllist = []
 
@@ -180,6 +180,7 @@ def download_stream(folder_path: str, file_name: str, url: str, resolution: int,
             percent = i / (len(urllist) - 1) * 100
             print("\tDownload progress: {0:.0f}%".format(percent), end='\r')
             # print(percent)
+            
         # Delete partially downloaded file on keyboard interrupt
         except KeyboardInterrupt:
             if os.path.isfile(filename):

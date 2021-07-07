@@ -457,7 +457,7 @@ def main():
                         else:
                             print('Halting on track "{} - {}" due to insufficient quality'.format(
                                 track['artist']['name'], track['title']))
-                            quit()
+                            break
 
                     # Catch file name errors
                     except OSError as e:

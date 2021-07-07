@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-import binascii
 import time
 
 import requests

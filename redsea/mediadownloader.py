@@ -559,7 +559,7 @@ class MediaDownloader(object):
                                 params = {
                                     'q_artist': track_info['artist']['name'],
                                     'q_track': track_info['title'],
-                                    'usertoken': '2008072b3b27588cf3e55818e5582da7032354ad9978df228acaf5',
+                                    'usertoken': '2106283248d1059cc659340da29e09b890a08bdd21b30be69c03b2',
                                     'app_id': 'android-player-v1.0'
                                 }
 

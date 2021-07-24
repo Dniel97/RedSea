@@ -107,8 +107,14 @@ class TidalApi:
         if not resp_json:
             raise TidalError('Response was not valid JSON. HTTP status {}. {}'.format(resp.status_code, resp.text))
 
-        if 'status' in resp_json and resp_json['status'] == 404 and resp_json['subStatus'] == 2001:
+        if 'status' in resp_json and resp_json['status'] == 404 and \
+                'subStatus' in resp_json and resp_json['subStatus'] == 2001:
             raise TidalError('Error: {}. This might be region-locked.'.format(resp_json['userMessage']))
+
+        # Really hacky way,
+        if 'status' in resp_json and resp_json['status'] == 404 and \
+                'error' in resp_json and resp_json['error'] == 'Not Found':
+            return resp_json
 
         if 'status' in resp_json and not resp_json['status'] == 200:
             raise TidalRequestError(resp_json)
@@ -125,7 +131,12 @@ class TidalApi:
         })
 
     def get_search_data(self, searchterm):
-        return self._get('search', params={'query': str(searchterm), 'offset': 0, 'limit': 20, 'includeContributors': 'true'})
+        return self._get('search', params={
+            'query': str(searchterm),
+            'offset': 0,
+            'limit': 20,
+            'includeContributors': 'true'
+        })
 
     def get_page(self, pageurl):
         return self._get('pages/' + pageurl, params={'deviceType': 'TV', 'locale': 'en_US', 'mediaFormats': 'SONY_360'})
@@ -141,6 +152,12 @@ class TidalApi:
     def get_video_credits(self, video_id):
         return self._get('videos/' + video_id + '/contributors', params={
             'limit': 50
+        })
+
+    def get_lyrics(self, track_id):
+        return self._get('tracks/' + str(track_id) + '/lyrics', params={
+            'deviceType': 'PHONE',
+            'locale': 'en_US'
         })
 
     def get_playlist_items(self, playlist_id):
@@ -593,7 +610,7 @@ class TidalMobileSession(TidalSession):
             'Authorization': 'Bearer {}'.format(self.access_token),
             'Connection': 'Keep-Alive',
             'Accept-Encoding': 'gzip',
-            'User-Agent': 'TIDAL_ANDROID/1000 okhttp/3.13.1'
+            'User-Agent': 'TIDAL_ANDROID/1039 okhttp/3.14.9'
         }
 
 
@@ -731,7 +748,7 @@ class TidalTvSession(TidalSession):
             'Authorization': 'Bearer {}'.format(self.access_token),
             'Connection': 'Keep-Alive',
             'Accept-Encoding': 'gzip',
-            'User-Agent': 'TIDAL_ANDROID/1000 okhttp/3.13.1'
+            'User-Agent': 'TIDAL_ANDROID/1039 okhttp/3.14.9'
         }
 
 
@@ -913,7 +930,7 @@ class TidalWebSession(TidalSession):
             'Authorization': 'Bearer {}'.format(self.access_token),
             'Connection': 'Keep-Alive',
             'Accept-Encoding': 'gzip',
-            'User-Agent': 'TIDAL_ANDROID/1000 okhttp/3.13.1'
+            'User-Agent': 'TIDAL_ANDROID/1039 okhttp/3.14.9'
         }
 
 

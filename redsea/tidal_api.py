@@ -111,7 +111,7 @@ class TidalApi:
                 'subStatus' in resp_json and resp_json['subStatus'] == 2001:
             raise TidalError('Error: {}. This might be region-locked.'.format(resp_json['userMessage']))
 
-        # Really hacky way,
+        # Really hacky way
         if 'status' in resp_json and resp_json['status'] == 404 and \
                 'error' in resp_json and resp_json['error'] == 'Not Found':
             return resp_json
@@ -462,7 +462,8 @@ class TidalMobileSession(TidalSession):
             'client_id': self.client_id,
             'client_unique_key': self.client_unique_key,
             'code_challenge': self.code_challenge,
-            'code_challenge_method': 'S256'
+            'code_challenge_method': 'S256',
+            'restrict_signup': True
         }
 
         # retrieve csrf token for subsequent request
@@ -472,6 +473,8 @@ class TidalMobileSession(TidalSession):
 
         if r.status_code == 400:
             raise TidalAuthError("Authorization failed! Is the clientid/token up to date?")
+        elif r.status_code == 403:
+            raise TidalAuthError("Tidal BOT Protection, try again later!")
 
         recaptcha_response = ''
 
@@ -646,8 +649,10 @@ class TidalTvSession(TidalSession):
             'scope': 'r_usr w_usr'
         }, verify=False)
 
-        if r.status_code != 200:
+        if r.status_code == 400:
             raise TidalAuthError("Authorization failed! Is the clientid/token up to date?")
+        elif r.status_code == 403:
+            raise TidalAuthError("Tidal BOT Protection, try again later!")
 
         self.device_code = r.json()['deviceCode']
         self.user_code = r.json()['userCode']
@@ -799,6 +804,8 @@ class TidalWebSession(TidalSession):
 
         if r.status_code == 400:
             raise TidalAuthError("Authorization failed! Is the clientid/token up to date?")
+        elif r.status_code == 403:
+            raise TidalAuthError("Tidal BOT Protection, try again later!")
 
         recaptcha_response = ''
 

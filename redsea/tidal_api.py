@@ -366,7 +366,9 @@ class TidalSession:
         self.user_id = None
         self.country_code = None
 
-        self.auth(password)
+        # simple fix for OOB
+        if username != '' and password != '':
+            self.auth(password)
 
         password = None
 
@@ -375,7 +377,7 @@ class TidalSession:
         Attempts to authorize and create a new valid session
         '''
 
-        postParams = {
+        params = {
             'username': self.username,
             'password': password,
             'token': self.token,
@@ -383,7 +385,7 @@ class TidalSession:
             'clientVersion': self.TIDAL_CLIENT_VERSION
         }
 
-        r = requests.post(self.TIDAL_API_BASE + 'login/username', data=postParams, verify=False)
+        r = requests.post(self.TIDAL_API_BASE + 'login/username', data=params, verify=False)
 
         password = None
 
@@ -395,6 +397,7 @@ class TidalSession:
         self.country_code = r.json()['countryCode']
 
         assert self.valid(), 'This session has an invalid sessionId. Please re-authenticate'
+        self.check_subscription()
 
     @staticmethod
     def session_type():
@@ -403,20 +406,31 @@ class TidalSession:
         '''
         return 'Desktop'
 
+    def check_subscription(self):
+        '''
+        Checks if subscription is either HiFi or Premium Plus
+        '''
+        r = requests.get(f'{self.TIDAL_API_BASE}users/{self.user_id}/subscription',
+                         headers=self.auth_headers(), verify=False)
+        assert (r.status_code == 200)
+        if r.json()['subscription']['type'] not in ['HIFI', 'PREMIUM_PLUS']:
+            raise TidalAuthError('You need a HiFi subscription')
+
     def valid(self):
         '''
         Checks if session is still valid and returns True/False
         '''
+        if not isinstance(self, TidalSession):
+            if self.access_token is None or datetime.now() > self.expires:
+                return False
 
-        r = requests.get(self.TIDAL_API_BASE + 'users/' + str(self.user_id), headers=self.auth_headers(), verify=False)
-
-        if r.status_code == 200:
-            return True
-        return False
+        r = requests.get(f'{self.TIDAL_API_BASE}sessions', headers=self.auth_headers(), verify=False)
+        return r.status_code == 200
 
     def auth_headers(self):
         return {
             'Host': 'api.tidal.com',
+            'User-Agent': 'okhttp/3.12.3',
             'X-Tidal-Token': self.token,
             'X-Tidal-SessionId': self.session_id,
             'Connection': 'Keep-Alive',
@@ -430,6 +444,9 @@ class TidalMobileSession(TidalSession):
     '''
 
     def __init__(self, username, password):
+        # init the TidalSession class first
+        super(TidalMobileSession, self).__init__('', '')
+
         self.TIDAL_LOGIN_BASE = 'https://login.tidal.com/api/'
         self.TIDAL_AUTH_BASE = 'https://auth.tidal.com/v1/'
 
@@ -558,26 +575,12 @@ class TidalMobileSession(TidalSession):
         if SHOWAUTH:
             print('Your Authorization token: ' + self.access_token)
 
-        r = requests.get('https://api.tidal.com/v1/sessions', headers=self.auth_headers(), verify=False)
+        r = requests.get(f'{self.TIDAL_API_BASE}sessions', headers=self.auth_headers(), verify=False)
         assert (r.status_code == 200)
         self.user_id = r.json()['userId']
         self.country_code = r.json()['countryCode']
 
         self.check_subscription()
-
-    def check_subscription(self):
-        if self.access_token is not None:
-            r = requests.get('https://api.tidal.com/v1/users/' + str(self.user_id) + '/subscription',
-                             headers=self.auth_headers(), verify=False)
-            assert (r.status_code == 200)
-            if r.json()['subscription']['type'] not in ['HIFI', 'PREMIUM_PLUS']:
-                raise TidalAuthError('You need a HiFi subscription')
-
-    def valid(self):
-        if self.access_token is None or datetime.now() > self.expires:
-            return False
-        r = requests.get('https://api.tidal.com/v1/sessions', headers=self.auth_headers(), verify=False)
-        return r.status_code == 200
 
     def refresh(self):
         assert (self.refresh_token is not None)
@@ -623,6 +626,9 @@ class TidalTvSession(TidalSession):
     '''
 
     def __init__(self):
+        # init the TidalSession class first
+        super(TidalTvSession, self).__init__('', '')
+
         self.TIDAL_AUTH_BASE = 'https://auth.tidal.com/v1/'
 
         self.username = None
@@ -640,7 +646,7 @@ class TidalTvSession(TidalSession):
 
         self.auth()
 
-    def auth(self):
+    def auth(self, password=''):
         s = requests.Session()
 
         # retrieve csrf token for subsequent request
@@ -707,20 +713,6 @@ class TidalTvSession(TidalSession):
 
         self.check_subscription()
 
-    def check_subscription(self):
-        if self.access_token is not None:
-            r = requests.get('https://api.tidal.com/v1/users/' + str(self.user_id) + '/subscription',
-                             headers=self.auth_headers(), verify=False)
-            assert (r.status_code == 200)
-            if r.json()['subscription']['type'] not in ['HIFI', 'PREMIUM_PLUS']:
-                raise TidalAuthError('You need a HiFi subscription')
-
-    def valid(self):
-        if self.access_token is None or datetime.now() > self.expires:
-            return False
-        r = requests.get('https://api.tidal.com/v1/sessions', headers=self.auth_headers(), verify=False)
-        return r.status_code == 200
-
     def refresh(self):
         assert (self.refresh_token is not None)
         r = requests.post(self.TIDAL_AUTH_BASE + 'oauth2/token', data={
@@ -759,6 +751,9 @@ class TidalTvSession(TidalSession):
 
 class TidalWebSession(TidalSession):
     def __init__(self, username, password):
+        # init the TidalSession class first
+        super(TidalWebSession, self).__init__('', '')
+
         self.TIDAL_LOGIN_BASE = 'https://login.tidal.com/api/'
         self.TIDAL_AUTH_BASE = 'https://auth.tidal.com/v1/'
 
@@ -888,20 +883,6 @@ class TidalWebSession(TidalSession):
         self.country_code = r.json()['countryCode']
 
         self.check_subscription()
-
-    def check_subscription(self):
-        if self.access_token is not None:
-            r = requests.get('https://api.tidal.com/v1/users/' + str(self.user_id) + '/subscription',
-                             headers=self.auth_headers(), verify=False)
-            assert (r.status_code == 200)
-            if r.json()['subscription']['type'] not in ['HIFI', 'PREMIUM_PLUS']:
-                raise TidalAuthError('You need a HiFi subscription')
-
-    def valid(self):
-        if self.access_token is None or datetime.now() > self.expires:
-            return False
-        r = requests.get('https://api.tidal.com/v1/sessions', headers=self.auth_headers(), verify=False)
-        return r.status_code == 200
 
     def refresh(self):
         assert (self.refresh_token is not None)

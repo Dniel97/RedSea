@@ -57,8 +57,7 @@ BRUTEFORCEREGION = True
 SHOWAUTH = False
 
 # The Desktop token
-# TOKEN = '_DSTon1kC8pABnTw'    # ALAC only
-TOKEN = 'wc8j_yBJd20zOmx0'      # FLAC only
+TOKEN = 'c7RLy4RJ3OCNeZki'      # MQA Token
 
 # The mobile token which usually comes along with the authorization header
 # MOBILE_TOKEN = "WAU9gXp3tHhK4Nns"    # MQA Token

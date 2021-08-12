@@ -175,7 +175,7 @@ class MediaDownloader(object):
     def playlist_from_id(self, id):
         return self.api.get_playlist(id)
 
-    def download_media(self, track_info, album_info=None, overwrite=False):
+    def download_media(self, track_info, album_info=None, overwrite=False, track_num=None):
         track_id = track_info['id']
         assert track_info['allowStreaming'], 'Unable to download track {0}: not allowed to stream/download'.format(
             track_id)
@@ -248,24 +248,37 @@ class MediaDownloader(object):
                         if i + 1 == tries:
                             raise
 
-            # Make locations
-            album_location = path.join(
-                self.opts['path'], self.opts['album_format'].format(
-                    **self._normalise_info(track_info, album_info, True))).strip()
+            # create correct playlist numbering if track_num is present
+            if track_num:
+                if 'playlist_format' not in self.opts:
+                    self.opts['playlist_format'] = "{playlistnumber} - {title}"
+
+                # ugly replace operation
+                playlist_format = self.opts['playlist_format'].replace('{playlistnumber}', str(track_num).zfill(2))
+                # Make locations
+                # path already includes the playlist name in this case
+                album_location = self.opts['path']
+                track_file = playlist_format.format(**self._normalise_info(track_info, album_info))
+            else:
+                # Make locations
+                album_location = path.join(
+                    self.opts['path'], self.opts['album_format'].format(
+                        **self._normalise_info(track_info, album_info, True))).strip()
+                track_file = self.opts['track_format'].format(**self._normalise_info(track_info, album_info))
+
+                # Make multi disc directories
+                if album_info['numberOfVolumes'] > 1:
+                    disc_location = path.join(
+                        album_location,
+                        'CD{num}'.format(num=track_info['volumeNumber']))
+                    disc_location = re.sub(r'\.+$', '', disc_location)
+                    _mkdir_p(disc_location)
+
             album_location = re.sub(r'\.+$', '', album_location)
-            track_file = self.opts['track_format'].format(
-                **self._normalise_info(track_info, album_info))
             if len(track_file) > 255:  # trim filename to be under OS limit (and account for file extension)
                 track_file = track_file[:250 - len(track_file)]
             track_file = re.sub(r'\.+$', '', track_file)
             _mkdir_p(album_location)
-            # Make multi disc directories
-            if album_info['numberOfVolumes'] > 1:
-                disc_location = path.join(
-                    album_location,
-                    'CD{num}'.format(num=track_info['volumeNumber']))
-                disc_location = re.sub(r'\.+$', '', disc_location)
-                _mkdir_p(disc_location)
 
             # Attempt to get stream URL
             # stream_data = self.get_stream_url(track_id, quality)
@@ -305,7 +318,7 @@ class MediaDownloader(object):
             else:
                 ftype = 'flac'
 
-            if album_info['numberOfVolumes'] > 1:
+            if album_info['numberOfVolumes'] > 1 and not track_num:
                 track_path = path.join(disc_location, track_file + '.' + ftype)
             else:
                 track_path = path.join(album_location, track_file + '.' + ftype)

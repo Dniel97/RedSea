@@ -34,6 +34,7 @@ quality: has a whitespace in front, so it will look like this " [Dolby Atmos]", 
 explicit: has a whitespace in front, so it will look like this " [E]"
 track_format: How tracks are formatted. The relevant extension is appended to the end.
 album_format: Base album directory - tracks and cover art are stored here. May have slashes in it, for instance {artist}/{album}.
+playlist_format: How playlist tracks are formatted, same as track_format just with {playlistnumber} added
 
 Format variables are {title}, {artist}, {tracknumber}, {discnumber}, {date}, {quality}, {explicit}.
 quality has a whitespace in front, so it will look like this " [1080P]" according to the highest available resolution returned by the API
@@ -82,6 +83,7 @@ PRESETS = {
         "tries": 5,
         "path": path,
         "track_format": "{tracknumber} - {title}",
+        "playlist_format": "{playlistnumber} - {title}",
         "album_format": "{albumartist} - {album}{quality}{explicit}",
         "video_folder_format": "{artist} - {title}{quality}",
         "video_file_format": "{title}",
@@ -111,6 +113,7 @@ PRESETS = {
         "tries": 5,
         "path": path,
         "track_format": "{tracknumber} - {title}",
+        "playlist_format": "{playlistnumber} - {title}",
         "album_format": "{albumartist} - {album}{quality}{explicit}",
         "video_folder_format": "{artist} - {title}{quality}",
         "video_file_format": "{title}",
@@ -137,6 +140,7 @@ PRESETS = {
         "tries": 5,
         "path": path,
         "track_format": "{albumartist} - {title}",
+        "playlist_format": "{playlistnumber} - {title}",
         "video_folder_format": "{artist} - {title}{quality}",
         "video_file_format": "{title}",
         "album_format": "",
@@ -163,6 +167,7 @@ PRESETS = {
         "tries": 5,
         "path": path,
         "track_format": "{tracknumber} - {title}",
+        "playlist_format": "{playlistnumber} - {title}",
         "album_format": "{albumartist} - {album}{quality}{explicit}",
         "video_folder_format": "{artist} - {title}{quality}",
         "video_file_format": "{title}",

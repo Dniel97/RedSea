@@ -219,6 +219,8 @@ Format variables are `{title}`, `{artist}`, `{album}`, `{tracknumber}`, `{discnu
 
 `album_format`: Base album directory - tracks and cover art are stored here. May have slashes in it, for instance {artist}/{album}.
 
+`playlist_format`: How playlist tracks are formatted, same as track_format just with `{playlistnumber}` added
+
 ### Video format
 
 Format variables are `{title}`, `{artist}`, `{tracknumber}`, `{discnumber}`, `{date}`, `{quality}`, `{explicit}`.

@@ -1011,6 +1011,10 @@ class TidalSessionFile(object):
             session_name = self.default
 
         if session_name in self.sessions:
+            # TODO: Only required for old sessions, remove if possible
+            if not hasattr(self.sessions[session_name], 'TIDAL_API_BASE'):
+                self.sessions[session_name].TIDAL_API_BASE = 'https://api.tidal.com/v1/'
+
             if not self.sessions[session_name].valid() and isinstance(self.sessions[session_name], TidalMobileSession):
                 self.sessions[session_name].refresh()
             if not self.sessions[session_name].valid() and isinstance(self.sessions[session_name], TidalTvSession):
@@ -1033,6 +1037,10 @@ class TidalSessionFile(object):
         '''
 
         if session_name in self.sessions:
+            # TODO: Only required for old sessions, remove if possible
+            if not hasattr(self.sessions[session_name], 'TIDAL_API_BASE'):
+                self.sessions[session_name].TIDAL_API_BASE = 'https://api.tidal.com/v1/'
+
             if not self.sessions[session_name].valid() and isinstance(self.sessions[session_name], TidalMobileSession):
                 self.sessions[session_name].refresh()
             if not self.sessions[session_name].valid() and isinstance(self.sessions[session_name], TidalTvSession):

@@ -278,7 +278,7 @@ def main():
         print('<<< Getting {0} info... >>>'.format(MEDIA_TYPES[mt['type']]))
 
         # Create a new TidalApi and pass it to a new MediaDownloader
-        md = MediaDownloader(TidalApi(RSF.load_session(args.account)), preset, Tagger(preset))
+        md = MediaDownloader(TidalApi(RSF.load_session(args.account)), preset.copy(), Tagger(preset))
 
         # Create a new session generator in case we need to switch sessions
         session_gen = RSF.get_session()
@@ -305,9 +305,14 @@ def main():
 
                     # Playlist
                     elif media['type'] == 'p':
+                        # Stupid mess to get the preset path rather than the modified path when > 2 playlist links added
+                        # md = MediaDownloader(TidalApi(RSF.load_session(args.account)), preset, Tagger(preset))
+
                         # Get playlist title to create path
                         playlist = md.api.get_playlist(media['id'])
-                        md.opts['path'] += '/' + md._sanitise_name(playlist['title'])
+
+                        creator = 'Tidal' if playlist['creator']['id'] == 0 else md._sanitise_name(playlist["creator"]["name"])
+                        md.opts['path'] = os.path.join(md.opts['path'], f'{creator} - {md._sanitise_name(playlist["title"])}')
                         # Make sure only tracks are in playlist items
                         playlist_items = md.api.get_playlist_items(media['id'])['items']
                         for item_ in playlist_items:
@@ -443,7 +448,8 @@ def main():
                 # Actually download the track (finally)
                 while True:
                     try:
-                        md.download_media(track, media_info, overwrite=args.overwrite)
+                        md.download_media(track, media_info, overwrite=args.overwrite,
+                                          track_num=cur+1 if mt['type'] == 'p' else None)
                         break
 
                     # Catch quality error

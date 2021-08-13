@@ -311,8 +311,18 @@ def main():
                         # Get playlist title to create path
                         playlist = md.api.get_playlist(media['id'])
 
-                        creator = 'Tidal' if playlist['creator']['id'] == 0 else md._sanitise_name(playlist["creator"]["name"])
-                        md.opts['path'] = os.path.join(md.opts['path'], f'{creator} - {md._sanitise_name(playlist["title"])}')
+                        # Ugly way to get the playlist creator
+                        creator = None
+                        if playlist['creator']['id'] == 0:
+                            creator = 'Tidal'
+                        elif 'name' in playlist['creator']:
+                            creator = md._sanitise_name(playlist["creator"]["name"])
+
+                        if creator:
+                            md.opts['path'] = os.path.join(md.opts['path'], f'{creator} - {md._sanitise_name(playlist["title"])}')
+                        else:
+                            md.opts['path'] = os.path.join(md.opts['path'], md._sanitise_name(playlist["title"]))
+
                         # Make sure only tracks are in playlist items
                         playlist_items = md.api.get_playlist_items(media['id'])['items']
                         for item_ in playlist_items:

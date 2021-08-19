@@ -157,8 +157,8 @@ class MediaDownloader(object):
     def search_for_id(self, term):
         return self.api.get_search_data(term)
 
-    def page(self, pageurl):
-        return self.api.get_page(pageurl)
+    def page(self, page_url, offset=None):
+        return self.api.get_page(page_url, offset)
 
     def type_from_id(self, id):
         return self.api.get_type_from_id(id)

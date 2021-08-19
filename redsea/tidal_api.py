@@ -138,8 +138,13 @@ class TidalApi:
             'includeContributors': 'true'
         })
 
-    def get_page(self, pageurl):
-        return self._get('pages/' + pageurl, params={'deviceType': 'TV', 'locale': 'en_US', 'mediaFormats': 'SONY_360'})
+    def get_page(self, page_url, offset=None):
+        return self._get('pages/' + page_url, params={
+            'deviceType': 'TV',
+            'locale': 'en_US',
+            'limit': 50 if offset else None,
+            'offset': offset if offset else None
+        })
 
     def get_credits(self, album_id):
         return self._get('albums/' + album_id + '/items/credits', params={

@@ -142,7 +142,7 @@ class TidalApi:
         return self._get('pages/' + page_url, params={
             'deviceType': 'TV',
             'locale': 'en_US',
-            'limit': 50 if offset else None,
+            'limit': 50,
             'offset': offset if offset else None
         })
 

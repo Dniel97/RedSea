@@ -1,5 +1,6 @@
 __pycache__/
 .venv
+venv/
 .vscode
 sessions.pk
 downloads/
@@ -8,3 +9,4 @@ downloads/
 settings.py
 node_modules/
 failed_tracks.txt
+.python-version

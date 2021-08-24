@@ -23,9 +23,8 @@ path: Base download directory
 convert_to_alac: Converts a .flac file to an ALAC .m4a file (requires ffmpeg)
 save_credits_txt: Saves a {track_format}.txt file with the file containing all the credits of a specific song
 embed_credits: Embeds all the credits tags inside a FLAC/MP4 file
-save_lyrics_lrc: Saves synced lyrics as .lrc using the Deezer API (from [deemix](https://codeberg.org/RemixDev/deemix)) or musiXmatch
+save_lyrics_lrc: Saves synced lyrics as .lrc using the official Tidal provider: musixmatch
 embed_lyrics: Embed the unsynced lyrics inside a FLAC/MP4 file
-lyrics_provider_order: Defines the order (from left to right) you want to get the lyrics from
 genre_language: Select the language of the genres from Deezer to "en-US", "de", "fr", ...
 artwork_size: Downloads (artwork_size)x(artwork_size) album covers from iTunes, set it to 0 to disable iTunes cover
 resolution: Which resolution you want to download the videos
@@ -35,6 +34,7 @@ quality: has a whitespace in front, so it will look like this " [Dolby Atmos]", 
 explicit: has a whitespace in front, so it will look like this " [E]"
 track_format: How tracks are formatted. The relevant extension is appended to the end.
 album_format: Base album directory - tracks and cover art are stored here. May have slashes in it, for instance {artist}/{album}.
+playlist_format: How playlist tracks are formatted, same as track_format just with {playlistnumber} added
 
 Format variables are {title}, {artist}, {tracknumber}, {discnumber}, {date}, {quality}, {explicit}.
 quality has a whitespace in front, so it will look like this " [1080P]" according to the highest available resolution returned by the API
@@ -58,8 +58,7 @@ BRUTEFORCEREGION = True
 SHOWAUTH = False
 
 # The Desktop token
-# TOKEN = '_DSTon1kC8pABnTw'    # ALAC only
-TOKEN = 'wc8j_yBJd20zOmx0'      # FLAC only
+TOKEN = 'c7RLy4RJ3OCNeZki'      # MQA Token
 
 # The mobile token which usually comes along with the authorization header
 # MOBILE_TOKEN = "WAU9gXp3tHhK4Nns"    # MQA Token
@@ -84,6 +83,7 @@ PRESETS = {
         "tries": 5,
         "path": path,
         "track_format": "{tracknumber} - {title}",
+        "playlist_format": "{playlistnumber} - {title}",
         "album_format": "{albumartist} - {album}{quality}{explicit}",
         "video_folder_format": "{artist} - {title}{quality}",
         "video_file_format": "{title}",
@@ -92,7 +92,6 @@ PRESETS = {
         "embed_credits": True,
         "save_lyrics_lrc": True,
         "embed_lyrics": True,
-        "lyrics_provider_order": ["Deezer", "musiXmatch"],
         "genre_language": "en-US",
         "artwork_size": 3000,
         "uncompressed_artwork": True,
@@ -114,6 +113,7 @@ PRESETS = {
         "tries": 5,
         "path": path,
         "track_format": "{tracknumber} - {title}",
+        "playlist_format": "{playlistnumber} - {title}",
         "album_format": "{albumartist} - {album}{quality}{explicit}",
         "video_folder_format": "{artist} - {title}{quality}",
         "video_file_format": "{title}",
@@ -122,7 +122,6 @@ PRESETS = {
         "embed_credits": True,
         "save_lyrics_lrc": True,
         "embed_lyrics": True,
-        "lyrics_provider_order": ["Deezer", "musiXmatch"],
         "genre_language": "en-US",
         "artwork_size": 3000,
         "uncompressed_artwork": True,
@@ -141,6 +140,7 @@ PRESETS = {
         "tries": 5,
         "path": path,
         "track_format": "{albumartist} - {title}",
+        "playlist_format": "{playlistnumber} - {title}",
         "video_folder_format": "{artist} - {title}{quality}",
         "video_file_format": "{title}",
         "album_format": "",
@@ -149,7 +149,6 @@ PRESETS = {
         "embed_credits": True,
         "save_lyrics_lrc": True,
         "embed_lyrics": True,
-        "lyrics_provider_order": ["Deezer", "musiXmatch"],
         "genre_language": "en-US",
         "artwork_size": 3000,
         "uncompressed_artwork": False,
@@ -168,6 +167,7 @@ PRESETS = {
         "tries": 5,
         "path": path,
         "track_format": "{tracknumber} - {title}",
+        "playlist_format": "{playlistnumber} - {title}",
         "album_format": "{albumartist} - {album}{quality}{explicit}",
         "video_folder_format": "{artist} - {title}{quality}",
         "video_file_format": "{title}",
@@ -176,7 +176,6 @@ PRESETS = {
         "embed_credits": True,
         "save_lyrics_lrc": True,
         "embed_lyrics": True,
-        "lyrics_provider_order": ["Deezer", "musiXmatch"],
         "genre_language": "en-US",
         "artwork_size": 3000,
         "uncompressed_artwork": True,

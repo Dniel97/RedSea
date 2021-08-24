@@ -117,25 +117,48 @@ def main():
             exit()
 
     elif args.urls[0] == 'explore':
-        if len(args.urls) == 3:
-            if args.urls[1] == 'dolby' and args.urls[2] == 'atmos':
+        try:
+            if args.urls[1] == 'atmos':
                 page = 'dolby_atmos'
-            elif args.urls[1] == 'sony' and args.urls[2] == '360':
+                if args.urls[2] == 'tracks':
+                    title = 'Tracks'
+                elif args.urls[2] == 'albums':
+                    title = 'Now Available'
+            elif args.urls[1] == '360':
                 page = '360'
-            else:
-                print("Example usage of explore: python redsea.py explore (dolby atmos/sony 360)")
-                exit()
-        else:
-            print("Example usage of explore: python redsea.py explore (dolby atmos/sony 360)")
+                title = 'Now available'
+        except IndexError:
+            print("Example usage of explore: python redsea.py explore (atmos (albums|tracks) | 360)")
             exit()
+
+        print(f'Selected: {page.replace("_", " ").title()} - {title}')
 
         md = MediaDownloader(TidalApi(RSF.load_session(args.account)), preset, Tagger(preset))
         page_content = md.page(page)
-        show_more_link = page_content['rows'][len(page_content['rows'])-1]['modules'][0]['showMore']['apiPath']
-        now_available = md.page(show_more_link[6:])
-        items = now_available['rows'][0]['modules'][0]['pagedList']['items']
+        if page == 'dolby_atmos':
+            # Iterate though all the page and find the module with the title: "Now Available" or "Tracks"
+            show_more_link = [module['modules'][0]['showMore']['apiPath'] for module in page_content['rows'] if module['modules'][0]['title'] == title][0]
+            singe_page_content = md.page(show_more_link[6:])
+
+            # Get the number of all items for offset and the dataApiPath
+            page_list = singe_page_content['rows'][0]['modules'][0]['pagedList']
+        elif page == '360':
+            # Old method for getting the albums
+            page_list = page_content['rows'][len(page_content['rows']) - 1]['modules'][0]['pagedList']
+
+        total_items = page_list['totalNumberOfItems']
+        more_items_link = page_list['dataApiPath'][6:]
+
+        # Now fetch all the found total_items
+        items = []
+        for offset in range(0, total_items//50 + 1):
+            print(f'Fetching {offset * 50}/{total_items}', end='\r')
+            items += md.page(more_items_link, offset * 50)['items']
+
+        print()
         total_items = len(items)
 
+        # Beauty print all found items
         for i in range(total_items):
             item = items[i]
 
@@ -156,7 +179,7 @@ def main():
             print(str(i + 1) + ") " + str(item['title']) + " - " + str(
                 item['artists'][0]['name']) + explicittag + specialtag + date)
 
-        print(str(total_items + 1) + ") Download all albums listed above")
+        print(str(total_items + 1) + ") Download all items listed above")
         print(str(total_items + 2) + ") Exit")
 
         while True:
@@ -169,11 +192,12 @@ def main():
                 break
             print()
 
+        # if 'album' in item['url'] is a really ugly way but well should be fine for now
         if chosen == total_items:
             print('Downloading all albums')
-            media_to_download = [{'id': str(item['id']), 'type': 'a'} for item in items]
+            media_to_download = [{'id': str(item['id']), 'type': 'a' if 'album' in item['url'] else 't'} for item in items]
         else:
-            media_to_download = [{'id': str(items[chosen]['id']), 'type': 'a'}]
+            media_to_download = [{'id': str(items[chosen]['id']), 'type': 'a' if 'album' in items[chosen]['url'] else 't'}]
 
     elif args.urls[0] == 'search':
         md = MediaDownloader(TidalApi(RSF.load_session(args.account)), preset, Tagger(preset))
@@ -278,7 +302,7 @@ def main():
         print('<<< Getting {0} info... >>>'.format(MEDIA_TYPES[mt['type']]))
 
         # Create a new TidalApi and pass it to a new MediaDownloader
-        md = MediaDownloader(TidalApi(RSF.load_session(args.account)), preset, Tagger(preset))
+        md = MediaDownloader(TidalApi(RSF.load_session(args.account)), preset.copy(), Tagger(preset))
 
         # Create a new session generator in case we need to switch sessions
         session_gen = RSF.get_session()
@@ -305,9 +329,24 @@ def main():
 
                     # Playlist
                     elif media['type'] == 'p':
+                        # Stupid mess to get the preset path rather than the modified path when > 2 playlist links added
+                        # md = MediaDownloader(TidalApi(RSF.load_session(args.account)), preset, Tagger(preset))
+
                         # Get playlist title to create path
                         playlist = md.api.get_playlist(media['id'])
-                        md.opts['path'] += '/' + md._sanitise_name(playlist['title'])
+
+                        # Ugly way to get the playlist creator
+                        creator = None
+                        if playlist['creator']['id'] == 0:
+                            creator = 'Tidal'
+                        elif 'name' in playlist['creator']:
+                            creator = md._sanitise_name(playlist["creator"]["name"])
+
+                        if creator:
+                            md.opts['path'] = os.path.join(md.opts['path'], f'{creator} - {md._sanitise_name(playlist["title"])}')
+                        else:
+                            md.opts['path'] = os.path.join(md.opts['path'], md._sanitise_name(playlist["title"]))
+
                         # Make sure only tracks are in playlist items
                         playlist_items = md.api.get_playlist_items(media['id'])['items']
                         for item_ in playlist_items:
@@ -443,7 +482,8 @@ def main():
                 # Actually download the track (finally)
                 while True:
                     try:
-                        md.download_media(track, media_info, overwrite=args.overwrite)
+                        md.download_media(track, media_info, overwrite=args.overwrite,
+                                          track_num=cur+1 if mt['type'] == 'p' else None)
                         break
 
                     # Catch quality error
@@ -457,7 +497,7 @@ def main():
                         else:
                             print('Halting on track "{} - {}" due to insufficient quality'.format(
                                 track['artist']['name'], track['title']))
-                            quit()
+                            break
 
                     # Catch file name errors
                     except OSError as e:

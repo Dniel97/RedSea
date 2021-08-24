@@ -131,9 +131,9 @@ Example:    `python redsea.py id id 92265335`
 
 Exploring new Dolby Atmos or 360 Reality Audio releases is now supported
 
-Usage:      `python redsea.py explore (dolby atmos/sony 360)`
+Usage:      `python redsea.py explore (atmos (albums|tracks) | 360)`
 
-Example:    `python redsea.py explore dolby atmos`
+Example:    `python redsea.py explore atmos tracks`
 
 Lyrics Support
 --------------
@@ -218,6 +218,8 @@ Format variables are `{title}`, `{artist}`, `{album}`, `{tracknumber}`, `{discnu
 `track_format`: How tracks are formatted. The relevant extension is appended to the end.
 
 `album_format`: Base album directory - tracks and cover art are stored here. May have slashes in it, for instance {artist}/{album}.
+
+`playlist_format`: How playlist tracks are formatted, same as track_format just with `{playlistnumber}` added
 
 ### Video format
 

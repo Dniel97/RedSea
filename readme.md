@@ -19,7 +19,7 @@ API implementation - it is contained in `redsea/tidal_api.py` and only requires 
 Choosing login types and client IDs
 -----------------------------------
 * To get the E-AC-3 codec version of Dolby Atmos Music, the TV sign in must be used with the client ID and secret of one of the supported Android TVs (full list below) (now included)
-* To get the AC-4 codec version of Dolby Atmos music, the Mobile sign in must be used with the client ID of one of the supported phones (default mobile works)
+* To get the AC-4 codec version of Dolby Atmos Music, the Mobile sign in must be used with the client ID of one of the supported phones (default mobile works)
 * To get MQA, use literally anything that is not the browser, nearly all client IDs work. (In this case change the client ID of the desktop login) (bring your own anything (TV, mobile, desktop))
 * To get ALAC without conversion, use the client ID of an iOS device, or the optional desktop token included from macOS (comment out the default FLAC supporting one, and uncomment the ALAC one) (secondary desktop works, or bring your own mobile)
 * To get 360, use the client ID of a supported Android or iOS device (nearly all support it anyway, so that's easy) (default mobile works)
@@ -30,35 +30,23 @@ Client IDs provided by default:
 * Desktop: Neither of the included ones support MQA! You must replace it with your own if you want MQA support! Default token can get FLACs only, whereas the optional one can get ALACs only (both are also able to get AAC)
 * Browser: Is completely unsupported for now, though why would you want it anyway?
 
-Note: Currently, mobile login is broken due to a recent change server-side on Tidal's end to validate reCAPTCHA responses finally, thus ending the saga unless we find a method to generate these responses automatically (unlikely)
-
-Further Reading on supported devices and codecs:
-* https://support.tidal.com/hc/en-us/articles/360004255778-Dolby-Atmos-Music (full up to date list of supported Android TVs for EAC-3 JOC)
-* https://github.com/google/ExoPlayer/issues/6667#issuecomment-555845608 (Android phones that are actually capable of decoding AC-4, slightly outdated)
-* https://www.dolby.com/experience/tidal/#tidal%20devices (some devices that support Dolby Atmos, missing a few devices that Tidal does actually support, but relatively up-to-date)
-* https://avid.secure.force.com/pkb/articles/en_US/faq/AvidPlay-Distributing-Dolby-Atmos-Music-FAQ (bitrates and other background information, really interesting)
-
-Retrieving your client ID
--------------------------
-Note: Android TVs use a slightly different system of client IDs plus client secrets, and the only way to retrieve EAC-3s is to root an NVIDIA Shield TV 2019, which is extremely complex and comes with its own issues, to get its client ID and secret, as none of the supported devices can have user certificates installed, and the NVIDIA Shield TV is the only one that can be rooted to do this.
-
-To get a client ID, you must do a man-in-the-middle-attack or otherwise. On Android this involves getting Tidal to accept user certificates. This can be done in two ways:
-1. Somehow modify the APK to add the certificate in yourself (difficult!)
-2. Force it to target Android Marshmallow (6.0, API 23) as it is the last version that user certificates are allowed
+Further Reading has moved to the wiki: [https://github.com/Dniel97/RedSea/wiki/Technical-info](https://github.com/Dniel97/RedSea/wiki/Technical-info)
 
 Requirements
 ------------
 * Python (3.6 or higher)
-* requests
+* requests (2.22.0 or higher)
 * mutagen (1.37 or higher)
 * pycryptodomex
 * ffmpeg-python (0.2.0 or higher)
+* prettytable (1.0.0 or higher)
+* tqdm (4.56.0 or higher)
 * deezerapi (already included from [deemix](https://codeberg.org/RemixDev/deemix))
 
 
 Installation
 ------------
-The new more detailed Installation Guide has been moved to the Wiki: [https://github.com/Dniel97/RedSea/wiki/Installation-Guide](https://github.com/Dniel97/RedSea/wiki/Installation-Guide)
+The new more detailed Installation Guide has been moved to the wiki: [https://github.com/Dniel97/RedSea/wiki/Installation-Guide](https://github.com/Dniel97/RedSea/wiki/Installation-Guide)
 
 How to add accounts/sessions
 ----------------------------
@@ -72,10 +60,10 @@ How to add accounts/sessions
 
     list                Lists stored sessions if any exist
 
-    add                 Prompts for a TV or Mobile session. The TV option
+    add                 Prompts for a TV, Mobile or Desktop session. The TV option
                         displays a 6 digit key which should be entered inside 
-                        link.tidal.com where the user can login. The Mobile option
-                        prompts for a Tidal username and password. Both options
+                        link.tidal.com where the user can login. The Mobile/Desktop
+                        option prompts for a Tidal username and password. Both options
                         authorize a session which then gets stored in
                         the sessions file
 
@@ -86,6 +74,8 @@ How to add accounts/sessions
                         -a flag has not been passed
 
     reauth              Reauthenticates with server to get new sessionId
+
+Further reading on which session to choose and which prompts to choose in the wiki: [https://github.com/Dniel97/RedSea/wiki/Adding-a-session](https://github.com/Dniel97/RedSea/wiki/Adding-a-session)
 
 How to use
 ----------

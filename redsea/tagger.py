@@ -88,10 +88,12 @@ class Tagger(object):
             else:
                 tagger['discnumber'] = str(track_info['volumeNumber'])
             if album_info['releaseDate']:
-                # TODO: less hacky way of getting the year?
                 tagger['date'] = str(album_info['releaseDate'][:4])
-            if album_info['upc'] and track_type == 'm4a':
-                tagger['upc'] = album_info['upc'].encode()
+            if album_info['upc']:
+                if track_type == 'm4a':
+                    tagger['upc'] = album_info['upc'].encode()
+                elif track_type == 'flac':
+                    tagger['UPC'] = album_info['upc']
 
         if track_info['version'] is not None and track_info['version'] != '':
             fmt = ' ({})'.format(track_info['version'])
@@ -113,7 +115,7 @@ class Tagger(object):
             if track_type == 'm4a':
                 tagger['explicit'] = b'\x01' if track_info['explicit'] else b'\x02'
             elif track_type == 'flac':
-                tagger['ITUNESADVISORY'] = '1' if track_info['explicit'] else '2'
+                tagger['Rating'] = 'Explicit' if track_info['explicit'] else 'Clean'
 
         # Set genre from Deezer
         if 'genre' in track_info:

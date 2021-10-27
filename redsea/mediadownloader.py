@@ -505,14 +505,14 @@ class MediaDownloader(object):
 
                         # Get unsynced lyrics
                         if self.opts['embed_lyrics']:
-                            if 'lyrics' in lyrics_data:
+                            if 'lyrics' in lyrics_data and lyrics_data['lyrics']:
                                 lyrics = lyrics_data['lyrics']
                             else:
                                 print('\tNo unsynced lyrics could be found!')
 
                         # Get synced lyrics
                         if self.opts['save_lyrics_lrc']:
-                            if 'subtitles' in lyrics_data:
+                            if 'subtitles' in lyrics_data and lyrics_data['subtitles']:
                                 if not os.path.isfile(os.path.splitext(track_path)[0] + '.lrc'):
                                     with open((os.path.splitext(track_path)[0] + '.lrc'), 'wb') as f:
                                         f.write(lyrics_data['subtitles'].encode('utf-8'))

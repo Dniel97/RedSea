@@ -123,39 +123,46 @@ def main():
                 if args.urls[2] == 'tracks':
                     title = 'Tracks'
                 elif args.urls[2] == 'albums':
-                    title = 'Now Available'
+                    title = 'Just Released'
             elif args.urls[1] == '360':
                 page = '360'
-                title = 'Now available'
+                if args.urls[2] == 'tracks':
+                    title = 'New Tracks'
+                elif args.urls[2] == 'albums':
+                    title = 'Now Available'
         except IndexError:
-            print("Example usage of explore: python redsea.py explore (atmos (albums|tracks) | 360)")
+            print("Example usage of explore: python redsea.py explore (atmos|360) (albums|tracks)")
             exit()
 
         print(f'Selected: {page.replace("_", " ").title()} - {title}')
 
         md = MediaDownloader(TidalApi(RSF.load_session(args.account)), preset, Tagger(preset))
         page_content = md.page(page)
-        if page == 'dolby_atmos':
-            # Iterate though all the page and find the module with the title: "Now Available" or "Tracks"
-            show_more_link = [module['modules'][0]['showMore']['apiPath'] for module in page_content['rows'] if module['modules'][0]['title'] == title][0]
-            singe_page_content = md.page(show_more_link[6:])
 
+        # Iterate though all the page and find the module with the title: "Now Available" or "Tracks"
+        show_more_link = [module['modules'][0]['showMore']['apiPath'] for module in page_content['rows'] if
+                          module['modules'][0]['title'] == title and module['modules'][0]['showMore']]
+
+        # Check if the module has more entries than the preview
+        if show_more_link:
+            singe_page_content = md.page(show_more_link[0][6:])
             # Get the number of all items for offset and the dataApiPath
             page_list = singe_page_content['rows'][0]['modules'][0]['pagedList']
-        elif page == '360':
-            # Old method for getting the albums
-            page_list = page_content['rows'][len(page_content['rows']) - 1]['modules'][0]['pagedList']
 
-        total_items = page_list['totalNumberOfItems']
-        more_items_link = page_list['dataApiPath'][6:]
+            total_items = page_list['totalNumberOfItems']
+            more_items_link = page_list['dataApiPath'][6:]
 
-        # Now fetch all the found total_items
-        items = []
-        for offset in range(0, total_items//50 + 1):
-            print(f'Fetching {offset * 50}/{total_items}', end='\r')
-            items += md.page(more_items_link, offset * 50)['items']
+            # Now fetch all the found total_items
+            items = []
+            for offset in range(0, total_items//50 + 1):
+                print(f'Fetching {offset * 50}/{total_items}', end='\r')
+                items += md.page(more_items_link, offset * 50)['items']
 
-        print()
+            print()
+        else:
+            items = [module['modules'][0]['pagedList']['items'] for module in page_content['rows'] if
+                     module['modules'][0]['title'] == title][0]
+
         total_items = len(items)
 
         # Beauty print all found items

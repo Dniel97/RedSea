@@ -292,10 +292,8 @@ class MediaDownloader(object):
                 print("\tWarning: DRM has been detected. If you do not have the decryption key, do not use web login.")
             elif 'manifestMimeType' in playback_info:
                 if playback_info['manifestMimeType'] == 'application/dash+xml':
-                    raise AssertionError('\tPlease use a mobile session for the track ' + str(playback_info['trackId'])
-                                         + ' in ' + str(playback_info['audioQuality']) + ' audio quality. This cannot '
-                                                                                         'be downloaded with a TV '
-                                                                                         'session for now.\n')
+                    raise AssertionError(f'\tUnable to download track {playback_info["trackId"]} in '
+                                         f'{playback_info["audioQuality"]}!\n')
 
             if not DRM:
                 manifest = json.loads(manifest_unparsed)

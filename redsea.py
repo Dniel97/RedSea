@@ -123,7 +123,7 @@ def main():
                 if args.urls[2] == 'tracks':
                     title = 'Tracks'
                 elif args.urls[2] == 'albums':
-                    title = 'Just Released'
+                    title = 'New Albums'
             elif args.urls[1] == '360':
                 page = '360'
                 if args.urls[2] == 'tracks':
@@ -141,28 +141,22 @@ def main():
 
         # Iterate though all the page and find the module with the title: "Now Available" or "Tracks"
         show_more_link = [module['modules'][0]['showMore']['apiPath'] for module in page_content['rows'] if
-                          module['modules'][0]['title'] == title and module['modules'][0]['showMore']]
+                          module['modules'][0]['title'] == title]
 
-        # Check if the module has more entries than the preview
-        if show_more_link:
-            singe_page_content = md.page(show_more_link[0][6:])
-            # Get the number of all items for offset and the dataApiPath
-            page_list = singe_page_content['rows'][0]['modules'][0]['pagedList']
+        singe_page_content = md.page(show_more_link[0][6:])
+        # Get the number of all items for offset and the dataApiPath
+        page_list = singe_page_content['rows'][0]['modules'][0]['pagedList']
 
-            total_items = page_list['totalNumberOfItems']
-            more_items_link = page_list['dataApiPath'][6:]
+        total_items = page_list['totalNumberOfItems']
+        more_items_link = page_list['dataApiPath'][6:]
 
-            # Now fetch all the found total_items
-            items = []
-            for offset in range(0, total_items//50 + 1):
-                print(f'Fetching {offset * 50}/{total_items}', end='\r')
-                items += md.page(more_items_link, offset * 50)['items']
+        # Now fetch all the found total_items
+        items = []
+        for offset in range(0, total_items//50 + 1):
+            print(f'Fetching {offset * 50}/{total_items}', end='\r')
+            items += md.page(more_items_link, offset * 50)['items']
 
-            print()
-        else:
-            items = [module['modules'][0]['pagedList']['items'] for module in page_content['rows'] if
-                     module['modules'][0]['title'] == title][0]
-
+        print()
         total_items = len(items)
 
         # Beauty print all found items

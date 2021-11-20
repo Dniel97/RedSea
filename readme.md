@@ -1,10 +1,13 @@
 RedSea
 ======
-Music downloader and tagger for Tidal. For educational use only, and may break in the future.
+Music downloader and tagger for Tidal. For educational use only, and will break in the future.
 
 Current state
 -------------
-This fork is currently maintained by me ([Dniel97](https://github.com/Dniel97))
+**This fork will only get bug/hotfixes by me ([Dniel97](https://github.com/Dniel97)). Currently, Tidal changes/removes old
+tokens which supported single .flac/.m4a files and the newer tokens only receives MPEG-DASH which would require a lot of
+rewrite! For now is deprecated in favor of a newer [OrpheusDL](https://github.com/yarrm80s/orpheusdl) module: 
+[Orpheus Tidal module](https://github.com/Dniel97/orpheusdl-tidal).**
 
 Telegram
 --------

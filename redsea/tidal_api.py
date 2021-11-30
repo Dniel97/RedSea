@@ -547,14 +547,14 @@ class TidalMobileSession(TidalSession):
             'x-csrf-token': s.cookies['_csrf-token']
         })
 
-        assert (r.status_code == 200)
+        if r.status_code == 401:
+            raise TidalAuthError('Incorrect password')
 
         # retrieve access code
         r = s.get('https://login.tidal.com/success?lang=en', allow_redirects=False, verify=False, headers={
             'User-Agent': self.user_agent
         })
-        if r.status_code == 401:
-            raise TidalAuthError('Incorrect password')
+
         assert (r.status_code == 302)
         url = urlparse.urlparse(r.headers['location'])
         oauth_code = parse_qs(url.query)['code'][0]
@@ -853,13 +853,13 @@ class TidalWebSession(TidalSession):
             'x-csrf-token': s.cookies['_csrf-token']
         })
 
-        assert (r.status_code == 200)
+        if r.status_code == 401:
+            raise TidalAuthError('Incorrect password')
 
         # retrieve access code
         r = s.get('https://login.tidal.com/success?lang=en', allow_redirects=False, verify=False)
-        if r.status_code == 401:
-            raise TidalAuthError('Incorrect password')
-        assert (r.status_code == 302)
+
+        assert r.status_code == 302
         url = urlparse.urlparse(r.headers['location'])
         oauth_code = parse_qs(url.query)['code'][0]
 

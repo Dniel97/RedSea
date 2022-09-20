@@ -1,6 +1,6 @@
 import getpass
 
-from redsea.tidal_api import TidalSessionFile, TidalRequestError, TidalMobileSession, TidalTvSession, TidalWebSession, SessionFormats
+from redsea.tidal_api import TidalSessionFile, TidalRequestError, TidalMobileSession, TidalTvSession, SessionFormats
 
 
 class RedseaSessionFile(TidalSessionFile):
@@ -22,18 +22,13 @@ class RedseaSessionFile(TidalSessionFile):
         '''
         # confirm = input('Do you want to use the new TV authorization (needed for E-AC-3 JOC)? [y/N]? ')
         confirm = input('Which login method do you want to use: TV (needed for MQA, E-AC-3), '
-                        'Mobile (needed for MQA, AC-4), Desktop (MQA) or Web (FLAC only, encrypted so nearly useless)? [t/m/d/w]? ')
+                        'Mobile (needed for MQA, AC-4, 360) [t/m]? ')
 
         token_confirm = 'N'
 
+        device = 'mobile'
         if confirm.upper() == 'T':
             device = 'tv'
-        elif confirm.upper() == 'M':
-            device = 'mobile'
-        elif confirm.upper() == 'W':
-            device = 'web'
-        else:
-            device = ''
 
         while True:
             if device != 'tv' and token_confirm.upper() == 'N':
@@ -157,8 +152,6 @@ class RedseaSessionFile(TidalSessionFile):
                 device = '[MOBILE]'
             elif isinstance(self.sessions[s], TidalTvSession) and not mobile_only:
                 device = '[TV]'
-            elif isinstance(self.sessions[s], TidalWebSession):
-                device = '[WEB]'
             else:
                 device = '[DESKTOP]'
 

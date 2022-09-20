@@ -8,6 +8,6 @@
   },
   "author": "Dniel97",
   "devDependencies": {
-    "electron": "^12.1.0"
+    "electron": "^15.5.5"
   }
 }
